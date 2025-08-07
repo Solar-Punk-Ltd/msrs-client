@@ -1,0 +1,16 @@
+@use '@/styles/globals.scss';
+
+.profile-picture {
+  @extend .flex-center;
+  position: relative;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 50%;
+  color: #efefef;
+  box-shadow: 0 5px 10px 0 #0000001a;
+  backdrop-filter: blur(20px);
+}
