@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Hls, { Events } from 'hls.js';
 import PQueue from 'p-queue';
 
+import PlayIcon from '@/assets/icons/playIcon.png';
 import DefaultPreviewImage from '@/assets/images/defaultPreviewImage.png';
 import { formatDuration } from '@/utils/format';
 
@@ -115,10 +116,7 @@ export const StreamPreview = ({ manifestUrl, owner, topic, state, duration, medi
 
       {showThumbnail && !isLoading && isDataAvailable && (
         <div className="stream-preview-button-wrapper">
-          <img
-            src="https://rpc.beebridge.buzz/read/bzz/78d8aa2af97a6060a7807b7a0830ee2b24c1569e71c8d1b7f7edd875172512cc/assets/playIcon.png"
-            alt="play-icon"
-          />
+          <img src={PlayIcon} alt="play-icon" />
           <div className="stream-preview-button">
             <span className="stream-preview-button-title">{title}</span>
             {state === 'live' && <span className="stream-preview-button-state">{state}</span>}
@@ -130,10 +128,7 @@ export const StreamPreview = ({ manifestUrl, owner, topic, state, duration, medi
       )}
       {showThumbnail && !isLoading && !isDataAvailable && (
         <div className="stream-preview-error">
-          <img
-            src="https://rpc.beebridge.buzz/read/bzz/78d8aa2af97a6060a7807b7a0830ee2b24c1569e71c8d1b7f7edd875172512cc/assets/defaultPreviewImage.png"
-            alt=""
-          />
+          <img src={DefaultPreviewImage} alt="" />
         </div>
       )}
     </div>
