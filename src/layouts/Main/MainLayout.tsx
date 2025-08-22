@@ -13,7 +13,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const { isOnline } = useNetworkStatus();
-  const { isLoginModalOpen, setIsLoginModalOpen } = useUserContext();
+  const { isLoginModalOpen } = useUserContext();
 
   return (
     <div className="main-layout" role="main-layout">
@@ -22,7 +22,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <img src={SpLogo} alt="logo" className="logo" />
         <LoginButton />
       </header>
-      {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} />}
+      {isLoginModalOpen && <LoginModal />}
       <div className="content">{children}</div>
     </div>
   );

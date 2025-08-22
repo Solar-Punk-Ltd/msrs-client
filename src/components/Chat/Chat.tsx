@@ -36,7 +36,7 @@ function getColorForName(name: string): string {
 const privKeyPlaceholder = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
 export const Chat: React.FC<ChatProps> = ({ topic }) => {
-  const { nickname, key, setIsLoginModalOpen } = useUserContext();
+  const { nickname, keys, setIsLoginModalOpen } = useUserContext();
   const [selectedMessage, setSelectedMessage] = useState<VisibleMessage | null>(null);
   const [isThreadView, setIsThreadView] = useState(false);
   const [reactionLoadingState, setReactionLoadingState] = useState<Record<string, string>>({});
@@ -59,7 +59,7 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
   } = useSwarmChat({
     user: {
       nickname: nickname || '',
-      privateKey: key.private || privKeyPlaceholder,
+      privateKey: keys.private || privKeyPlaceholder,
     },
     infra: {
       beeUrl: config.writerBeeUrl,
@@ -144,7 +144,7 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
           onEmojiReaction={handleEmojiReaction}
           onRetry={retrySendMessage}
           getColorForName={getColorForName}
-          currentUserAddress={key.public || ''}
+          currentUserAddress={keys.public || ''}
           reactionLoadingState={reactionLoadingState}
           disabled={isAnyOperationLoading}
           onLoginPrompt={() => setIsLoginModalOpen(true)}
@@ -176,7 +176,7 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
                   requested={Boolean(item.requested)}
                   name={item.username}
                   profileColor={getColorForName(item.username)}
-                  ownMessage={item.address === key.public!}
+                  ownMessage={item.address === keys.public!}
                   reactions={groupedReactions[item.id] || []}
                   threadCount={getThreadMessages(item.id).count}
                   onRetry={() => retrySendMessage(item)}
@@ -188,18 +188,18 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
                     Object.entries(reactionLoadingState).find(([key]) => key.startsWith(item.id))?.[1] || ''
                   }
                   disabled={isAnyOperationLoading}
-                  isLoggedIn={Boolean(key.public)}
+                  isLoggedIn={Boolean(keys.public)}
                 />
               )}
             />
           )}
 
-          {!chatLoading && !key.public && (
+          {!chatLoading && !keys.public && (
             <Button onClick={() => setIsLoginModalOpen(true)} className="chat-login-prompt">
               Please log in to send messages.
             </Button>
           )}
-          {!chatLoading && key.public && (
+          {!chatLoading && keys.public && (
             <MessageSender onSend={handleMessageSending} disabled={isAnyOperationLoading} />
           )}
         </>

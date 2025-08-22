@@ -86,3 +86,39 @@
   font-size: 18px;
   width: auto !important;
 }
+
+.login-modal-mode-switch {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.login-modal-switch-link {
+  background: none;
+  border: none;
+  color: #efefef;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.8;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.login-modal-error {
+  background-color: rgba(255, 0, 0, 0.2);
+  border: 1px solid rgba(255, 0, 0, 0.5);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  color: #ffcccc;
+  font-size: 14px;
+  text-align: center;
+}

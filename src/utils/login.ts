@@ -1,9 +1,16 @@
 import CryptoJS from 'crypto-js';
 
 import { config } from './config';
+import { getSigner } from './wallet';
 
 export interface InstanceConfig {
   adminCredentialRef: string;
+}
+
+export interface AdminConfig {
+  instanceId: string;
+  adminCredentialRef: string;
+  createdAt: number;
 }
 
 interface CredentialBundle {
@@ -22,17 +29,18 @@ interface TokenData {
   signature: string;
 }
 
-export interface AdminSession {
+export interface Session {
   adminId: string;
-  username: string;
   instanceId: string;
+  username: string;
+  publicKey: string;
+  privateKey: string;
   loginTime: number;
   expiresAt: number;
 }
 
 export interface LoginResult {
-  success: boolean;
-  session?: AdminSession;
+  session?: Session;
   error?: string;
 }
 
@@ -74,9 +82,30 @@ const downloadDataFromSwarm = async (swarmHash: string): Promise<CredentialBundl
   return response.json();
 };
 
-export const login = async (instanceConfig: InstanceConfig, password: string): Promise<LoginResult> => {
+export const getAdminConfigs = async (): Promise<AdminConfig[]> => {
   try {
-    const swarmHash = instanceConfig.adminCredentialRef;
+    const adminConfigs = await import('../configs/instance-admins.json');
+    return adminConfigs.default || adminConfigs;
+  } catch (error) {
+    console.error('Failed to load admin configs:', error);
+    return [];
+  }
+};
+
+export const findAdminByUsername = async (username: string): Promise<AdminConfig | null> => {
+  const adminConfigs = await getAdminConfigs();
+  const adminConfig = adminConfigs.find((config) => config.instanceId === username);
+  return adminConfig || null;
+};
+
+export const adminlogin = async (username: string, password: string): Promise<LoginResult> => {
+  try {
+    const adminConfig = await findAdminByUsername(username);
+    if (!adminConfig) {
+      throw new Error('Admin not found');
+    }
+
+    const swarmHash = adminConfig.adminCredentialRef;
 
     const credentialBundle = await downloadDataFromSwarm(swarmHash);
 
@@ -99,63 +128,55 @@ export const login = async (instanceConfig: InstanceConfig, password: string): P
       throw new Error('Invalid credentials');
     }
 
-    const session: AdminSession = {
+    const signer = getSigner(tokenData.secret);
+    if (!signer) {
+      throw new Error('Invalid secret');
+    }
+
+    const privKey = signer.toHex();
+    const pubKey = signer.publicKey().address().toHex();
+
+    const session: Session = {
       adminId: tokenData.adminId,
       username: tokenData.username,
       instanceId: tokenData.instanceId,
       loginTime: Date.now(),
       expiresAt: Date.now() + 60 * 60 * 1000,
+      publicKey: pubKey,
+      privateKey: privKey,
     };
 
-    sessionStorage.setItem('adminSession', JSON.stringify(session));
-
     return {
-      success: true,
       session,
     };
   } catch (error) {
     console.error('Login failed:', error);
     return {
-      success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 };
 
-export const isLoggedIn = (): boolean => {
-  const session = sessionStorage.getItem('adminSession');
-  if (!session) return false;
-
-  try {
-    const sessionData: AdminSession = JSON.parse(session);
-    if (Date.now() > sessionData.expiresAt) {
-      sessionStorage.removeItem('adminSession');
-      return false;
-    }
-    return true;
-  } catch {
-    sessionStorage.removeItem('adminSession');
-    return false;
+export const nicknameLogin = async (nickname: string): Promise<LoginResult> => {
+  const signer = getSigner(nickname);
+  if (!signer) {
+    return { error: 'Invalid nickname' };
   }
-};
 
-export const logout = (): void => {
-  sessionStorage.removeItem('adminSession');
-};
+  const privKey = signer.toHex();
+  const pubKey = signer.publicKey().address().toHex();
 
-export const getCurrentSession = (): AdminSession | null => {
-  const session = sessionStorage.getItem('adminSession');
-  if (!session) return null;
+  const session: Session = {
+    adminId: '',
+    username: nickname,
+    instanceId: '',
+    loginTime: Date.now(),
+    expiresAt: Date.now() + 60 * 60 * 1000,
+    publicKey: pubKey,
+    privateKey: privKey,
+  };
 
-  try {
-    const sessionData: AdminSession = JSON.parse(session);
-    if (Date.now() > sessionData.expiresAt) {
-      sessionStorage.removeItem('adminSession');
-      return null;
-    }
-    return sessionData;
-  } catch {
-    sessionStorage.removeItem('adminSession');
-    return null;
-  }
+  return {
+    session,
+  };
 };
