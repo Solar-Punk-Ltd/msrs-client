@@ -1,11 +1,12 @@
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { StreamList } from './StreamList';
 
-jest.mock('@/components/StreamPreview/StreamPreview', () => ({
+vi.mock('@/components/StreamPreview/StreamPreview', () => ({
   StreamPreview: (props: any) => <div data-testid="stream-preview">{props.title || props.topic}</div>,
 }));
-jest.mock('@/providers/App', () => ({
+vi.mock('@/providers/App', () => ({
   useAppContext: () => ({
     streamList: [
       {
@@ -31,17 +32,17 @@ jest.mock('@/providers/App', () => ({
     ],
   }),
 }));
-jest.mock('@/utils/bee', () => ({
+vi.mock('@/utils/bee', () => ({
   makeFeedIdentifier: () => ({
     toHex: () => 'feedhex',
   }),
 }));
-jest.mock('@/utils/config', () => ({
+vi.mock('@/utils/config', () => ({
   config: {
     readerBeeUrl: 'http://mockbee',
   },
 }));
-jest.mock('@ethersphere/bee-js', () => ({
+vi.mock('@ethersphere/bee-js', () => ({
   Topic: { fromString: (s: string) => s },
   FeedIndex: { fromBigInt: () => ({}) },
 }));

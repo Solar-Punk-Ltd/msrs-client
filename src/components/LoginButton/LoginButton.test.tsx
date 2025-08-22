@@ -1,13 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LoginButton } from './LoginButton';
 
-jest.mock('@/components/Button/Button', () => ({
+vi.mock('@/components/Button/Button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 }));
 
-const setIsLoginModalOpen = jest.fn();
-jest.mock('@/providers/User', () => ({
+const setIsLoginModalOpen = vi.fn();
+vi.mock('@/providers/User', () => ({
   useUserContext: () => ({
     isUserLoggedIn: false,
     setIsLoginModalOpen,

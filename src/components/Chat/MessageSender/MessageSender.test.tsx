@@ -1,10 +1,11 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { MessageSender } from './MessageSender';
 
 // Mock the ReactionToolbar component to avoid emoji picker issues in tests
-jest.mock('./ReactionToolbar/ReactionToolbar', () => ({
+vi.mock('./ReactionToolbar/ReactionToolbar', () => ({
   ReactionToolbar: ({ onEmojiSelect }: { onEmojiSelect?: (emoji: string) => void }) => (
     <div data-testid="reaction-toolbar">
       <button onClick={() => onEmojiSelect?.('😀')} data-testid="emoji-button">
@@ -22,7 +23,7 @@ describe('MessageSender', () => {
   });
 
   it('calls onSend with trimmed input when send button is clicked', async () => {
-    const onSend = jest.fn();
+    const onSend = vi.fn();
     render(<MessageSender onSend={onSend} />);
     const input = screen.getByPlaceholderText(/please type here/i);
     const button = document.querySelector('.message-sender-send-button') as HTMLButtonElement;
@@ -34,7 +35,7 @@ describe('MessageSender', () => {
   });
 
   it('calls onSend when Enter is pressed', async () => {
-    const onSend = jest.fn();
+    const onSend = vi.fn();
     render(<MessageSender onSend={onSend} />);
     const input = screen.getByPlaceholderText(/please type here/i);
 
@@ -45,7 +46,7 @@ describe('MessageSender', () => {
   });
 
   it('does not call onSend if input is empty or only whitespace', async () => {
-    const onSend = jest.fn();
+    const onSend = vi.fn();
     render(<MessageSender onSend={onSend} />);
     const input = screen.getByPlaceholderText(/please type here/i);
     const button = document.querySelector('.message-sender-send-button') as HTMLButtonElement;

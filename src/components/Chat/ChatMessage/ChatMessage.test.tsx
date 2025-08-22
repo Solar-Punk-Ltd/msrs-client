@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ChatMessage } from './ChatMessage';
 
@@ -9,7 +10,7 @@ describe('ChatMessage', () => {
     profileColor: '#ff0000',
     received: true,
     error: false,
-    onEmojiReaction: jest.fn(),
+    onEmojiReaction: vi.fn(),
   };
 
   it('renders the message text', () => {
@@ -29,7 +30,7 @@ describe('ChatMessage', () => {
   });
 
   it('shows retry button if error and onRetry are provided', () => {
-    const onRetry = jest.fn();
+    const onRetry = vi.fn();
     render(<ChatMessage {...baseProps} error={true} onRetry={onRetry} />);
     const retryButton = screen.getByRole('button', { name: /retry/i });
     expect(retryButton).toBeInTheDocument();
