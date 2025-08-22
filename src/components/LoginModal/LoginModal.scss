@@ -1,4 +1,4 @@
-.name-setter-container {
+.login-modal-container {
   position: absolute;
   top: 0;
   left: 0;
@@ -16,7 +16,7 @@
   }
 }
 
-.name-setter-modal {
+.login-modal {
   position: relative;
   width: 100%;
   height: 272px;
@@ -34,16 +34,16 @@
   }
 }
 
-.name-setter-modal-header {
+.login-modal-header {
   font-size: 24px;
   margin-bottom: 24px;
 }
 
-.name-setter-modal-content {
+.login-modal-content {
   margin-bottom: 24px;
 }
 
-.name-setter-modal-input {
+.login-modal-input {
   display: flex;
   align-items: center;
   border: none;
@@ -58,7 +58,7 @@
   width: 100%;
 }
 
-.name-setter-modal-input-container {
+.login-modal-input-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -69,14 +69,14 @@
   box-sizing: border-box;
 }
 
-.name-setter-modal-button-container {
+.login-modal-button-container {
   display: flex;
   justify-content: end;
   gap: 16px;
   margin-top: 50px;
 }
 
-.name-setter-button {
+.login-modal-button {
   display: flex;
   align-items: center;
   height: 40px;

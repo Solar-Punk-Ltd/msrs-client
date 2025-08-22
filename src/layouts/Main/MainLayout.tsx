@@ -1,6 +1,6 @@
 import SpLogo from '@/assets/images/sp-logo.png';
 import { LoginButton } from '@/components/LoginButton/LoginButton';
-import { NameSetterModal } from '@/components/NameSetterModal/NameSetterModal';
+import { LoginModal } from '@/components/LoginModal/LoginModal';
 import { NetworkStatus } from '@/components/NetworkStatus/NetworkStatus';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useUserContext } from '@/providers/User';
@@ -13,7 +13,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const { isOnline } = useNetworkStatus();
-  const { isNicknameModalOpen, setIsNicknameModalOpen } = useUserContext();
+  const { isLoginModalOpen, setIsLoginModalOpen } = useUserContext();
 
   return (
     <div className="main-layout" role="main-layout">
@@ -22,7 +22,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <img src={SpLogo} alt="logo" className="logo" />
         <LoginButton />
       </header>
-      {isNicknameModalOpen && <NameSetterModal onClose={() => setIsNicknameModalOpen(false)} />}
+      {isLoginModalOpen && <LoginModal onClose={() => setIsLoginModalOpen(false)} />}
       <div className="content">{children}</div>
     </div>
   );

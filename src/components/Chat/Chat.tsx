@@ -36,7 +36,7 @@ function getColorForName(name: string): string {
 const privKeyPlaceholder = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
 export const Chat: React.FC<ChatProps> = ({ topic }) => {
-  const { nickname, key, setIsNicknameModalOpen } = useUserContext();
+  const { nickname, key, setIsLoginModalOpen } = useUserContext();
   const [selectedMessage, setSelectedMessage] = useState<VisibleMessage | null>(null);
   const [isThreadView, setIsThreadView] = useState(false);
   const [reactionLoadingState, setReactionLoadingState] = useState<Record<string, string>>({});
@@ -147,7 +147,7 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
           currentUserAddress={key.public || ''}
           reactionLoadingState={reactionLoadingState}
           disabled={isAnyOperationLoading}
-          onLoginPrompt={() => setIsNicknameModalOpen(true)}
+          onLoginPrompt={() => setIsLoginModalOpen(true)}
         />
       ) : (
         <>
@@ -195,7 +195,7 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
           )}
 
           {!chatLoading && !key.public && (
-            <Button onClick={() => setIsNicknameModalOpen(true)} className="chat-login-prompt">
+            <Button onClick={() => setIsLoginModalOpen(true)} className="chat-login-prompt">
               Please log in to send messages.
             </Button>
           )}

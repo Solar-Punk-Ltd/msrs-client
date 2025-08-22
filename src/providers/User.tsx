@@ -11,8 +11,8 @@ interface ContextInterface {
   setIsUserLoggedIn: (isUserLoggedIn: boolean) => void;
   nickname: string;
   setNickname: (nickName: string) => void;
-  isNicknameModalOpen: boolean;
-  setIsNicknameModalOpen: (isNickNameModalOpen: boolean) => void;
+  isLoginModalOpen: boolean;
+  setIsLoginModalOpen: (isLoginModalOpen: boolean) => void;
 }
 
 const initialValues: ContextInterface = {
@@ -24,8 +24,8 @@ const initialValues: ContextInterface = {
   setIsUserLoggedIn: () => {},
   nickname: '',
   setNickname: () => {},
-  isNicknameModalOpen: false,
-  setIsNicknameModalOpen: () => {},
+  isLoginModalOpen: false,
+  setIsLoginModalOpen: () => {},
 };
 
 export const Context = createContext<ContextInterface>(initialValues);
@@ -44,7 +44,7 @@ interface Props {
 export function Provider({ children }: Props): ReactElement {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const [nickname, setNickname] = useState('');
-  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const getKeys = () => {
     if (!nickname) {
@@ -66,8 +66,8 @@ export function Provider({ children }: Props): ReactElement {
         setIsUserLoggedIn,
         nickname,
         setNickname,
-        isNicknameModalOpen,
-        setIsNicknameModalOpen,
+        isLoginModalOpen,
+        setIsLoginModalOpen,
       }}
     >
       {children}
