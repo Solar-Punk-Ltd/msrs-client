@@ -14,10 +14,15 @@ export interface AdminConfig {
 }
 
 interface CredentialBundle {
+  instanceId: string;
   checksum?: string;
-  encrypted: string;
-  salt: string;
-  iv: string;
+  encrypted: {
+    encrypted: string;
+    salt: string;
+    iv: string;
+    authTag: string;
+  };
+  createdAt: number;
 }
 
 interface TokenData {
@@ -58,20 +63,55 @@ const createHmac = (secret: string, data: Record<string, string>): string => {
   return CryptoJS.HmacSHA256(JSON.stringify(data), secret).toString();
 };
 
-const decryptWithPassword = async (encryptedBundle: CredentialBundle, password: string): Promise<DecryptedData> => {
-  // Derive key from password
-  const key = CryptoJS.PBKDF2(password, CryptoJS.enc.Base64.parse(encryptedBundle.salt), {
-    keySize: 256 / 32,
-    iterations: 100000,
-  });
+const decryptWithPassword = async (encryptedBundle: any, password: string): Promise<DecryptedData> => {
+  try {
+    const encoder = new TextEncoder();
+    const passwordBuffer = encoder.encode(password);
 
-  const decrypted = CryptoJS.AES.decrypt(encryptedBundle.encrypted, key, {
-    iv: CryptoJS.enc.Base64.parse(encryptedBundle.iv),
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7,
-  });
+    const keyMaterial = await crypto.subtle.importKey('raw', passwordBuffer, 'PBKDF2', false, [
+      'deriveBits',
+      'deriveKey',
+    ]);
 
-  return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+    // Derive the same key using the same parameters as msrs auth script
+    const key = await crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: Uint8Array.from(atob(encryptedBundle.salt), (c) => c.charCodeAt(0)),
+        iterations: 100000,
+        hash: 'SHA-256',
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt'],
+    );
+
+    const encryptedBytes = Uint8Array.from(atob(encryptedBundle.encrypted), (c) => c.charCodeAt(0));
+    const authTag = Uint8Array.from(atob(encryptedBundle.authTag), (c) => c.charCodeAt(0));
+
+    // GCM expects the auth tag to be appended to the encrypted data
+    const combined = new Uint8Array(encryptedBytes.length + authTag.length);
+    combined.set(encryptedBytes);
+    combined.set(authTag, encryptedBytes.length);
+
+    const decrypted = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: Uint8Array.from(atob(encryptedBundle.iv), (c) => c.charCodeAt(0)),
+      },
+      key,
+      combined,
+    );
+
+    const decoder = new TextDecoder();
+    const decryptedStr = decoder.decode(decrypted);
+
+    return JSON.parse(decryptedStr);
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw new Error('Failed to decrypt credentials - invalid password or corrupted data');
+  }
 };
 
 const downloadDataFromSwarm = async (swarmHash: string): Promise<CredentialBundle> => {
@@ -109,12 +149,32 @@ export const adminlogin = async (username: string, password: string): Promise<Lo
 
     const credentialBundle = await downloadDataFromSwarm(swarmHash);
 
-    const checksum = createPasswordChecksum(password);
-    if (credentialBundle.checksum && credentialBundle.checksum !== checksum) {
-      throw new Error('Invalid password');
+    const encryptedData = credentialBundle.encrypted;
+
+    if (
+      !credentialBundle ||
+      !encryptedData ||
+      !encryptedData.encrypted ||
+      !encryptedData.salt ||
+      !encryptedData.iv ||
+      !encryptedData.authTag
+    ) {
+      throw new Error('Invalid credential data structure');
     }
 
-    const decrypted = await decryptWithPassword(credentialBundle, password);
+    // quick check
+    if (credentialBundle.checksum) {
+      const checksum = createPasswordChecksum(password);
+      if (credentialBundle.checksum !== checksum) {
+        throw new Error('Invalid password');
+      }
+    }
+
+    const decrypted = await decryptWithPassword(encryptedData, password);
+
+    if (!decrypted || !decrypted.token) {
+      throw new Error('Invalid decrypted data structure');
+    }
 
     const tokenData: TokenData = JSON.parse(atob(decrypted.token));
 

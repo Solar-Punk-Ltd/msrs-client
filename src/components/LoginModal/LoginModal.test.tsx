@@ -34,8 +34,8 @@ describe('LoginModal', () => {
 
   it('renders modal with input and buttons', () => {
     render(<LoginModal />);
-    expect(screen.getByText(/Please add your nickname/i)).toBeInTheDocument();
-    expect(screen.getByText(/Nickname:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Please add your username/i)).toBeInTheDocument();
+    expect(screen.getByText(/Username:/i)).toBeInTheDocument();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
     expect(screen.getByText('OK')).toBeInTheDocument();
   });
@@ -86,11 +86,11 @@ describe('LoginModal', () => {
     expect(screen.getByText(/Password:/i)).toBeInTheDocument();
   });
 
-  it('can switch back to nickname mode', () => {
+  it('can switch back to username mode', () => {
     render(<LoginModal />);
     fireEvent.click(screen.getByText('Admin Login'));
-    fireEvent.click(screen.getByText('Nickname Login'));
-    expect(screen.getByText(/Please add your nickname/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('User Login'));
+    expect(screen.getByText(/Please add your username/i)).toBeInTheDocument();
   });
 
   it('shows error when trying to admin login with empty credentials', async () => {
@@ -106,7 +106,7 @@ describe('LoginModal', () => {
     expect(loginAsAdmin).not.toHaveBeenCalled();
   });
 
-  it('shows error when nickname is invalid', async () => {
+  it('shows error when username is invalid', async () => {
     render(<LoginModal />);
     const input = screen.getByRole('textbox');
 
@@ -116,6 +116,6 @@ describe('LoginModal', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(screen.getByText(/Nickname must be between 1 and 20 characters/i)).toBeInTheDocument();
+    expect(screen.getByText(/Username must be between 1 and 20 characters/i)).toBeInTheDocument();
   });
 });
