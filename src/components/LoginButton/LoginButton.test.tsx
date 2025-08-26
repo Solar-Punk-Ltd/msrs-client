@@ -1,23 +1,24 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LoginButton } from './LoginButton';
 
-jest.mock('@/components/Button/Button', () => ({
+vi.mock('@/components/Button/Button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 }));
 
-const setIsNicknameModalOpen = jest.fn();
-jest.mock('@/providers/User', () => ({
+const setIsLoginModalOpen = vi.fn();
+vi.mock('@/providers/User', () => ({
   useUserContext: () => ({
     isUserLoggedIn: false,
-    setIsNicknameModalOpen,
+    setIsLoginModalOpen,
     nickname: 'TestUser',
   }),
 }));
 
 describe('LoginButton', () => {
   beforeEach(() => {
-    setIsNicknameModalOpen.mockClear();
+    setIsLoginModalOpen.mockClear();
   });
 
   it('renders "Login" when user is not logged in', () => {
@@ -25,9 +26,9 @@ describe('LoginButton', () => {
     expect(screen.getByText('Login')).toBeInTheDocument();
   });
 
-  it('calls setIsNicknameModalOpen when clicked (not logged in)', () => {
+  it('calls setIsLoginModalOpen when clicked (not logged in)', () => {
     render(<LoginButton />);
     fireEvent.click(screen.getByText('Login'));
-    expect(setIsNicknameModalOpen).toHaveBeenCalledWith(true);
+    expect(setIsLoginModalOpen).toHaveBeenCalledWith(true);
   });
 });

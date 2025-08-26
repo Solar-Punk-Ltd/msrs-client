@@ -1,37 +1,38 @@
 import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { StreamBrowser } from './StreamBrowser';
 
-jest.mock('@/components/StreamList/StreamList', () => ({
+vi.mock('@/components/StreamList/StreamList', () => ({
   StreamList: () => <div data-testid="stream-list">StreamList</div>,
 }));
 
-const setNewStreamList = jest.fn();
-const fetchAppState = jest.fn();
-jest.mock('@/providers/App', () => ({
+const setNewStreamList = vi.fn();
+const fetchAppState = vi.fn();
+vi.mock('@/providers/App', () => ({
   useAppContext: () => ({
     fetchAppState,
     setNewStreamList,
   }),
 }));
 
-jest.mock('swr', () => jest.fn());
+vi.mock('swr', () => ({ default: vi.fn() }));
 
 import useSWR from 'swr';
 
 describe('StreamBrowser', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders the StreamList component', () => {
-    (useSWR as jest.Mock).mockReturnValue({ data: undefined });
+    (useSWR as any).mockReturnValue({ data: undefined });
     render(<StreamBrowser />);
     expect(screen.getByTestId('stream-list')).toBeInTheDocument();
   });
 
   it('calls setNewStreamList when data is available', () => {
-    (useSWR as jest.Mock).mockReturnValue({ data: { streams: ['a', 'b'] } });
+    (useSWR as any).mockReturnValue({ data: { streams: ['a', 'b'] } });
     render(<StreamBrowser />);
     expect(setNewStreamList).toHaveBeenCalledWith({ streams: ['a', 'b'] });
   });

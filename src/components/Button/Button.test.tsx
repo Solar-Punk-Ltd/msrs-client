@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-
-import '@testing-library/jest-dom';
+import { describe, expect, it, vi } from 'vitest';
 
 import { Button, ButtonVariant } from './Button';
 
@@ -11,7 +10,7 @@ describe('Button', () => {
   });
 
   it('calls onClick when clicked', () => {
-    const mock = jest.fn();
+    const mock = vi.fn();
     render(
       <Button onClick={mock} variant={ButtonVariant.PRIMARY}>
         Click me
@@ -32,7 +31,7 @@ describe('Button', () => {
   });
 
   it('disabled button does not call onClick', () => {
-    const mock = jest.fn();
+    const mock = vi.fn();
     render(
       <Button variant={ButtonVariant.PRIMARY} onClick={mock} disabled>
         Disabled

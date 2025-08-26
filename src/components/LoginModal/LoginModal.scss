@@ -1,4 +1,4 @@
-.name-setter-container {
+.login-modal-container {
   position: absolute;
   top: 0;
   left: 0;
@@ -16,12 +16,12 @@
   }
 }
 
-.name-setter-modal {
+.login-modal {
   position: relative;
   width: 100%;
-  height: 272px;
   top: 10%;
   padding: 24px;
+  max-height: fit-content;
   box-sizing: border-box;
   background: linear-gradient(180deg, #8841e4 0%, #ff8a50 100%),
     linear-gradient(0deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0));
@@ -34,16 +34,16 @@
   }
 }
 
-.name-setter-modal-header {
+.login-modal-header {
   font-size: 24px;
   margin-bottom: 24px;
 }
 
-.name-setter-modal-content {
+.login-modal-content {
   margin-bottom: 24px;
 }
 
-.name-setter-modal-input {
+.login-modal-input {
   display: flex;
   align-items: center;
   border: none;
@@ -58,7 +58,7 @@
   width: 100%;
 }
 
-.name-setter-modal-input-container {
+.login-modal-input-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -67,16 +67,17 @@
   padding: 9px;
   height: 40px;
   box-sizing: border-box;
+  margin: 8px 0px;
 }
 
-.name-setter-modal-button-container {
+.login-modal-button-container {
   display: flex;
   justify-content: end;
   gap: 16px;
-  margin-top: 50px;
+  margin-top: 20px;
 }
 
-.name-setter-button {
+.login-modal-button {
   display: flex;
   align-items: center;
   height: 40px;
@@ -85,4 +86,40 @@
   padding-bottom: 0px;
   font-size: 18px;
   width: auto !important;
+}
+
+.login-modal-mode-switch {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.login-modal-switch-link {
+  background: none;
+  border: none;
+  color: #efefef;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.8;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.login-modal-error {
+  background-color: rgba(255, 0, 0, 0.2);
+  border: 1px solid rgba(255, 0, 0, 0.5);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  color: #ffcccc;
+  font-size: 14px;
+  text-align: center;
 }

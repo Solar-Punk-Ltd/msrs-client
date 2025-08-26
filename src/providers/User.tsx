@@ -1,31 +1,33 @@
-import { createContext, ReactChild, ReactElement, useContext, useState } from 'react';
+import { createContext, ReactChild, ReactElement, useContext, useMemo, useState } from 'react';
 
-import { getSigner } from '@/utils/wallet';
+import { adminlogin, nicknameLogin, Session } from '@/utils/login';
 
 interface ContextInterface {
-  key: {
-    private: string | null;
-    public: string | null;
+  keys: {
+    private: string;
+    public: string;
   };
-  isUserLoggedIn: boolean;
-  setIsUserLoggedIn: (isUserLoggedIn: boolean) => void;
+  loginAsAdmin: (username: string, password: string) => Promise<void>;
+  loginAsUser: (username: string) => Promise<void>;
   nickname: string;
-  setNickname: (nickName: string) => void;
-  isNicknameModalOpen: boolean;
-  setIsNicknameModalOpen: (isNickNameModalOpen: boolean) => void;
+  isUserLoggedIn: boolean;
+  isAdmin: boolean;
+  isLoginModalOpen: boolean;
+  setIsLoginModalOpen: (isLoginModalOpen: boolean) => void;
 }
 
 const initialValues: ContextInterface = {
-  key: {
-    private: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-    public: null,
+  keys: {
+    private: '',
+    public: '',
   },
-  isUserLoggedIn: false,
-  setIsUserLoggedIn: () => {},
+  loginAsAdmin: async () => {},
+  loginAsUser: async () => {},
   nickname: '',
-  setNickname: () => {},
-  isNicknameModalOpen: false,
-  setIsNicknameModalOpen: () => {},
+  isUserLoggedIn: false,
+  isAdmin: false,
+  isLoginModalOpen: false,
+  setIsLoginModalOpen: () => {},
 };
 
 export const Context = createContext<ContextInterface>(initialValues);
@@ -42,32 +44,59 @@ interface Props {
 }
 
 export function Provider({ children }: Props): ReactElement {
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
-  const [nickname, setNickname] = useState('');
-  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  const getKeys = () => {
-    if (!nickname) {
-      return initialValues.key;
+  const loginAsAdmin = async (username: string, password: string) => {
+    const res = await adminlogin(username, password);
+
+    if (res.session) {
+      setSession(res.session);
+      setIsLoginModalOpen(false);
+    } else {
+      console.error('Admin login failed:', res.error);
+    }
+  };
+
+  const loginAsUser = async (username: string) => {
+    const res = await nicknameLogin(username);
+
+    if (res.session) {
+      setSession(res.session);
+      setIsLoginModalOpen(false);
+    } else {
+      console.error('User login failed:', res.error);
+    }
+  };
+
+  const nickname = useMemo(() => session?.username || '', [session]);
+
+  const isUserLoggedIn = useMemo(() => !!session, [session]);
+
+  const isAdmin = useMemo(() => session?.adminId !== undefined, [session]);
+
+  const keys = useMemo(() => {
+    if (!session) {
+      return { private: '', public: '' };
     }
 
-    const signer = getSigner(nickname);
     return {
-      private: signer.toHex(),
-      public: signer.publicKey().address().toHex(),
+      private: session.privateKey,
+      public: session.publicKey,
     };
-  };
+  }, [session]);
 
   return (
     <Context.Provider
       value={{
-        key: getKeys(),
-        isUserLoggedIn,
-        setIsUserLoggedIn,
+        keys,
+        loginAsAdmin,
+        loginAsUser,
         nickname,
-        setNickname,
-        isNicknameModalOpen,
-        setIsNicknameModalOpen,
+        isUserLoggedIn,
+        isAdmin,
+        isLoginModalOpen,
+        setIsLoginModalOpen,
       }}
     >
       {children}
