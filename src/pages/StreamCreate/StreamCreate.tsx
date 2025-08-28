@@ -2,11 +2,35 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
+import { DescriptionField } from '@/components/StreamCreateForm/DescriptionField';
+import { ErrorMessage } from '@/components/StreamCreateForm/ErrorMessage';
+import { MediaTypeField } from '@/components/StreamCreateForm/MediaTypeField';
+import { NameField } from '@/components/StreamCreateForm/NameField';
+import { PreviewField } from '@/components/StreamCreateForm/PreviewField';
+import { ScheduleField } from '@/components/StreamCreateForm/ScheduleField';
+import { ThumbnailField } from '@/components/StreamCreateForm/ThumbnailField';
+import { useStreamForm } from '@/hooks/useStreamCreateForm';
 import { ROUTES } from '@/routes';
 
 import './StreamCreate.scss';
 
-interface StreamMetadata {
+export const LIMITS = {
+  NAME_MAX_LENGTH: 100,
+  DESCRIPTION_MAX_LENGTH: 500,
+  THUMBNAIL_MAX_SIZE: 5 * 1024 * 1024, // 5MB
+};
+
+export const ERROR_MESSAGES = {
+  NAME_REQUIRED: 'Stream name is required',
+  NAME_TOO_LONG: `Stream name must be less than ${LIMITS.NAME_MAX_LENGTH} characters`,
+  DESCRIPTION_REQUIRED: 'Description is required',
+  DESCRIPTION_TOO_LONG: `Description must be less than ${LIMITS.DESCRIPTION_MAX_LENGTH} characters`,
+  THUMBNAIL_REQUIRED: 'Thumbnail is required',
+  THUMBNAIL_TOO_LARGE: 'Thumbnail file size must be less than 5MB',
+  SCHEDULED_TIME_REQUIRED: 'Scheduled start time is required',
+};
+
+export interface StreamMetadata {
   name: string;
   description: string;
   thumbnail: File | null;
@@ -14,58 +38,153 @@ interface StreamMetadata {
   scheduledStartTime?: Date;
 }
 
+function StreamPreview({
+  metadata,
+  error,
+  isLoading,
+  onBack,
+  onConfirm,
+}: {
+  metadata: StreamMetadata;
+  error: string | null;
+  isLoading: boolean;
+  onBack: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="stream-create-preview">
+      <ErrorMessage error={error} />
+
+      <div className="stream-create-preview-header">
+        <h2>Stream Preview</h2>
+      </div>
+
+      <div className="stream-create-preview-content">
+        <PreviewField label="Stream Name" value={metadata.name} />
+        <PreviewField label="Description" value={metadata.description || 'No description provided'} />
+        <PreviewField label="Media Type" value={metadata.mediaType === 'video' ? 'Video Stream' : 'Audio Stream'} />
+
+        {metadata.thumbnail && (
+          <PreviewField label="Thumbnail" value={metadata.thumbnail.name} file={metadata.thumbnail} type="thumbnail" />
+        )}
+
+        {metadata.scheduledStartTime && (
+          <PreviewField label="Scheduled Start Time" value={metadata.scheduledStartTime.toLocaleString()} />
+        )}
+      </div>
+
+      <div className="stream-create-actions">
+        <Button
+          variant={ButtonVariant.SECONDARY}
+          onClick={onBack}
+          disabled={isLoading}
+          className="stream-create-cancel-button"
+        >
+          Back to Edit
+        </Button>
+        <Button onClick={onConfirm} disabled={isLoading} className="stream-create-submit-button">
+          {isLoading ? 'Creating Stream...' : 'Create Stream'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function StreamForm({
+  metadata,
+  error,
+  isLoading,
+  isValid,
+  onFieldChange,
+  onCancel,
+  onPreview,
+  onError,
+}: {
+  metadata: StreamMetadata;
+  error: string | null;
+  isLoading: boolean;
+  isValid: boolean;
+  onFieldChange: (field: keyof StreamMetadata, value: any) => void;
+  onCancel: () => void;
+  onPreview: () => void;
+  onError: (error: string) => void;
+}) {
+  return (
+    <div className="stream-create-form">
+      <ErrorMessage error={error} />
+
+      <div className="stream-create-section">
+        <NameField value={metadata.name} onChange={(value) => onFieldChange('name', value)} disabled={isLoading} />
+
+        <DescriptionField
+          value={metadata.description}
+          onChange={(value) => onFieldChange('description', value)}
+          disabled={isLoading}
+        />
+
+        <MediaTypeField
+          value={metadata.mediaType}
+          onChange={(value) => onFieldChange('mediaType', value)}
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className="stream-create-section">
+        <ThumbnailField onChange={(file) => onFieldChange('thumbnail', file)} disabled={isLoading} onError={onError} />
+      </div>
+
+      <div className="stream-create-section">
+        <ScheduleField
+          value={metadata.scheduledStartTime}
+          onChange={(date) => onFieldChange('scheduledStartTime', date)}
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className="stream-create-actions">
+        <Button
+          variant={ButtonVariant.SECONDARY}
+          onClick={onCancel}
+          disabled={isLoading}
+          className="stream-create-cancel-button"
+        >
+          Cancel
+        </Button>
+        <Button onClick={onPreview} disabled={isLoading || !isValid} className="stream-create-submit-button">
+          Preview
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function StreamCreate() {
   const navigate = useNavigate();
+  const { metadata, updateField, validateForm, isValid } = useStreamForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [metadata, setMetadata] = useState<StreamMetadata>({
-    name: '',
-    description: '',
-    thumbnail: null,
-    mediaType: 'video',
-    scheduledStartTime: undefined,
-  });
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
-  const handleInputChange = (field: keyof StreamMetadata, value: any) => {
-    setMetadata((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleThumbnailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
-        setError('Thumbnail file size must be less than 5MB');
-        return;
-      }
-
-      setMetadata((prev) => ({ ...prev, thumbnail: file }));
-    }
-  };
-
-  const handleBackButtonClick = () => {
+  const handleCancel = () => {
     navigate(ROUTES.STREAM_BROWSER);
+  };
+
+  const handlePreview = () => {
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError(null);
+    setIsPreviewMode(true);
+  };
+
+  const handleBackToEdit = () => {
+    setIsPreviewMode(false);
   };
 
   const handleCreateStream = async () => {
     setError(null);
-
-    // Validation
-    if (!metadata.name.trim()) {
-      setError('Stream name is required');
-      return;
-    }
-
-    if (metadata.name.length > 100) {
-      setError('Stream name must be less than 100 characters');
-      return;
-    }
-
-    if (metadata.description.length > 500) {
-      setError('Description must be less than 500 characters');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -75,7 +194,6 @@ export function StreamCreate() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Navigate back to browser or to the new stream
       navigate(ROUTES.STREAM_BROWSER);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create stream');
@@ -86,117 +204,26 @@ export function StreamCreate() {
 
   return (
     <div className="stream-create">
-      <div className="stream-create-form">
-        {error && <div className="stream-create-error">{error}</div>}
-
-        <div className="stream-create-section">
-          <div className="stream-create-field">
-            <label htmlFor="stream-name">Stream Name</label>
-            <input
-              id="stream-name"
-              type="text"
-              value={metadata.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Enter your stream name"
-              maxLength={100}
-              disabled={isLoading}
-              className="stream-create-input"
-            />
-            <span className="stream-create-char-count">{metadata.name.length}/100</span>
-          </div>
-
-          <div className="stream-create-field">
-            <label htmlFor="stream-description">Description</label>
-            <textarea
-              id="stream-description"
-              value={metadata.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe your stream..."
-              maxLength={500}
-              disabled={isLoading}
-              className="stream-create-textarea"
-              rows={4}
-            />
-            <span className="stream-create-char-count">{metadata.description.length}/500</span>
-          </div>
-
-          <div className="stream-create-field">
-            <label>Media Type</label>
-            <div className="stream-create-radio-group">
-              <label className="stream-create-radio">
-                <input
-                  type="radio"
-                  value="video"
-                  checked={metadata.mediaType === 'video'}
-                  onChange={(e) => handleInputChange('mediaType', e.target.value)}
-                  disabled={isLoading}
-                />
-                Video Stream
-              </label>
-              <label className="stream-create-radio">
-                <input
-                  type="radio"
-                  value="audio"
-                  checked={metadata.mediaType === 'audio'}
-                  onChange={(e) => handleInputChange('mediaType', e.target.value)}
-                  disabled={isLoading}
-                />
-                Audio Only
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div className="stream-create-section">
-          <div className="stream-create-field">
-            <label htmlFor="stream-thumbnail">Upload Thumbnail (Max 5MB)</label>
-            <input
-              id="stream-thumbnail"
-              type="file"
-              accept="image/*"
-              onChange={handleThumbnailChange}
-              disabled={isLoading}
-              className="stream-create-file-input"
-            />
-          </div>
-        </div>
-
-        <div className="stream-create-section">
-          <div className="stream-create-field">
-            <label htmlFor="scheduled-time">Scheduled Start Time</label>
-            <input
-              id="scheduled-time"
-              type="datetime-local"
-              value={metadata.scheduledStartTime?.toISOString().slice(0, 16) || ''}
-              onChange={(e) => {
-                const date = e.target.value ? new Date(e.target.value) : undefined;
-                handleInputChange('scheduledStartTime', date);
-              }}
-              disabled={isLoading}
-              className="stream-create-input"
-              min={new Date().toISOString().slice(0, 16)}
-            />
-          </div>
-        </div>
-
-        <div className="stream-create-actions">
-          <Button
-            variant={ButtonVariant.SECONDARY}
-            onClick={handleBackButtonClick}
-            disabled={isLoading}
-            className="stream-create-cancel-button"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleCreateStream}
-            disabled={isLoading || !metadata.name.trim()}
-            className="stream-create-submit-button"
-          >
-            {isLoading ? 'Creating Stream...' : 'Create Stream'}
-          </Button>
-        </div>
-      </div>
+      {isPreviewMode ? (
+        <StreamPreview
+          metadata={metadata}
+          error={error}
+          isLoading={isLoading}
+          onBack={handleBackToEdit}
+          onConfirm={handleCreateStream}
+        />
+      ) : (
+        <StreamForm
+          metadata={metadata}
+          error={error}
+          isLoading={isLoading}
+          isValid={isValid}
+          onFieldChange={updateField}
+          onCancel={handleCancel}
+          onPreview={handlePreview}
+          onError={setError}
+        />
+      )}
     </div>
   );
 }

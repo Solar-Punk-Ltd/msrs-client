@@ -1,0 +1,44 @@
+@use './_shared.scss' as shared;
+
+.thumbnail-field {
+  @include shared.field-container;
+
+  .thumbnail-file-input {
+    @include shared.input-base;
+    padding: 8px !important;
+    cursor: pointer;
+    color: #ffffff !important;
+
+    &::file-selector-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      color: #ffffff;
+      padding: 6px 12px;
+      margin-right: 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    &::-webkit-file-upload-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      color: #ffffff;
+      padding: 6px 12px;
+      margin-right: 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+  }
+
+  .thumbnail-filename {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
