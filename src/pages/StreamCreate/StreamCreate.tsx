@@ -56,7 +56,7 @@ function StreamPreview({
       <ErrorMessage error={error} />
 
       <div className="stream-create-preview-header">
-        <h2>Stream Preview</h2>
+        <h2>Stream Meta Preview</h2>
       </div>
 
       <div className="stream-create-preview-content">

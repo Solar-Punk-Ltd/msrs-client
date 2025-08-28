@@ -28,13 +28,18 @@
   flex-direction: column;
   gap: 8px;
 
+  max-width: 210px;
+  width: 100%;
+  aspect-ratio: 210 / 180; // Stream Browser item grid size
+  overflow: hidden;
+  border-radius: 12px;
+
   img {
-    max-width: 200px;
-    max-height: 120px;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     background: #000;
+    display: block;
   }
 
   &-filename {
@@ -44,5 +49,7 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
+    box-sizing: border-box;
+    width: 100%;
   }
 }
