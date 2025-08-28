@@ -35,10 +35,6 @@
   &.secondary {
     background-color: #0000006b;
 
-    @media (min-width: 480px) {
-      width: 250px;
-    }
-
     &:hover {
       background-color: #959595;
     }

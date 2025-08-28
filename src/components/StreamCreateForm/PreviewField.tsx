@@ -4,7 +4,7 @@ interface PreviewFieldProps {
   label: string;
   value: string;
   file?: File;
-  type?: 'text' | 'thumbnail';
+  type?: 'text' | 'thumbnail' | 'description';
 }
 
 export function PreviewField({ label, value, file, type = 'text' }: PreviewFieldProps) {
@@ -16,7 +16,7 @@ export function PreviewField({ label, value, file, type = 'text' }: PreviewField
           <img src={URL.createObjectURL(file)} alt="Thumbnail preview" />
         </div>
       ) : (
-        <div className="preview-value">{value}</div>
+        <div className={`preview-value${type === 'description' ? ' description' : ''}`}>{value}</div>
       )}
     </div>
   );

@@ -61,7 +61,7 @@ function StreamPreview({
 
       <div className="stream-create-preview-content">
         <PreviewField label="Stream Name" value={metadata.name} />
-        <PreviewField label="Description" value={metadata.description || 'No description provided'} />
+        <PreviewField label="Description" value={metadata.description} type="description" />
         <PreviewField label="Media Type" value={metadata.mediaType === 'video' ? 'Video Stream' : 'Audio Stream'} />
 
         {metadata.thumbnail && (
