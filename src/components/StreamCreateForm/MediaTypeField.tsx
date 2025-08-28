@@ -3,11 +3,11 @@ import './MediaTypeField.scss';
 export function MediaTypeField({
   value,
   onChange,
-  disabled,
+  disabled = false,
 }: {
   value: 'video' | 'audio';
   onChange: (value: 'video' | 'audio') => void;
-  disabled: boolean;
+  disabled?: boolean;
 }) {
   return (
     <div className="media-type-field">

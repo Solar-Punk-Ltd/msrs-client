@@ -93,7 +93,6 @@ function StreamPreview({
 function StreamForm({
   metadata,
   error,
-  isLoading,
   isValid,
   onFieldChange,
   onCancel,
@@ -102,7 +101,6 @@ function StreamForm({
 }: {
   metadata: StreamMetadata;
   error: string | null;
-  isLoading: boolean;
   isValid: boolean;
   onFieldChange: (field: keyof StreamMetadata, value: any) => void;
   onCancel: () => void;
@@ -114,43 +112,29 @@ function StreamForm({
       <ErrorMessage error={error} />
 
       <div className="stream-create-section">
-        <NameField value={metadata.name} onChange={(value) => onFieldChange('name', value)} disabled={isLoading} />
+        <NameField value={metadata.name} onChange={(value) => onFieldChange('name', value)} />
 
-        <DescriptionField
-          value={metadata.description}
-          onChange={(value) => onFieldChange('description', value)}
-          disabled={isLoading}
-        />
+        <DescriptionField value={metadata.description} onChange={(value) => onFieldChange('description', value)} />
 
-        <MediaTypeField
-          value={metadata.mediaType}
-          onChange={(value) => onFieldChange('mediaType', value)}
-          disabled={isLoading}
-        />
+        <MediaTypeField value={metadata.mediaType} onChange={(value) => onFieldChange('mediaType', value)} />
       </div>
 
       <div className="stream-create-section">
-        <ThumbnailField onChange={(file) => onFieldChange('thumbnail', file)} disabled={isLoading} onError={onError} />
+        <ThumbnailField onChange={(file) => onFieldChange('thumbnail', file)} onError={onError} />
       </div>
 
       <div className="stream-create-section">
         <ScheduleField
           value={metadata.scheduledStartTime}
           onChange={(date) => onFieldChange('scheduledStartTime', date)}
-          disabled={isLoading}
         />
       </div>
 
       <div className="stream-create-actions">
-        <Button
-          variant={ButtonVariant.SECONDARY}
-          onClick={onCancel}
-          disabled={isLoading}
-          className="stream-create-cancel-button"
-        >
+        <Button variant={ButtonVariant.SECONDARY} onClick={onCancel} className="stream-create-cancel-button">
           Cancel
         </Button>
-        <Button onClick={onPreview} disabled={isLoading || !isValid} className="stream-create-submit-button">
+        <Button onClick={onPreview} disabled={!isValid} className="stream-create-submit-button">
           Preview
         </Button>
       </div>
@@ -216,7 +200,6 @@ export function StreamCreate() {
         <StreamForm
           metadata={metadata}
           error={error}
-          isLoading={isLoading}
           isValid={isValid}
           onFieldChange={updateField}
           onCancel={handleCancel}

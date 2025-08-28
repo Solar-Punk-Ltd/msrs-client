@@ -4,11 +4,11 @@ import './ThumbnailField.scss';
 
 export function ThumbnailField({
   onChange,
-  disabled,
   onError,
+  disabled = false,
 }: {
   onChange: (file: File) => void;
-  disabled: boolean;
+  disabled?: boolean;
   onError: (error: string) => void;
 }) {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -5,11 +5,11 @@ import './DescriptionField.scss';
 export function DescriptionField({
   value,
   onChange,
-  disabled,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }) {
   return (
     <div className="description-field">

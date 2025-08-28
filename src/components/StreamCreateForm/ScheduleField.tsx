@@ -3,11 +3,11 @@ import './ScheduleField.scss';
 export function ScheduleField({
   value,
   onChange,
-  disabled,
+  disabled = false,
 }: {
   value?: Date;
   onChange: (date?: Date) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }) {
   return (
     <div className="schedule-field">
