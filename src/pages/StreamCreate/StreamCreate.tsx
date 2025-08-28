@@ -93,7 +93,6 @@ function StreamPreview({
 function StreamForm({
   metadata,
   error,
-  isValid,
   onFieldChange,
   onCancel,
   onPreview,
@@ -101,7 +100,6 @@ function StreamForm({
 }: {
   metadata: StreamMetadata;
   error: string | null;
-  isValid: boolean;
   onFieldChange: (field: keyof StreamMetadata, value: any) => void;
   onCancel: () => void;
   onPreview: () => void;
@@ -112,15 +110,28 @@ function StreamForm({
       <ErrorMessage error={error} />
 
       <div className="stream-create-section">
-        <NameField value={metadata.name} onChange={(value) => onFieldChange('name', value)} />
+        <NameField
+          value={metadata.name}
+          onChange={(value) => onFieldChange('name', value)}
+          maxLength={LIMITS.NAME_MAX_LENGTH}
+        />
 
-        <DescriptionField value={metadata.description} onChange={(value) => onFieldChange('description', value)} />
+        <DescriptionField
+          value={metadata.description}
+          onChange={(value) => onFieldChange('description', value)}
+          maxLength={LIMITS.DESCRIPTION_MAX_LENGTH}
+        />
 
         <MediaTypeField value={metadata.mediaType} onChange={(value) => onFieldChange('mediaType', value)} />
       </div>
 
       <div className="stream-create-section">
-        <ThumbnailField onChange={(file) => onFieldChange('thumbnail', file)} onError={onError} />
+        <ThumbnailField
+          onChange={(file) => onFieldChange('thumbnail', file)}
+          onError={onError}
+          maxSize={LIMITS.THUMBNAIL_MAX_SIZE}
+          errorMessage={ERROR_MESSAGES.THUMBNAIL_TOO_LARGE}
+        />
       </div>
 
       <div className="stream-create-section">
@@ -134,7 +145,7 @@ function StreamForm({
         <Button variant={ButtonVariant.SECONDARY} onClick={onCancel} className="stream-create-cancel-button">
           Cancel
         </Button>
-        <Button onClick={onPreview} disabled={!isValid} className="stream-create-submit-button">
+        <Button onClick={onPreview} className="stream-create-submit-button">
           Preview
         </Button>
       </div>
@@ -144,7 +155,7 @@ function StreamForm({
 
 export function StreamCreate() {
   const navigate = useNavigate();
-  const { metadata, updateField, validateForm, isValid } = useStreamForm();
+  const { metadata, updateField, validateForm } = useStreamForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -200,7 +211,6 @@ export function StreamCreate() {
         <StreamForm
           metadata={metadata}
           error={error}
-          isValid={isValid}
           onFieldChange={updateField}
           onCancel={handleCancel}
           onPreview={handlePreview}

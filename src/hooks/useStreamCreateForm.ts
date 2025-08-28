@@ -41,6 +41,5 @@ export function useStreamForm() {
     metadata,
     updateField,
     validateForm,
-    isValid: validateForm() === null,
   };
 }

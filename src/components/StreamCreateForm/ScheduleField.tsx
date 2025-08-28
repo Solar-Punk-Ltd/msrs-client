@@ -11,7 +11,7 @@ export function ScheduleField({
 }) {
   return (
     <div className="schedule-field">
-      <label htmlFor="scheduled-time">Scheduled Start Time</label>
+      <label htmlFor="scheduled-time">Scheduled Start Time *</label>
       <input
         id="scheduled-time"
         type="datetime-local"
