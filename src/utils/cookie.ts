@@ -23,7 +23,7 @@ export const setCookie = (session: Session, options: CookieOptions = {}): void =
     expires = new Date(Date.now() + COOKIE_EXPIRY_ONE_HOUR),
     path = '/',
     domain,
-    secure = window.location.protocol === 'https:',
+    secure = true, // Always secure for session data
     sameSite = 'strict',
   } = options;
 
@@ -67,7 +67,7 @@ const getCookie = (name: string): string | null => {
 const deleteCookie = (name: string, path: string = '/'): void => {
   document.cookie = `${encodeURIComponent(
     name,
-  )}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; samesite=strict`;
+  )}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; secure; samesite=strict`;
 };
 
 export const loadSessionFromCookie = (): Session | null => {
