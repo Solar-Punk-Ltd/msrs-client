@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
 import { Chat } from '@/components/Chat/Chat';
+import { StreamPreview } from '@/components/StreamPreview/StreamPreview';
 import { SwarmHlsPlayer } from '@/components/SwarmHlsPlayer/SwarmHlsPlayer';
 import { ROUTES } from '@/routes';
 
@@ -10,11 +11,13 @@ import './StreamWatcher.scss';
 export enum MediaType {
   VIDEO = 'video',
   AUDIO = 'audio',
+  SCHEDULED = 'scheduled',
 }
 
 export const MEDIA_TYPE_LABELS = {
   [MediaType.VIDEO]: 'Video Stream',
   [MediaType.AUDIO]: 'Audio Only',
+  [MediaType.SCHEDULED]: 'Scheduled Stream',
 } as const;
 
 export function StreamWatcher() {
@@ -44,11 +47,8 @@ export function StreamWatcher() {
           <SwarmHlsPlayer owner={owner} topic={topic} mediaType={mediatype as MediaType} />
         </div>
       )}
-      {!!mediatype && (
-        <div className="stream-item-placeholder">
-          <p>TODO</p>
-        </div>
-      )}
+      {mediatype === MediaType.SCHEDULED && <StreamPreview owner={owner} topic={topic} />}
+
       <div className="stream-item-chat">
         <Chat topic={topic} />
       </div>
