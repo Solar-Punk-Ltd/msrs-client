@@ -39,7 +39,7 @@ export interface StreamMetadata {
   scheduledStartTime?: Date;
 }
 
-function StreamPreview({
+function StreamMetadataPreview({
   metadata,
   error,
   isLoading,
@@ -201,7 +201,7 @@ export function StreamCreate() {
   return (
     <div className="stream-create">
       {isPreviewMode ? (
-        <StreamPreview
+        <StreamMetadataPreview
           metadata={metadata}
           error={error}
           isLoading={isLoading}

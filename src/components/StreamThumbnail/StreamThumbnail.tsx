@@ -8,12 +8,12 @@ import DefaultPreviewImage from '@/assets/images/defaultPreviewImage.png';
 import { MediaType } from '@/pages/StreamWatcher/StreamWatcher';
 import { formatDuration } from '@/utils/format';
 
-import './StreamPreview.scss';
+import './StreamThumbnail.scss';
 
 const THUMBNAIL_RETRY_COUNT = 10;
 const THUMBNAIL_RETRY_TIMEOUT = 2500;
 
-interface StreamPreviewProps {
+interface StreamThumbnailProps {
   manifestUrl: string;
   owner: string;
   topic: string;
@@ -25,7 +25,15 @@ interface StreamPreviewProps {
 
 const loadQueue = new PQueue({ concurrency: 5 });
 
-export const StreamPreview = ({ manifestUrl, owner, topic, state, duration, mediatype, title }: StreamPreviewProps) => {
+export const StreamThumbnail = ({
+  manifestUrl,
+  owner,
+  topic,
+  state,
+  duration,
+  mediatype,
+  title,
+}: StreamThumbnailProps) => {
   const navigate = useNavigate();
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -107,28 +115,28 @@ export const StreamPreview = ({ manifestUrl, owner, topic, state, duration, medi
   }, [manifestUrl]);
 
   return (
-    <div className="stream-preview" onClick={handlePlayToggle}>
+    <div className="stream-thumbnail" onClick={handlePlayToggle}>
       {isLoading && (
-        <div className="stream-preview-overlay">
+        <div className="stream-thumbnail-overlay">
           <div className="spinner"></div>
         </div>
       )}
-      <video ref={videoRef} className="stream-preview-video" controls={false} muted playsInline />
+      <video ref={videoRef} className="stream-thumbnail-video" controls={false} muted playsInline />
 
       {showThumbnail && !isLoading && isDataAvailable && (
-        <div className="stream-preview-button-wrapper">
+        <div className="stream-thumbnail-button-wrapper">
           <img src={PlayIcon} alt="play-icon" />
-          <div className="stream-preview-button">
-            <span className="stream-preview-button-title">{title}</span>
-            {state === 'live' && <span className="stream-preview-button-state">{state}</span>}
+          <div className="stream-thumbnail-button">
+            <span className="stream-thumbnail-button-title">{title}</span>
+            {state === 'live' && <span className="stream-thumbnail-button-state">{state}</span>}
             {duration && (
-              <span className="stream-preview-button-duration">{formatDuration(Number.parseFloat(duration))}</span>
+              <span className="stream-thumbnail-button-duration">{formatDuration(Number.parseFloat(duration))}</span>
             )}
           </div>
         </div>
       )}
       {showThumbnail && !isLoading && !isDataAvailable && (
-        <div className="stream-preview-error">
+        <div className="stream-thumbnail-error">
           <img src={DefaultPreviewImage} alt="" />
         </div>
       )}

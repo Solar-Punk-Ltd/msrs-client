@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { StreamList } from './StreamList';
 
-vi.mock('@/components/StreamPreview/StreamPreview', () => ({
-  StreamPreview: (props: any) => <div data-testid="stream-preview">{props.title || props.topic}</div>,
+vi.mock('@/components/StreamThumbnail/StreamThumbnail', () => ({
+  StreamThumbnail: (props: any) => <div data-testid="stream-thumbnail">{props.title || props.topic}</div>,
 }));
 vi.mock('@/providers/App', () => ({
   useAppContext: () => ({
@@ -53,18 +53,18 @@ describe('StreamList', () => {
     expect(screen.getByText(/Choose a stream!/i)).toBeInTheDocument();
   });
 
-  it('renders all StreamPreview components for streams', () => {
+  it('renders all StreamThumbnail components for streams', () => {
     render(<StreamList />);
-    const previews = screen.getAllByTestId('stream-preview');
-    expect(previews.length).toBe(2);
+    const thumbnails = screen.getAllByTestId('stream-thumbnail');
+    expect(thumbnails.length).toBe(2);
     expect(screen.getByText('Live Stream')).toBeInTheDocument();
     expect(screen.getByText('Ended Stream')).toBeInTheDocument();
   });
 
   it('renders live streams first', () => {
     render(<StreamList />);
-    const previews = screen.getAllByTestId('stream-preview');
-    expect(previews[0]).toHaveTextContent('Live Stream');
-    expect(previews[1]).toHaveTextContent('Ended Stream');
+    const thumbnails = screen.getAllByTestId('stream-thumbnail');
+    expect(thumbnails[0]).toHaveTextContent('Live Stream');
+    expect(thumbnails[1]).toHaveTextContent('Ended Stream');
   });
 });

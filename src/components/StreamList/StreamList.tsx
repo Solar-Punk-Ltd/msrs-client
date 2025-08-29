@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
-import { StreamPreview } from '@/components/StreamPreview/StreamPreview';
+import { StreamThumbnail } from '@/components/StreamThumbnail/StreamThumbnail';
 import { useAppContext } from '@/providers/App';
 import { makeFeedIdentifier } from '@/utils/bee';
 import { config } from '@/utils/config';
@@ -71,9 +71,9 @@ export function StreamList() {
       ) : (
         <>
           <div className="stream-list-text">Choose a stream!</div>
-          <div className="stream-preview-list">
+          <div className="stream-thumbnail-list">
             {displayedStreams.map((stream) => (
-              <StreamPreview
+              <StreamThumbnail
                 key={stream.topic}
                 manifestUrl={manifestUrlMap.get(stream.topic) || ''}
                 owner={stream.owner}
