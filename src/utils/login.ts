@@ -40,8 +40,6 @@ export interface Session {
   username: string;
   publicKey: string;
   privateKey: string;
-  loginTime: number;
-  expiresAt: number;
 }
 
 export interface LoginResult {
@@ -200,8 +198,6 @@ export const adminlogin = async (username: string, password: string): Promise<Lo
       adminId: tokenData.adminId,
       username: tokenData.username,
       instanceId: tokenData.instanceId,
-      loginTime: Date.now(),
-      expiresAt: Date.now() + 60 * 60 * 1000,
       publicKey: pubKey,
       privateKey: privKey,
     };
@@ -230,8 +226,6 @@ export const nicknameLogin = async (nickname: string): Promise<LoginResult> => {
     adminId: '',
     username: nickname,
     instanceId: '',
-    loginTime: Date.now(),
-    expiresAt: Date.now() + 60 * 60 * 1000,
     publicKey: pubKey,
     privateKey: privKey,
   };
