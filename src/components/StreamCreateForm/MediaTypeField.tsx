@@ -1,3 +1,5 @@
+import { MEDIA_TYPE_LABELS, MediaType } from '@/pages/StreamWatcher/StreamWatcher';
+
 import './MediaTypeField.scss';
 
 export function MediaTypeField({
@@ -5,8 +7,8 @@ export function MediaTypeField({
   onChange,
   disabled = false,
 }: {
-  value: 'video' | 'audio';
-  onChange: (value: 'video' | 'audio') => void;
+  value: MediaType;
+  onChange: (value: MediaType) => void;
   disabled?: boolean;
 }) {
   return (
@@ -16,22 +18,22 @@ export function MediaTypeField({
         <label className="media-type-radio">
           <input
             type="radio"
-            value="video"
-            checked={value === 'video'}
-            onChange={(e) => onChange(e.target.value as 'video' | 'audio')}
+            value={MediaType.VIDEO}
+            checked={value === MediaType.VIDEO}
+            onChange={(e) => onChange(e.target.value as MediaType)}
             disabled={disabled}
           />
-          Video Stream
+          {MEDIA_TYPE_LABELS[MediaType.VIDEO]}
         </label>
         <label className="media-type-radio">
           <input
             type="radio"
-            value="audio"
-            checked={value === 'audio'}
-            onChange={(e) => onChange(e.target.value as 'video' | 'audio')}
+            value={MediaType.AUDIO}
+            checked={value === MediaType.AUDIO}
+            onChange={(e) => onChange(e.target.value as MediaType)}
             disabled={disabled}
           />
-          Audio Only
+          {MEDIA_TYPE_LABELS[MediaType.AUDIO]}
         </label>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
 
+import { MediaType } from '@/pages/StreamWatcher/StreamWatcher';
 import { config } from '@/utils/config';
 
 type Stream = {
@@ -10,7 +11,7 @@ type Stream = {
   duration?: string;
   index?: number;
   timestamp: number;
-  mediatype: 'audio' | 'video';
+  mediatype: MediaType;
   title: string;
 };
 

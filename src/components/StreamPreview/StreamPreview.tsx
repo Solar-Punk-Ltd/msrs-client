@@ -5,6 +5,7 @@ import PQueue from 'p-queue';
 
 import PlayIcon from '@/assets/icons/playIcon.png';
 import DefaultPreviewImage from '@/assets/images/defaultPreviewImage.png';
+import { MediaType } from '@/pages/StreamWatcher/StreamWatcher';
 import { formatDuration } from '@/utils/format';
 
 import './StreamPreview.scss';
@@ -18,7 +19,7 @@ interface StreamPreviewProps {
   topic: string;
   state?: string;
   duration?: string;
-  mediatype: 'audio' | 'video';
+  mediatype: MediaType;
   title: string;
 }
 

@@ -1,13 +1,14 @@
 import { useState } from 'react';
 
 import { ERROR_MESSAGES, LIMITS, StreamMetadata } from '@/pages/StreamCreate/StreamCreate';
+import { MediaType } from '@/pages/StreamWatcher/StreamWatcher';
 
 export function useStreamForm() {
   const [metadata, setMetadata] = useState<StreamMetadata>({
     name: '',
     description: '',
     thumbnail: null,
-    mediaType: 'video',
+    mediaType: MediaType.VIDEO,
     scheduledStartTime: undefined,
   });
 

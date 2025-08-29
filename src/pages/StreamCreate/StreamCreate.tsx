@@ -10,6 +10,7 @@ import { PreviewField } from '@/components/StreamCreateForm/PreviewField';
 import { ScheduleField } from '@/components/StreamCreateForm/ScheduleField';
 import { ThumbnailField } from '@/components/StreamCreateForm/ThumbnailField';
 import { useStreamForm } from '@/hooks/useStreamCreateForm';
+import { MEDIA_TYPE_LABELS, MediaType } from '@/pages/StreamWatcher/StreamWatcher';
 import { ROUTES } from '@/routes';
 
 import './StreamCreate.scss';
@@ -34,7 +35,7 @@ export interface StreamMetadata {
   name: string;
   description: string;
   thumbnail: File | null;
-  mediaType: 'video' | 'audio';
+  mediaType: MediaType;
   scheduledStartTime?: Date;
 }
 
@@ -62,7 +63,7 @@ function StreamPreview({
       <div className="stream-create-preview-content">
         <PreviewField label="Stream Name" value={metadata.name} />
         <PreviewField label="Description" value={metadata.description} type="description" />
-        <PreviewField label="Media Type" value={metadata.mediaType === 'video' ? 'Video Stream' : 'Audio Stream'} />
+        <PreviewField label="Media Type" value={MEDIA_TYPE_LABELS[metadata.mediaType]} />
 
         {metadata.thumbnail && (
           <PreviewField label="Thumbnail" value={metadata.thumbnail.name} file={metadata.thumbnail} type="thumbnail" />

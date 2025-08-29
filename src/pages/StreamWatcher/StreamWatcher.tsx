@@ -7,6 +7,16 @@ import { ROUTES } from '@/routes';
 
 import './StreamWatcher.scss';
 
+export enum MediaType {
+  VIDEO = 'video',
+  AUDIO = 'audio',
+}
+
+export const MEDIA_TYPE_LABELS = {
+  [MediaType.VIDEO]: 'Video Stream',
+  [MediaType.AUDIO]: 'Audio Only',
+} as const;
+
 export function StreamWatcher() {
   const { mediatype, owner, topic } = useParams<{
     mediatype: string;
