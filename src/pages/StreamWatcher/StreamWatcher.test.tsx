@@ -45,7 +45,7 @@ describe('StreamWatcher', () => {
     render(<StreamWatcher />);
     expect(screen.getByTestId('swarm-hls-player')).toHaveTextContent('"owner":"alice"');
     expect(screen.getByTestId('swarm-hls-player')).toHaveTextContent('"topic":"testtopic"');
-    expect(screen.getByTestId('swarm-hls-player')).toHaveTextContent('"mediatype":"video"');
+    expect(screen.getByTestId('swarm-hls-player')).toHaveTextContent('"mediaType":"video"');
     expect(screen.getByTestId('chat')).toHaveTextContent('"topic":"testtopic"');
   });
 

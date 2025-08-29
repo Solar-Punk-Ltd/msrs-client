@@ -29,7 +29,7 @@ export function StreamWatcher() {
     navigate(ROUTES.STREAM_BROWSER);
   };
 
-  if (!mediatype || !owner || !topic) {
+  if (!owner || !topic || (mediatype && !Object.values(MediaType).includes(mediatype as MediaType))) {
     return <div>Invalid stream</div>;
   }
 
@@ -39,9 +39,16 @@ export function StreamWatcher() {
         ← Back
       </Button>
 
-      <div className="stream-item-player">
-        <SwarmHlsPlayer owner={owner} topic={topic} mediatype={mediatype} />
-      </div>
+      {(mediatype === MediaType.AUDIO || mediatype === MediaType.VIDEO) && (
+        <div className="stream-item-player">
+          <SwarmHlsPlayer owner={owner} topic={topic} mediaType={mediatype as MediaType} />
+        </div>
+      )}
+      {!!mediatype && (
+        <div className="stream-item-placeholder">
+          <p>TODO</p>
+        </div>
+      )}
       <div className="stream-item-chat">
         <Chat topic={topic} />
       </div>
