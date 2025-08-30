@@ -17,16 +17,17 @@
 .stream-thumbnail-list {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: 180px;
-  gap: 16px;
+  grid-template-columns: repeat(2, 210px);
+  grid-auto-rows: minmax(180px, auto);
+  gap: 20px 16px;
   padding: 16px;
   box-sizing: border-box;
   overflow-y: auto;
   height: auto;
+  justify-content: center;
 
   @media (max-width: 480px) {
-    grid-template-columns: repeat(1, 210px);
+    grid-template-columns: 210px;
     justify-content: center;
   }
 }

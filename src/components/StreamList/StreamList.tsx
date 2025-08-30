@@ -70,7 +70,7 @@ export function StreamList() {
         <div className="stream-list-text">No streams available</div>
       ) : (
         <>
-          <div className="stream-list-text">Choose a stream!</div>
+          <div className="stream-list-text">Watch streams on Swarm!</div>
           <div className="stream-thumbnail-list">
             {displayedStreams.map((stream) => (
               <StreamThumbnail

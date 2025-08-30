@@ -124,25 +124,16 @@ const useHlsThumbnailCapture = (videoRef: React.RefObject<HTMLVideoElement>, man
   return { captureFromHls, cleanup };
 };
 
-const ThumbnailOverlay: React.FC<{
-  title: string;
-  state?: StateType;
-  duration?: number;
-}> = ({ title, state, duration }) => (
-  <div className="stream-thumbnail-button-wrapper">
-    <img src={PlayIcon} alt="play-icon" />
-    <div className="stream-thumbnail-button">
-      <span className="stream-thumbnail-button-title">{title}</span>
-      {state === StateType.LIVE && <span className="stream-thumbnail-button-state">{state}</span>}
-      {duration && <span className="stream-thumbnail-button-duration">{formatDuration(duration)}</span>}
-    </div>
+const LoadingSpinner: React.FC = () => (
+  <div className="stream-thumbnail-loading">
+    <div className="stream-thumbnail-spinner"></div>
   </div>
 );
 
-const LoadingSpinner: React.FC = () => (
-  <div className="stream-thumbnail-overlay">
-    <div className="spinner"></div>
-  </div>
+const LiveBadge: React.FC = () => <span className="stream-thumbnail-live-badge">LIVE</span>;
+
+const DurationBadge: React.FC<{ duration: number }> = ({ duration }) => (
+  <span className="stream-thumbnail-duration-badge">{formatDuration(duration)}</span>
 );
 
 export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
@@ -224,34 +215,45 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
         URL.revokeObjectURL(thumbnailState.thumbnailUrl);
       }
     };
-  }, [loadThumbnail]);
+  }, [loadThumbnail]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { isLoading, thumbnailUrl, hasData } = thumbnailState;
   const shouldShowVideo = !thumbnailUrl && hasData;
   const shouldShowDefault = !isLoading && !hasData;
-  const shouldShowOverlay = !isLoading && hasData;
 
   return (
-    <div className="stream-thumbnail" onClick={handleClick}>
-      {isLoading && <LoadingSpinner />}
+    <div className="stream-thumbnail">
+      <div className="stream-thumbnail-media" onClick={handleClick}>
+        {isLoading && <LoadingSpinner />}
 
-      {thumbnailUrl && !isLoading && (
-        <div className="stream-thumbnail-img">
-          <img src={thumbnailUrl} alt={title} />
-        </div>
-      )}
+        {thumbnailUrl && !isLoading && <img src={thumbnailUrl} alt={title} className="stream-thumbnail-image" />}
 
-      {shouldShowVideo && (
-        <video ref={videoRef} className="stream-thumbnail-video" controls={false} muted playsInline />
-      )}
+        {shouldShowVideo && (
+          <video ref={videoRef} className="stream-thumbnail-video" controls={false} muted playsInline />
+        )}
 
-      {shouldShowOverlay && <ThumbnailOverlay title={title} state={state} duration={duration} />}
+        {shouldShowDefault && (
+          <img src={DefaultPreviewImage} alt="Default thumbnail" className="stream-thumbnail-image" />
+        )}
 
-      {shouldShowDefault && (
-        <div className="stream-thumbnail-img">
-          <img src={DefaultPreviewImage} alt="" />
-        </div>
-      )}
+        {!isLoading && hasData && (
+          <>
+            <div className="stream-thumbnail-play-overlay">
+              <img src={PlayIcon} alt="Play" />
+            </div>
+
+            {state === StateType.LIVE && <LiveBadge />}
+
+            {duration && state !== StateType.LIVE && <DurationBadge duration={duration} />}
+          </>
+        )}
+      </div>
+
+      <div className="stream-thumbnail-metadata">
+        <h3 className="stream-thumbnail-title" title={title}>
+          {title}
+        </h3>
+      </div>
     </div>
   );
 };
