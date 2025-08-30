@@ -1,13 +1,11 @@
 export enum MediaType {
   VIDEO = 'video',
   AUDIO = 'audio',
-  SCHEDULED = 'scheduled',
 }
 
 export const MEDIA_TYPE_LABELS = {
   [MediaType.VIDEO]: 'Video Stream',
   [MediaType.AUDIO]: 'Audio Only',
-  [MediaType.SCHEDULED]: 'Scheduled Stream',
 } as const;
 
 export enum ActionType {
