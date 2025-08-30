@@ -1,24 +1,13 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
 
-import { MediaType } from '@/pages/StreamWatcher/StreamWatcher';
+import { Stream } from '@/types/stream';
 import { config } from '@/utils/config';
-
-type Stream = {
-  owner: string;
-  topic: string;
-  state?: string;
-  duration?: string;
-  index?: number;
-  timestamp: number;
-  mediatype: MediaType;
-  title: string;
-};
 
 type AppContextState = {
   streamList: Stream[] | null;
   setNewStreamList: (data: any) => void;
-  fetchAppState: () => Promise<any>;
+  fetchAppState: () => Promise<Stream[]>;
 };
 
 const AppContext = createContext<AppContextState | undefined>(undefined);
@@ -36,19 +25,29 @@ type Props = {
 export const AppContextProvider = ({ children }: Props) => {
   const [streamList, setStreamList] = useState<Stream[] | null>(null);
 
-  const fetchAppState = async () => {
-    const topic = Topic.fromString(config.rawAppTopic);
-    const response = await fetch(`${config.readerBeeUrl}/feeds/${config.appOwner}/${topic.toString()}`);
-    return response.json();
+  const fetchAppState = async (): Promise<Stream[]> => {
+    try {
+      const topic = Topic.fromString(config.rawAppTopic);
+      const response = await fetch(`${config.readerBeeUrl}/feeds/${config.appOwner}/${topic.toString()}`);
+
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+
+      return response.json();
+    } catch (err) {
+      console.error('Failed to fetch app state:', err);
+      return [];
+    }
   };
 
-  const setNewStreamList = (data: any) => {
+  const setNewStreamList = (data: Stream[]) => {
     if (!Array.isArray(data) || data.length === 0) return;
 
     const latestFetched = data[data.length - 1];
     const latestExisting = streamList?.[streamList.length - 1];
 
-    if (!latestExisting || latestFetched.timestamp > latestExisting.timestamp) {
+    if (!latestExisting || latestFetched.updatedAt > latestExisting.updatedAt) {
       setStreamList(data);
     }
   };
@@ -56,6 +55,7 @@ export const AppContextProvider = ({ children }: Props) => {
   // Only streamList for now
   const initAppState = async () => {
     const data = await fetchAppState();
+    console.log('Initial fetched stream list:', data);
     setStreamList(data);
   };
 

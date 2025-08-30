@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
 import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 
-import { MediaType } from '@/pages/StreamWatcher/StreamWatcher';
+import { MediaType } from '@/types/stream';
 
 import { CustomManifestLoader } from './CustomManifestLoader';
 import { ManifestStateManager } from './ManifestManagement';

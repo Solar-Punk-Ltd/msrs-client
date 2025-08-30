@@ -1,11 +1,11 @@
 import { useState } from 'react';
 
 import { ERROR_MESSAGES, LIMITS, StreamMetadata } from '@/pages/StreamCreate/StreamCreate';
-import { MediaType } from '@/pages/StreamWatcher/StreamWatcher';
+import { MediaType } from '@/types/stream';
 
 export function useStreamForm() {
   const [metadata, setMetadata] = useState<StreamMetadata>({
-    name: '',
+    title: '',
     description: '',
     thumbnail: null,
     mediaType: MediaType.VIDEO,
@@ -17,10 +17,10 @@ export function useStreamForm() {
   };
 
   const validateForm = (): string | null => {
-    if (!metadata.name.trim()) {
+    if (!metadata.title.trim()) {
       return ERROR_MESSAGES.NAME_REQUIRED;
     }
-    if (metadata.name.length > LIMITS.NAME_MAX_LENGTH) {
+    if (metadata.title.length > LIMITS.NAME_MAX_LENGTH) {
       return ERROR_MESSAGES.NAME_TOO_LONG;
     }
     if (!metadata.description.trim()) {

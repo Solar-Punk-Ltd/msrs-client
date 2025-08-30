@@ -10,8 +10,10 @@ import { PreviewField } from '@/components/StreamCreateForm/PreviewField';
 import { ScheduleField } from '@/components/StreamCreateForm/ScheduleField';
 import { ThumbnailField } from '@/components/StreamCreateForm/ThumbnailField';
 import { useStreamForm } from '@/hooks/useStreamCreateForm';
-import { MEDIA_TYPE_LABELS, MediaType } from '@/pages/StreamWatcher/StreamWatcher';
+import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
+import { MEDIA_TYPE_LABELS, MediaType } from '@/types/stream';
+import { createStream } from '@/utils/stream';
 
 import './StreamCreate.scss';
 
@@ -32,7 +34,7 @@ export const ERROR_MESSAGES = {
 };
 
 export interface StreamMetadata {
-  name: string;
+  title: string;
   description: string;
   thumbnail: File | null;
   mediaType: MediaType;
@@ -61,7 +63,7 @@ function StreamMetadataPreview({
       </div>
 
       <div className="stream-create-preview-content">
-        <PreviewField label="Stream Name" value={metadata.name} />
+        <PreviewField label="Stream Title" value={metadata.title} />
         <PreviewField label="Description" value={metadata.description} type="description" />
         <PreviewField label="Media Type" value={MEDIA_TYPE_LABELS[metadata.mediaType]} />
 
@@ -112,8 +114,8 @@ function StreamForm({
 
       <div className="stream-create-section">
         <NameField
-          value={metadata.name}
-          onChange={(value) => onFieldChange('name', value)}
+          value={metadata.title}
+          onChange={(value) => onFieldChange('title', value)}
           maxLength={LIMITS.NAME_MAX_LENGTH}
         />
 
@@ -156,7 +158,11 @@ function StreamForm({
 
 export function StreamCreate() {
   const navigate = useNavigate();
+
+  const { keys } = useUserContext();
+
   const { metadata, updateField, validateForm } = useStreamForm();
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -184,12 +190,7 @@ export function StreamCreate() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement stream creation logic
-      console.log('Creating stream with metadata:', metadata);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
+      await createStream(metadata, keys.private);
       navigate(ROUTES.STREAM_BROWSER);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create stream');

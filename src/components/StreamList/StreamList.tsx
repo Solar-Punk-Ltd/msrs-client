@@ -40,10 +40,10 @@ export function StreamList() {
       if (b.state === 'live' && a.state !== 'live') return 1;
 
       // 2) Precedence of timestamp (if available)
-      const aHasTs = typeof a.timestamp === 'number';
-      const bHasTs = typeof b.timestamp === 'number';
+      const aHasTs = typeof a.updatedAt === 'number';
+      const bHasTs = typeof b.updatedAt === 'number';
       if (aHasTs && bHasTs) {
-        return b.timestamp! - a.timestamp!;
+        return b.updatedAt! - a.updatedAt!;
       }
       if (aHasTs) {
         return -1;
@@ -75,12 +75,13 @@ export function StreamList() {
             {displayedStreams.map((stream) => (
               <StreamThumbnail
                 key={stream.topic}
+                thumbnailRef={stream.thumbnail}
                 manifestUrl={manifestUrlMap.get(stream.topic) || ''}
                 owner={stream.owner}
                 topic={stream.topic}
                 state={stream.state}
                 duration={stream.duration}
-                mediatype={stream.mediatype}
+                mediaType={stream.mediaType}
                 title={stream.title}
               />
             ))}

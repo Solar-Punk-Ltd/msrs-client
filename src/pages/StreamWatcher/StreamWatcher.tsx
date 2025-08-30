@@ -5,20 +5,9 @@ import { Chat } from '@/components/Chat/Chat';
 import { StreamPreview } from '@/components/StreamPreview/StreamPreview';
 import { SwarmHlsPlayer } from '@/components/SwarmHlsPlayer/SwarmHlsPlayer';
 import { ROUTES } from '@/routes';
+import { MediaType } from '@/types/stream';
 
 import './StreamWatcher.scss';
-
-export enum MediaType {
-  VIDEO = 'video',
-  AUDIO = 'audio',
-  SCHEDULED = 'scheduled',
-}
-
-export const MEDIA_TYPE_LABELS = {
-  [MediaType.VIDEO]: 'Video Stream',
-  [MediaType.AUDIO]: 'Audio Only',
-  [MediaType.SCHEDULED]: 'Scheduled Stream',
-} as const;
 
 export function StreamWatcher() {
   const { mediatype, owner, topic } = useParams<{

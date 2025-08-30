@@ -23,7 +23,7 @@ export const setCookie = (session: Session, options: CookieOptions = {}): void =
     expires = new Date(Date.now() + COOKIE_EXPIRY_ONE_HOUR),
     path = '/',
     domain,
-    secure = true, // Always secure for session data
+    secure = true,
     sameSite = 'strict',
   } = options;
 

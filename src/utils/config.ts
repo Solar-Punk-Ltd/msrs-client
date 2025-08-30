@@ -12,4 +12,6 @@ export const config = {
   rawAppTopic: getEnv('VITE_APP_RAW_TOPIC'),
   chatGsocResourceId: getEnv('VITE_CHAT_GSOC_RESOURCE_ID'),
   chatGsocTopic: getEnv('VITE_CHAT_GSOC_TOPIC'),
+  streamerGsocResourceId: getEnv('VITE_STREAMER_GSOC_RESOURCE_ID'),
+  streamerGsocTopic: getEnv('VITE_STREAMER_GSOC_TOPIC'),
 };

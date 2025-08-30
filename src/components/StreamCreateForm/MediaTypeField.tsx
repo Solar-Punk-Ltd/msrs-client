@@ -1,4 +1,4 @@
-import { MEDIA_TYPE_LABELS, MediaType } from '@/pages/StreamWatcher/StreamWatcher';
+import { MEDIA_TYPE_LABELS, MediaType } from '@/types/stream';
 
 import './MediaTypeField.scss';
 
