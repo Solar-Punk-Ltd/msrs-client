@@ -1,6 +1,6 @@
 import { Bee, Bytes, Identifier, PrivateKey } from '@ethersphere/bee-js';
 
-import { StreamMetadata } from '@/pages/StreamCreate/StreamCreate';
+import { StreamMetadata } from '@/pages/StreamForm/StreamForm';
 import { ActionType, StateType } from '@/types/stream';
 
 import { config } from './config';
@@ -56,4 +56,30 @@ export async function createStream(meta: StreamMetadata, privateKey: string) {
 
 export function deleteStream() {}
 
-export function updateStream() {}
+export async function updateStream(meta: StreamMetadata, privateKey: string, topic: string, owner: string) {
+  const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail) : '';
+
+  // good for now, later we will have proper auth
+  const signer = new PrivateKey(privateKey);
+  const nonce = crypto.randomUUID();
+  const signature = signer.sign(nonce);
+
+  const message = JSON.stringify({
+    nonce,
+    signature: signature.toHex(),
+    action: ActionType.UPDATE,
+    publicKey: config.appOwner,
+    data: {
+      owner,
+      topic,
+      title: meta.title,
+      description: meta.description,
+      state: StateType.SCHEDULED,
+      mediaType: meta.mediaType,
+      thumbnail: ref,
+      scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime.toISOString() : null,
+    },
+  });
+
+  await sendMessageToGsocOwn(message);
+}

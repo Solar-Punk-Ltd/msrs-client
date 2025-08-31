@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { ERROR_MESSAGES, LIMITS, StreamMetadata } from '@/pages/StreamCreate/StreamCreate';
-import { MediaType } from '@/types/stream';
+import { ERROR_MESSAGES, LIMITS, StreamMetadata } from '@/pages/StreamForm/StreamForm';
+import { MediaType, type Stream } from '@/types/stream';
 
 export function useStreamForm() {
   const [metadata, setMetadata] = useState<StreamMetadata>({
@@ -14,6 +14,16 @@ export function useStreamForm() {
 
   const updateField = (field: keyof StreamMetadata, value: any) => {
     setMetadata((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const initializeFromStream = (stream: Stream) => {
+    setMetadata({
+      title: stream.title,
+      description: stream.description || '',
+      thumbnail: stream.thumbnail ? new File([], stream.thumbnail) : null,
+      mediaType: stream.mediaType,
+      scheduledStartTime: stream.scheduledStartTime ? new Date(stream.scheduledStartTime) : undefined,
+    });
   };
 
   const validateForm = (): string | null => {
@@ -42,5 +52,6 @@ export function useStreamForm() {
     metadata,
     updateField,
     validateForm,
+    initializeFromStream,
   };
 }

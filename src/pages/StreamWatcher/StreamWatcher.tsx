@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
 import { Chat } from '@/components/Chat/Chat';
-import { StreamPreview } from '@/components/StreamPreview/StreamPreview';
+import { StreamPreview } from '@/components/Stream';
 import { SwarmHlsPlayer } from '@/components/SwarmHlsPlayer/SwarmHlsPlayer';
 import { useAppContext } from '@/providers/App';
 import { ROUTES } from '@/routes';

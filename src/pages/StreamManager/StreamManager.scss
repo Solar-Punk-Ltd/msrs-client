@@ -1,0 +1,28 @@
+.stream-manager {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  &-header {
+    text-align: center;
+
+    h1 {
+      color: #efefef;
+      margin: 0 0 0.5rem 0;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    p {
+      color: #ccc;
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+  }
+}

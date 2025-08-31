@@ -1,0 +1,37 @@
+.stream-action-button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &--edit {
+    background-color: rgba(59, 130, 246, 0.8);
+    color: white;
+
+    &:hover {
+      background-color: rgba(59, 130, 246, 1);
+      transform: scale(1.1);
+    }
+  }
+
+  &--delete {
+    background-color: rgba(239, 68, 68, 0.8);
+    color: white;
+
+    &:hover {
+      background-color: rgba(239, 68, 68, 1);
+      transform: scale(1.1);
+    }
+  }
+}

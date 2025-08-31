@@ -1,21 +1,24 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
-import { DescriptionField } from '@/components/StreamCreateForm/DescriptionField';
-import { ErrorMessage } from '@/components/StreamCreateForm/ErrorMessage';
-import { MediaTypeField } from '@/components/StreamCreateForm/MediaTypeField';
-import { NameField } from '@/components/StreamCreateForm/NameField';
-import { PreviewField } from '@/components/StreamCreateForm/PreviewField';
-import { ScheduleField } from '@/components/StreamCreateForm/ScheduleField';
-import { ThumbnailField } from '@/components/StreamCreateForm/ThumbnailField';
-import { useStreamForm } from '@/hooks/useStreamCreateForm';
+import {
+  DescriptionField,
+  ErrorMessage,
+  MediaTypeField,
+  NameField,
+  PreviewField,
+  ScheduleField,
+  ThumbnailField,
+} from '@/components/Stream/StreamFormFields';
+import { useStreamForm } from '@/hooks/useStreamForm';
+import { useAppContext } from '@/providers/App';
 import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
 import { MEDIA_TYPE_LABELS, MediaType } from '@/types/stream';
-import { createStream } from '@/utils/stream';
+import { createStream, updateStream } from '@/utils/stream';
 
-import './StreamCreate.scss';
+import './StreamForm.scss';
 
 export const LIMITS = {
   NAME_MAX_LENGTH: 100,
@@ -45,24 +48,26 @@ function StreamMetadataPreview({
   metadata,
   error,
   isLoading,
+  isEditMode,
   onBack,
   onConfirm,
 }: {
   metadata: StreamMetadata;
   error: string | null;
   isLoading: boolean;
+  isEditMode?: boolean;
   onBack: () => void;
   onConfirm: () => void;
 }) {
   return (
-    <div className="stream-create-preview">
+    <div className="stream-form-preview">
       <ErrorMessage error={error} />
 
-      <div className="stream-create-preview-header">
-        <h2>Stream Meta Preview</h2>
+      <div className="stream-form-preview-header">
+        <h2>{isEditMode ? 'Edit Stream Preview' : 'Stream Meta Preview'}</h2>
       </div>
 
-      <div className="stream-create-preview-content">
+      <div className="stream-form-preview-content">
         <PreviewField label="Stream Title" value={metadata.title} />
         <PreviewField label="Description" value={metadata.description} type="description" />
         <PreviewField label="Media Type" value={MEDIA_TYPE_LABELS[metadata.mediaType]} />
@@ -76,24 +81,26 @@ function StreamMetadataPreview({
         )}
       </div>
 
-      <div className="stream-create-actions">
+      <div className="stream-form-actions">
         <Button
           variant={ButtonVariant.SECONDARY}
           onClick={onBack}
           disabled={isLoading}
-          className="stream-create-cancel-button"
+          className="stream-form-cancel-button"
         >
           Back to Edit
         </Button>
-        <Button onClick={onConfirm} disabled={isLoading} className="stream-create-submit-button">
-          {isLoading ? 'Creating Stream...' : 'Create Stream'}
+        <Button onClick={onConfirm} disabled={isLoading} className="stream-form-submit-button">
+          {isLoading
+            ? `${isEditMode ? 'Updating' : 'Creating'} Stream...`
+            : `${isEditMode ? 'Update' : 'Create'} Stream`}
         </Button>
       </div>
     </div>
   );
 }
 
-function StreamForm({
+function StreamEditForm({
   metadata,
   error,
   onFieldChange,
@@ -109,10 +116,10 @@ function StreamForm({
   onError: (error: string) => void;
 }) {
   return (
-    <div className="stream-create-form">
+    <div className="stream-form-form">
       <ErrorMessage error={error} />
 
-      <div className="stream-create-section">
+      <div className="stream-form-section">
         <NameField
           value={metadata.title}
           onChange={(value) => onFieldChange('title', value)}
@@ -128,7 +135,7 @@ function StreamForm({
         <MediaTypeField value={metadata.mediaType} onChange={(value) => onFieldChange('mediaType', value)} />
       </div>
 
-      <div className="stream-create-section">
+      <div className="stream-form-section">
         <ThumbnailField
           onChange={(file) => onFieldChange('thumbnail', file)}
           onError={onError}
@@ -137,18 +144,18 @@ function StreamForm({
         />
       </div>
 
-      <div className="stream-create-section">
+      <div className="stream-form-section">
         <ScheduleField
           value={metadata.scheduledStartTime}
           onChange={(date) => onFieldChange('scheduledStartTime', date)}
         />
       </div>
 
-      <div className="stream-create-actions">
-        <Button variant={ButtonVariant.SECONDARY} onClick={onCancel} className="stream-create-cancel-button">
+      <div className="stream-form-actions">
+        <Button variant={ButtonVariant.SECONDARY} onClick={onCancel} className="stream-form-cancel-button">
           Cancel
         </Button>
-        <Button onClick={onPreview} className="stream-create-submit-button">
+        <Button onClick={onPreview} className="stream-form-submit-button">
           Preview
         </Button>
       </div>
@@ -156,16 +163,33 @@ function StreamForm({
   );
 }
 
-export function StreamCreate() {
+export function StreamForm() {
   const navigate = useNavigate();
+  const params = useParams<{ owner?: string; topic?: string }>();
 
+  const { streamList } = useAppContext();
   const { keys } = useUserContext();
 
-  const { metadata, updateField, validateForm } = useStreamForm();
+  const { metadata, updateField, validateForm, initializeFromStream } = useStreamForm();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+
+  const isEditMode = !!(params.owner && params.topic);
+  const editOwner = params.owner;
+  const editTopic = params.topic;
+
+  const streamToEdit = useMemo(() => {
+    if (!isEditMode || !editTopic || !editOwner || !streamList) return null;
+    return streamList.find((stream) => stream.topic === editTopic && stream.owner === editOwner);
+  }, [isEditMode, editTopic, editOwner, streamList]);
+
+  useEffect(() => {
+    if (isEditMode && streamToEdit) {
+      initializeFromStream(streamToEdit);
+    }
+  }, [isEditMode, streamToEdit, initializeFromStream]);
 
   const handleCancel = () => {
     navigate(ROUTES.STREAM_BROWSER);
@@ -185,32 +209,38 @@ export function StreamCreate() {
     setIsPreviewMode(false);
   };
 
-  const handleCreateStream = async () => {
+  const handleSubmitStream = async () => {
     setError(null);
     setIsLoading(true);
 
     try {
-      await createStream(metadata, keys.private);
+      if (isEditMode && streamToEdit) {
+        await updateStream(metadata, keys.private, streamToEdit.topic, streamToEdit.owner);
+      } else {
+        await createStream(metadata, keys.private);
+      }
       navigate(ROUTES.STREAM_BROWSER);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create stream');
+      const errorMessage = isEditMode ? 'Failed to update stream' : 'Failed to create stream';
+      setError(err instanceof Error ? err.message : errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="stream-create">
+    <div className="stream-form">
       {isPreviewMode ? (
         <StreamMetadataPreview
           metadata={metadata}
           error={error}
           isLoading={isLoading}
+          isEditMode={isEditMode}
           onBack={handleBackToEdit}
-          onConfirm={handleCreateStream}
+          onConfirm={handleSubmitStream}
         />
       ) : (
-        <StreamForm
+        <StreamEditForm
           metadata={metadata}
           error={error}
           onFieldChange={updateField}
