@@ -106,24 +106,14 @@ export function BaseStreamList({
         {displayedStreams.map((stream) => {
           const manifestUrl = manifestUrlMap.get(stream.topic) || '';
           return (
-            <>
-              <StreamListItem
-                key={`${stream.owner}-${stream.topic}`}
-                stream={stream}
-                thumbnailRef={stream.thumbnail}
-                manifestUrl={manifestUrl}
-                renderActions={renderActions}
-                className={itemClassName}
-              />
-              <StreamListItem
-                key={`${stream.owner}-${stream.topic}`}
-                stream={stream}
-                thumbnailRef={stream.thumbnail}
-                manifestUrl={manifestUrl}
-                renderActions={renderActions}
-                className={itemClassName}
-              />
-            </>
+            <StreamListItem
+              key={`${stream.owner}-${stream.topic}`}
+              stream={stream}
+              thumbnailRef={stream.thumbnail}
+              manifestUrl={manifestUrl}
+              renderActions={renderActions}
+              className={itemClassName}
+            />
           );
         })}
       </div>
