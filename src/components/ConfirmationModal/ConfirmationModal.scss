@@ -72,12 +72,10 @@
   }
 
   &.secondary {
-    background: linear-gradient(135deg, #7c3adb 0%, #ff7a40 100%) !important;
-    box-shadow: 0 2px 8px rgba(136, 65, 228, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 
     &:hover {
-      background: linear-gradient(135deg, #8841e4 0%, #ff8a50 100%) !important;
-      box-shadow: 0 4px 12px rgba(136, 65, 228, 0.4);
+      background: linear-gradient(135deg, #8990d0 0%, #6b46c1 100%) !important;
     }
   }
 }

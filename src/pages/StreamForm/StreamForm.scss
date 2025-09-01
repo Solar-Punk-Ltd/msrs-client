@@ -54,6 +54,10 @@
   &-submit-button {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 
+    &:hover {
+      background: linear-gradient(135deg, #8990d0 0%, #6b46c1 100%) !important;
+    }
+
     &:disabled {
       background: rgba(255, 255, 255, 0.2) !important;
       opacity: 0.6;

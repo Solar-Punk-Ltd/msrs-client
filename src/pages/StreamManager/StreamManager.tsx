@@ -46,7 +46,7 @@ export function StreamManager() {
     setIsDeleting(true);
     try {
       await deleteStream(keys.private, streamToDelete.topic, streamToDelete.owner);
-      await refreshStreamList();
+      await refreshStreamList({ type: 'delete', streamId: `${streamToDelete.owner}/${streamToDelete.topic}` });
     } catch (error) {
       console.error('Failed to delete stream:', error);
     } finally {

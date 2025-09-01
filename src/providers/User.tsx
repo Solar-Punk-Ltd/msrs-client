@@ -90,7 +90,7 @@ export function Provider({ children }: Props): ReactElement {
 
   const isUserLoggedIn = useMemo(() => !!session, [session]);
 
-  const isAdmin = useMemo(() => session?.adminId !== undefined, [session]);
+  const isAdmin = useMemo(() => !!session?.adminId, [session]);
 
   const keys = useMemo(() => {
     if (!session) {
