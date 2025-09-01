@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { ERROR_MESSAGES, LIMITS, StreamMetadata } from '@/pages/StreamForm/StreamForm';
 import { MediaType, type Stream } from '@/types/stream';
+import { fetchThumbnail } from '@/utils/stream';
 
 export function useStreamForm() {
   const [metadata, setMetadata] = useState<StreamMetadata>({
@@ -16,15 +17,42 @@ export function useStreamForm() {
     setMetadata((prev) => ({ ...prev, [field]: value }));
   };
 
-  const initializeFromStream = (stream: Stream) => {
+  const getThumbnail = async (thumbnail?: File | string): Promise<File | null> => {
+    if (!thumbnail) {
+      return null;
+    }
+
+    if (typeof thumbnail === 'string') {
+      try {
+        const res = await fetchThumbnail(thumbnail, { url: false });
+        if (res instanceof Blob) {
+          return new File([res], thumbnail, { type: res.type });
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching thumbnail:', error);
+        return null;
+      }
+    }
+
+    if (thumbnail instanceof File) {
+      return thumbnail;
+    }
+
+    return null;
+  };
+
+  const initializeFromStream = useCallback(async (stream: Stream) => {
+    const thumbnail = await getThumbnail(stream.thumbnail);
+
     setMetadata({
+      thumbnail,
       title: stream.title,
       description: stream.description || '',
-      thumbnail: stream.thumbnail ? new File([], stream.thumbnail) : null,
       mediaType: stream.mediaType,
       scheduledStartTime: stream.scheduledStartTime ? new Date(stream.scheduledStartTime) : undefined,
     });
-  };
+  }, []);
 
   const validateForm = (): string | null => {
     if (!metadata.title.trim()) {

@@ -30,7 +30,7 @@ export type Stream = {
   updatedAt: number;
   index?: number;
   duration?: number;
-  thumbnail?: string;
+  thumbnail?: string | File;
   description?: string;
   scheduledStartTime?: string;
 };

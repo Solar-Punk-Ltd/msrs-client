@@ -4,13 +4,16 @@ import useSWR from 'swr';
 
 import { StreamManagerList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App';
+import { useUserContext } from '@/providers/User';
 import { Stream } from '@/types/stream';
+import { deleteStream } from '@/utils/stream';
 
 import './StreamManager.scss';
 
 export function StreamManager() {
   const navigate = useNavigate();
   const { fetchAppState, setNewStreamList } = useAppContext();
+  const { keys } = useUserContext();
   const { data } = useSWR('app-state', fetchAppState, {
     revalidateOnFocus: true,
     refreshInterval: 5000,
@@ -26,9 +29,12 @@ export function StreamManager() {
     navigate(`/edit/${stream.owner}/${stream.topic}`);
   };
 
-  const handleDelete = (stream: Stream) => {
-    // TODO: Implement delete functionality
-    console.log('Delete stream:', stream);
+  const handleDelete = async (stream: Stream) => {
+    try {
+      await deleteStream(keys.private, stream.topic, stream.owner);
+    } catch (error) {
+      console.error('Failed to delete stream:', error);
+    }
   };
 
   return (

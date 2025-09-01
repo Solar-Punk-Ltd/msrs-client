@@ -26,19 +26,46 @@ async function uploadThumbnail(thumbnail: File): Promise<string> {
   return res.reference.toHex();
 }
 
-export async function createStream(meta: StreamMetadata, privateKey: string) {
-  const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail) : '';
-
-  // // good for now, later we will have proper auth
+function createAuthData(privateKey: string) {
   const signer = new PrivateKey(privateKey);
   const nonce = crypto.randomUUID();
   const signature = signer.sign(nonce);
 
-  const message = JSON.stringify({
+  return {
     nonce,
     signature: signature.toHex(),
-    action: ActionType.CREATE,
     publicKey: config.appOwner,
+  };
+}
+
+export async function fetchThumbnail(ref: string, { url = true }): Promise<Blob | string | null> {
+  try {
+    const response = await fetch(`${config.readerBeeUrl}/bzz/${ref}/`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch thumbnail: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+
+    if (!blob.type.startsWith('image/')) {
+      throw new Error('Fetched content is not an image');
+    }
+
+    return url ? URL.createObjectURL(blob) : blob;
+  } catch (error) {
+    console.error('Error fetching thumbnail:', error);
+    return null;
+  }
+}
+
+export async function createStream(meta: StreamMetadata, privateKey: string) {
+  const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail as File) : '';
+  const authData = createAuthData(privateKey);
+
+  const message = JSON.stringify({
+    ...authData,
+    action: ActionType.CREATE,
     data: {
       owner: config.appOwner,
       topic: crypto.randomUUID(),
@@ -54,21 +81,36 @@ export async function createStream(meta: StreamMetadata, privateKey: string) {
   await sendMessageToGsocOwn(message);
 }
 
-export function deleteStream() {}
-
-export async function updateStream(meta: StreamMetadata, privateKey: string, topic: string, owner: string) {
-  const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail) : '';
-
-  // good for now, later we will have proper auth
-  const signer = new PrivateKey(privateKey);
-  const nonce = crypto.randomUUID();
-  const signature = signer.sign(nonce);
+export async function deleteStream(privateKey: string, topic: string, owner: string) {
+  const authData = createAuthData(privateKey);
 
   const message = JSON.stringify({
-    nonce,
-    signature: signature.toHex(),
+    ...authData,
+    action: ActionType.DELETE,
+    data: {
+      owner,
+      topic,
+    },
+  });
+
+  await sendMessageToGsocOwn(message);
+}
+
+export async function updateStream(meta: StreamMetadata, privateKey: string, topic: string, owner: string) {
+  let ref = '';
+  if (meta.thumbnail) {
+    if (meta.thumbnail instanceof File) {
+      ref = await uploadThumbnail(meta.thumbnail);
+    } else {
+      ref = meta.thumbnail;
+    }
+  }
+
+  const authData = createAuthData(privateKey);
+
+  const message = JSON.stringify({
+    ...authData,
     action: ActionType.UPDATE,
-    publicKey: config.appOwner,
     data: {
       owner,
       topic,

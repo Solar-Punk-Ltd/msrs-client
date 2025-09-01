@@ -40,8 +40,12 @@
   .stream-preview-description p {
     max-height: calc(1.4em * 3);
     overflow-y: auto;
+    overflow-x: hidden;
     padding-right: 8px;
     line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
 
     &::-webkit-scrollbar {
       width: 4px;

@@ -6,8 +6,8 @@ import PQueue from 'p-queue';
 import PlayIcon from '@/assets/icons/playIcon.png';
 import DefaultPreviewImage from '@/assets/images/defaultPreviewImage.png';
 import { MediaType, StateType } from '@/types/stream';
-import { config } from '@/utils/config';
 import { formatDuration } from '@/utils/format';
+import { fetchThumbnail } from '@/utils/stream';
 
 import './StreamThumbnail.scss';
 
@@ -35,31 +35,6 @@ interface ThumbnailState {
 }
 
 const loadQueue = new PQueue({ concurrency: THUMBNAIL_CONFIG.LOAD_QUEUE_CONCURRENCY });
-
-const useThumbnailFetcher = () => {
-  const fetchThumbnail = useCallback(async (ref: string): Promise<string | null> => {
-    try {
-      const response = await fetch(`${config.readerBeeUrl}/bzz/${ref}/`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch thumbnail: ${response.status}`);
-      }
-
-      const blob = await response.blob();
-
-      if (!blob.type.startsWith('image/')) {
-        throw new Error('Fetched content is not an image');
-      }
-
-      return URL.createObjectURL(blob);
-    } catch (error) {
-      console.error('Error fetching thumbnail:', error);
-      return null;
-    }
-  }, []);
-
-  return fetchThumbnail;
-};
 
 const useHlsThumbnailCapture = (videoRef: React.RefObject<HTMLVideoElement>, manifestUrl: string) => {
   const hlsRef = useRef<Hls | null>(null);
@@ -155,7 +130,6 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
     hasData: false,
   });
 
-  const fetchThumbnail = useThumbnailFetcher();
   const { captureFromHls, cleanup: cleanupHls } = useHlsThumbnailCapture(videoRef, manifestUrl);
 
   const handleClick = useCallback(() => {
@@ -172,7 +146,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
     // For scheduled streams, only use fetched thumbnail
     if (state === StateType.SCHEDULED) {
       if (thumbnailRef) {
-        const url = await fetchThumbnail(thumbnailRef);
+        const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
         setThumbnailState({
           isLoading: false,
           thumbnailUrl: url,
@@ -190,7 +164,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
 
     // For non-scheduled: try fetch first, then HLS capture
     if (thumbnailRef) {
-      const url = await fetchThumbnail(thumbnailRef);
+      const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
       if (url) {
         setThumbnailState({
           isLoading: false,

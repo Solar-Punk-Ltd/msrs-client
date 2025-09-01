@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
 
 import { Stream } from '@/types/stream';
@@ -41,21 +41,29 @@ export const AppContextProvider = ({ children }: Props) => {
     }
   };
 
-  const setNewStreamList = (data: Stream[]) => {
-    if (!Array.isArray(data) || data.length === 0) return;
+  const setNewStreamList = useCallback((data: Stream[]) => {
+    if (!Array.isArray(data)) return;
 
-    const latestFetched = data[data.length - 1];
-    const latestExisting = streamList?.[streamList.length - 1];
-
-    if (!latestExisting || latestFetched.updatedAt > latestExisting.updatedAt) {
-      setStreamList(data);
+    // If data is empty, update to empty list
+    if (data.length === 0) {
+      setStreamList([]);
+      return;
     }
-  };
+
+    setStreamList((currentStreamList) => {
+      const latestFetched = data[data.length - 1];
+      const latestExisting = currentStreamList?.[currentStreamList.length - 1];
+
+      if (!latestExisting || latestFetched.updatedAt > latestExisting.updatedAt) {
+        return data;
+      }
+      return currentStreamList;
+    });
+  }, []);
 
   // Only streamList for now
   const initAppState = async () => {
     const data = await fetchAppState();
-    console.log('Initial fetched stream list:', data);
     setStreamList(data);
   };
 

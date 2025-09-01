@@ -39,7 +39,7 @@ export const ERROR_MESSAGES = {
 export interface StreamMetadata {
   title: string;
   description: string;
-  thumbnail: File | null;
+  thumbnail: File | string | null;
   mediaType: MediaType;
   scheduledStartTime?: Date;
 }
@@ -73,7 +73,12 @@ function StreamMetadataPreview({
         <PreviewField label="Media Type" value={MEDIA_TYPE_LABELS[metadata.mediaType]} />
 
         {metadata.thumbnail && (
-          <PreviewField label="Thumbnail" value={metadata.thumbnail.name} file={metadata.thumbnail} type="thumbnail" />
+          <PreviewField
+            label="Thumbnail"
+            value={typeof metadata.thumbnail === 'string' ? metadata.thumbnail : metadata.thumbnail.name}
+            file={typeof metadata.thumbnail === 'string' ? undefined : metadata.thumbnail}
+            type="thumbnail"
+          />
         )}
 
         {metadata.scheduledStartTime && (
@@ -192,7 +197,12 @@ export function StreamForm() {
   }, [isEditMode, streamToEdit, initializeFromStream]);
 
   const handleCancel = () => {
-    navigate(ROUTES.STREAM_BROWSER);
+    // Check if there's previous history by checking if we can go back
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(ROUTES.STREAM_BROWSER);
+    }
   };
 
   const handlePreview = () => {

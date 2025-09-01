@@ -1,3 +1,7 @@
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { ROUTES } from '@/routes';
 import { Stream } from '@/types/stream';
 
 import { BaseStreamList } from '../BaseStreamList/BaseStreamList';
@@ -11,6 +15,8 @@ interface StreamManagerListProps {
 }
 
 export function StreamManagerList({ onEdit, onDelete }: StreamManagerListProps) {
+  const navigate = useNavigate();
+
   const renderActions = (stream: Stream) => (
     <>
       <StreamActionButton
@@ -36,12 +42,27 @@ export function StreamManagerList({ onEdit, onDelete }: StreamManagerListProps) 
     </>
   );
 
+  const renderFooter = useCallback(
+    () => (
+      <div className="stream-manager-footer">
+        <button className="create-stream-button" onClick={() => navigate(ROUTES.STREAM_CREATE)}>
+          <svg viewBox="0 0 24 24" fill="currentColor" className="create-icon">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </svg>
+          Create New Stream
+        </button>
+      </div>
+    ),
+    [navigate],
+  );
+
   return (
     <BaseStreamList
       renderActions={renderActions}
       className="stream-manager-list"
       itemClassName="stream-manager-item"
       title="Stream Manager"
+      renderFooter={renderFooter}
     />
   );
 }

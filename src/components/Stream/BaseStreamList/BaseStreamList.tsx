@@ -17,6 +17,7 @@ interface BaseStreamListProps {
   itemClassName?: string;
   sortStreams?: (streams: Stream[]) => Stream[];
   title?: string;
+  renderFooter?: () => React.ReactNode;
 }
 
 export function BaseStreamList({
@@ -25,6 +26,7 @@ export function BaseStreamList({
   itemClassName = '',
   sortStreams,
   title,
+  renderFooter,
 }: BaseStreamListProps) {
   const { streamList } = useAppContext();
 
@@ -95,6 +97,7 @@ export function BaseStreamList({
         <div className="base-stream-list empty">
           <p>No streams available</p>
         </div>
+        {renderFooter && renderFooter()}
       </div>
     );
   }
@@ -109,7 +112,7 @@ export function BaseStreamList({
             <StreamListItem
               key={`${stream.owner}-${stream.topic}`}
               stream={stream}
-              thumbnailRef={stream.thumbnail}
+              thumbnailRef={stream.thumbnail as string}
               manifestUrl={manifestUrl}
               renderActions={renderActions}
               className={itemClassName}
@@ -117,6 +120,7 @@ export function BaseStreamList({
           );
         })}
       </div>
+      {renderFooter && renderFooter()}
     </div>
   );
 }

@@ -7,7 +7,7 @@
   padding: 16px;
   background-color: #efefef54;
   backdrop-filter: blur(9px);
-  z-index: 5;
+  z-index: 1000;
   box-sizing: border-box;
 
   @media (min-width: 480px) {
