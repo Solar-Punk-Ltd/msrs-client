@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
 
+import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal';
 import { StreamManagerList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App';
 import { useUserContext } from '@/providers/User';
@@ -14,6 +15,11 @@ export function StreamManager() {
   const navigate = useNavigate();
   const { fetchAppState, setNewStreamList, refreshStreamList } = useAppContext();
   const { keys } = useUserContext();
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [streamToDelete, setStreamToDelete] = useState<Stream | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const { data } = useSWR('app-state', fetchAppState, {
     revalidateOnFocus: true,
     refreshInterval: 5000,
@@ -29,18 +35,46 @@ export function StreamManager() {
     navigate(`/edit/${stream.owner}/${stream.topic}`);
   };
 
-  const handleDelete = async (stream: Stream) => {
+  const handleDelete = (stream: Stream) => {
+    setStreamToDelete(stream);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!streamToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await deleteStream(keys.private, stream.topic, stream.owner);
+      await deleteStream(keys.private, streamToDelete.topic, streamToDelete.owner);
       await refreshStreamList();
     } catch (error) {
       console.error('Failed to delete stream:', error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+      setStreamToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setStreamToDelete(null);
   };
 
   return (
     <div className="stream-manager">
       <StreamManagerList onEdit={handleEdit} onDelete={handleDelete} />
+
+      <ConfirmationModal
+        isOpen={deleteModalOpen}
+        title="Delete Stream"
+        message={`Are you sure you want to delete "${streamToDelete?.title}"?`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

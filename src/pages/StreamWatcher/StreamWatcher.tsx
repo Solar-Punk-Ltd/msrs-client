@@ -33,7 +33,11 @@ export function StreamWatcher() {
   }, [isScheduled, streamList, topic, owner]);
 
   const handleBackButtonClick = () => {
-    navigate(ROUTES.STREAM_BROWSER);
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(ROUTES.STREAM_BROWSER);
+    }
   };
 
   if (!owner || !topic || (mediatype && !Object.values(MediaType).includes(mediatype as MediaType))) {
