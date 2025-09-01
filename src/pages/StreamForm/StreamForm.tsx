@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
+import { InputLoading } from '@/components/InputLoading/InputLoading';
 import {
   DescriptionField,
   ErrorMessage,
@@ -112,6 +113,7 @@ function StreamEditForm({
   onCancel,
   onPreview,
   onError,
+  isInitializing,
 }: {
   metadata: StreamMetadata;
   error: string | null;
@@ -119,7 +121,12 @@ function StreamEditForm({
   onCancel: () => void;
   onPreview: () => void;
   onError: (error: string) => void;
+  isInitializing: boolean;
 }) {
+  if (isInitializing) {
+    return <InputLoading />;
+  }
+
   return (
     <div className="stream-form-form">
       <ErrorMessage error={error} />
@@ -146,6 +153,7 @@ function StreamEditForm({
           onError={onError}
           maxSize={LIMITS.THUMBNAIL_MAX_SIZE}
           errorMessage={ERROR_MESSAGES.THUMBNAIL_TOO_LARGE}
+          currThumbnail={metadata.thumbnail}
         />
       </div>
 
@@ -172,10 +180,10 @@ export function StreamForm() {
   const navigate = useNavigate();
   const params = useParams<{ owner?: string; topic?: string }>();
 
-  const { streamList } = useAppContext();
+  const { streamList, refreshStreamList } = useAppContext();
   const { keys } = useUserContext();
 
-  const { metadata, updateField, validateForm, initializeFromStream } = useStreamForm();
+  const { metadata, updateField, validateForm, initializeFromStream, isInitializing } = useStreamForm();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -229,7 +237,10 @@ export function StreamForm() {
       } else {
         await createStream(metadata, keys.private);
       }
-      navigate(ROUTES.STREAM_BROWSER);
+
+      await refreshStreamList();
+
+      navigate(ROUTES.STREAM_MANAGER);
     } catch (err) {
       const errorMessage = isEditMode ? 'Failed to update stream' : 'Failed to create stream';
       setError(err instanceof Error ? err.message : errorMessage);
@@ -257,6 +268,7 @@ export function StreamForm() {
           onCancel={handleCancel}
           onPreview={handlePreview}
           onError={setError}
+          isInitializing={isInitializing}
         />
       )}
     </div>

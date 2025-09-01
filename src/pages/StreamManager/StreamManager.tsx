@@ -12,7 +12,7 @@ import './StreamManager.scss';
 
 export function StreamManager() {
   const navigate = useNavigate();
-  const { fetchAppState, setNewStreamList } = useAppContext();
+  const { fetchAppState, setNewStreamList, refreshStreamList } = useAppContext();
   const { keys } = useUserContext();
   const { data } = useSWR('app-state', fetchAppState, {
     revalidateOnFocus: true,
@@ -32,6 +32,7 @@ export function StreamManager() {
   const handleDelete = async (stream: Stream) => {
     try {
       await deleteStream(keys.private, stream.topic, stream.owner);
+      await refreshStreamList();
     } catch (error) {
       console.error('Failed to delete stream:', error);
     }

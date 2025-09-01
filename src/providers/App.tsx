@@ -8,6 +8,8 @@ type AppContextState = {
   streamList: Stream[] | null;
   setNewStreamList: (data: any) => void;
   fetchAppState: () => Promise<Stream[]>;
+  refreshStreamList: () => Promise<void>;
+  setLoadingState: (loading: boolean) => void;
 };
 
 const AppContext = createContext<AppContextState | undefined>(undefined);
@@ -62,14 +64,30 @@ export const AppContextProvider = ({ children }: Props) => {
   }, []);
 
   // Only streamList for now
-  const initAppState = async () => {
+  const initAppState = useCallback(async () => {
     const data = await fetchAppState();
     setStreamList(data);
-  };
+  }, []);
+
+  const setLoadingState = useCallback((loading: boolean) => {
+    if (loading) {
+      setStreamList(null);
+    }
+  }, []);
+
+  const refreshStreamList = useCallback(async () => {
+    setLoadingState(true);
+    const freshData = await fetchAppState();
+    setStreamList(freshData);
+  }, [setLoadingState]);
 
   useEffect(() => {
     initAppState();
-  }, []);
+  }, [initAppState]);
 
-  return <AppContext.Provider value={{ streamList, setNewStreamList, fetchAppState }}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={{ streamList, setNewStreamList, fetchAppState, refreshStreamList, setLoadingState }}>
+      {children}
+    </AppContext.Provider>
+  );
 };

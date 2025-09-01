@@ -13,6 +13,8 @@ export function useStreamForm() {
     scheduledStartTime: undefined,
   });
 
+  const [isInitializing, setIsInitializing] = useState(false);
+
   const updateField = (field: keyof StreamMetadata, value: any) => {
     setMetadata((prev) => ({ ...prev, [field]: value }));
   };
@@ -43,6 +45,7 @@ export function useStreamForm() {
   };
 
   const initializeFromStream = useCallback(async (stream: Stream) => {
+    setIsInitializing(true);
     const thumbnail = await getThumbnail(stream.thumbnail);
 
     setMetadata({
@@ -52,6 +55,7 @@ export function useStreamForm() {
       mediaType: stream.mediaType,
       scheduledStartTime: stream.scheduledStartTime ? new Date(stream.scheduledStartTime) : undefined,
     });
+    setIsInitializing(false);
   }, []);
 
   const validateForm = (): string | null => {
@@ -81,5 +85,6 @@ export function useStreamForm() {
     updateField,
     validateForm,
     initializeFromStream,
+    isInitializing,
   };
 }
