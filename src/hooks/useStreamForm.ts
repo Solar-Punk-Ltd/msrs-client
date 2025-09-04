@@ -53,7 +53,7 @@ export function useStreamForm() {
       title: stream.title,
       description: stream.description || '',
       mediaType: stream.mediaType,
-      scheduledStartTime: stream.scheduledStartTime ? new Date(stream.scheduledStartTime) : undefined,
+      scheduledStartTime: stream.scheduledStartTime,
     });
     setIsInitializing(false);
   }, []);

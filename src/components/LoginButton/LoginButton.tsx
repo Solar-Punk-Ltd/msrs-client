@@ -35,6 +35,11 @@ export const LoginButton = () => {
     setIsDropdownOpen(false);
   };
 
+  const handleBrowser = () => {
+    navigate(ROUTES.STREAM_BROWSER);
+    setIsDropdownOpen(false);
+  };
+
   if (isUserLoggedIn) {
     return (
       <div className="login-button-container" ref={dropdownRef}>
@@ -44,6 +49,9 @@ export const LoginButton = () => {
 
         {isDropdownOpen && (
           <div className="login-dropdown">
+            <button className="login-dropdown-item" onClick={handleBrowser}>
+              Browser
+            </button>
             {isAdmin && (
               <button className="login-dropdown-item" onClick={handleMyStreams}>
                 My Streams

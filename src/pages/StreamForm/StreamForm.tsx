@@ -42,7 +42,7 @@ export interface StreamMetadata {
   description: string;
   thumbnail: File | string | null;
   mediaType: MediaType;
-  scheduledStartTime?: Date;
+  scheduledStartTime?: string;
 }
 
 function StreamMetadataPreview({
@@ -83,7 +83,7 @@ function StreamMetadataPreview({
         )}
 
         {metadata.scheduledStartTime && (
-          <PreviewField label="Scheduled Start Time" value={metadata.scheduledStartTime.toLocaleString()} />
+          <PreviewField label="Scheduled Start Time" value={new Date(metadata.scheduledStartTime).toLocaleString()} />
         )}
       </div>
 
@@ -159,8 +159,8 @@ function StreamEditForm({
 
       <div className="stream-form-section">
         <ScheduleField
-          value={metadata.scheduledStartTime}
-          onChange={(date) => onFieldChange('scheduledStartTime', date)}
+          value={metadata.scheduledStartTime ? new Date(metadata.scheduledStartTime) : undefined}
+          onChange={(date) => onFieldChange('scheduledStartTime', date ? date.toISOString() : undefined)}
         />
       </div>
 

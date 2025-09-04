@@ -18,7 +18,7 @@ interface AppContextState {
   error: Error | null;
   setNewStreamList: (data: Stream[]) => void;
   fetchAppState: () => Promise<Stream[]>;
-  refreshStreamList: (expectedChange?: ExpectedChange) => Promise<void>;
+  refreshStreamList: (expectedChange: ExpectedChange) => Promise<void>;
   setLoadingState: (loading: boolean) => void;
 }
 
@@ -37,14 +37,10 @@ export const useAppContext = () => {
   return context;
 };
 
-const buildFeedUrl = (): string => {
-  const topic = Topic.fromString(config.rawAppTopic);
-  return `${config.readerBeeUrl}/feeds/${config.appOwner}/${topic.toString()}`;
-};
-
 const fetchStreamData = async (): Promise<Stream[]> => {
   try {
-    const response = await fetch(buildFeedUrl());
+    const topic = Topic.fromString(config.rawAppTopic);
+    const response = await fetch(`${config.readerBeeUrl}/feeds/${config.appOwner}/${topic.toString()}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch: ${response.statusText}`);
@@ -115,19 +111,12 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
   const setLoadingState = useCallback((loading: boolean) => {
     setIsLoading(loading);
-    if (loading) {
-      setStreamList(null);
-    }
   }, []);
 
   const checkExpectedChange = useCallback((newData: Stream[], expectedChange?: ExpectedChange): boolean => {
-    if (!expectedChange) {
-      return hasNewerData(newData, previousListRef.current);
-    }
-
     const currentList = previousListRef.current || [];
 
-    switch (expectedChange.type) {
+    switch (expectedChange?.type) {
       case 'create':
         return newData.length > currentList.length;
 
@@ -143,8 +132,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
   }, []);
 
   const refreshStreamList = useCallback(
-    async (expectedChange?: ExpectedChange) => {
-      setLoadingState(true);
+    async (expectedChange: ExpectedChange) => {
+      setIsLoading(true);
 
       try {
         let changeDetected = false;
@@ -155,29 +144,28 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           }
 
           const freshData = await fetchAppState();
+
           changeDetected = checkExpectedChange(freshData, expectedChange);
 
-          setStreamList(freshData);
-          previousListRef.current = freshData;
-
-          if (changeDetected || !expectedChange) {
+          if (changeDetected) {
+            setStreamList(freshData);
+            previousListRef.current = freshData;
+            await mutate('app-state', freshData, false);
             break;
           }
         }
 
-        await mutate('app-state');
-
-        if (expectedChange && !changeDetected) {
+        if (!changeDetected) {
           console.warn('Expected change not detected after maximum retries');
         }
       } catch (error) {
         console.error('Error refreshing stream list:', error);
         setError(error instanceof Error ? error : new Error('Failed to refresh'));
       } finally {
-        setLoadingState(false);
+        setIsLoading(false);
       }
     },
-    [fetchAppState, checkExpectedChange, setLoadingState],
+    [fetchAppState, checkExpectedChange],
   );
 
   useEffect(() => {

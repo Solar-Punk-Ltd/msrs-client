@@ -1,5 +1,19 @@
 import './ScheduleField.scss';
 
+const dateToLocalString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const getCurrentLocalString = (): string => {
+  return dateToLocalString(new Date());
+};
+
 export function ScheduleField({
   value,
   onChange,
@@ -15,14 +29,14 @@ export function ScheduleField({
       <input
         id="scheduled-time"
         type="datetime-local"
-        value={value?.toISOString().slice(0, 16) || ''}
+        value={value ? dateToLocalString(value) : ''}
         onChange={(e) => {
           const date = e.target.value ? new Date(e.target.value) : undefined;
           onChange(date);
         }}
         disabled={disabled}
         className="schedule-input"
-        min={new Date().toISOString().slice(0, 16)}
+        min={getCurrentLocalString()}
       />
     </div>
   );

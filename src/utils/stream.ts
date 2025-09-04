@@ -74,7 +74,7 @@ export async function createStream(meta: StreamMetadata, privateKey: string) {
       state: StateType.SCHEDULED,
       mediaType: meta.mediaType,
       thumbnail: ref,
-      scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime.toISOString() : null,
+      scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime : null,
     },
   });
 
@@ -119,7 +119,7 @@ export async function updateStream(meta: StreamMetadata, privateKey: string, top
       state: StateType.SCHEDULED,
       mediaType: meta.mediaType,
       thumbnail: ref,
-      scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime.toISOString() : null,
+      scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime : null,
     },
   });
 
