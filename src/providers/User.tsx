@@ -16,6 +16,7 @@ interface ContextInterface {
   isAdmin: boolean;
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (isLoginModalOpen: boolean) => void;
+  session: Session | null;
 }
 
 const initialValues: ContextInterface = {
@@ -31,6 +32,7 @@ const initialValues: ContextInterface = {
   isAdmin: false,
   isLoginModalOpen: false,
   setIsLoginModalOpen: () => {},
+  session: null,
 };
 
 export const Context = createContext<ContextInterface>(initialValues);
@@ -90,7 +92,7 @@ export function Provider({ children }: Props): ReactElement {
 
   const isUserLoggedIn = useMemo(() => !!session, [session]);
 
-  const isAdmin = useMemo(() => !!session?.adminId, [session]);
+  const isAdmin = useMemo(() => !!session?.instanceId, [session]);
 
   const keys = useMemo(() => {
     if (!session) {
@@ -98,8 +100,8 @@ export function Provider({ children }: Props): ReactElement {
     }
 
     return {
-      private: session.privateKey,
-      public: session.publicKey,
+      private: session.userId,
+      public: session.userSecret,
     };
   }, [session]);
 
@@ -115,6 +117,7 @@ export function Provider({ children }: Props): ReactElement {
         isAdmin,
         isLoginModalOpen,
         setIsLoginModalOpen,
+        session,
       }}
     >
       {children}

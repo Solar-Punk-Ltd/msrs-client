@@ -181,7 +181,7 @@ export function StreamForm() {
   const params = useParams<{ owner?: string; topic?: string }>();
 
   const { streamList, refreshStreamList } = useAppContext();
-  const { keys } = useUserContext();
+  const { keys, session } = useUserContext();
 
   const { metadata, updateField, validateForm, initializeFromStream, isInitializing } = useStreamForm();
 
@@ -232,14 +232,18 @@ export function StreamForm() {
     setIsLoading(true);
 
     try {
+      if (!session) {
+        setError('User session not found. Please log in again.');
+      }
+
       if (isEditMode && streamToEdit) {
-        await updateStream(metadata, keys.private, streamToEdit.topic, streamToEdit.owner);
+        await updateStream(session!, metadata, streamToEdit.topic, streamToEdit.owner);
         await refreshStreamList({
           type: 'update',
           streamId: `${streamToEdit.owner}/${streamToEdit.topic}`,
         });
       } else {
-        await createStream(metadata, keys.private);
+        await createStream(session!, metadata);
         await refreshStreamList({ type: 'create' });
       }
 

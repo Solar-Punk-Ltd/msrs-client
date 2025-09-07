@@ -14,7 +14,7 @@ import './StreamManager.scss';
 export function StreamManager() {
   const navigate = useNavigate();
   const { fetchAppState, setNewStreamList, refreshStreamList } = useAppContext();
-  const { keys } = useUserContext();
+  const { session } = useUserContext();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [streamToDelete, setStreamToDelete] = useState<Stream | null>(null);
@@ -43,9 +43,14 @@ export function StreamManager() {
   const handleConfirmDelete = async () => {
     if (!streamToDelete) return;
 
+    if (!session) {
+      console.error('User session not found. Please log in again.');
+      return;
+    }
+
     setIsDeleting(true);
     try {
-      await deleteStream(keys.private, streamToDelete.topic, streamToDelete.owner);
+      await deleteStream(session!, streamToDelete.topic, streamToDelete.owner);
       await refreshStreamList({ type: 'delete', streamId: `${streamToDelete.owner}/${streamToDelete.topic}` });
     } catch (error) {
       console.error('Failed to delete stream:', error);

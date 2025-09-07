@@ -4,6 +4,7 @@ import { StreamMetadata } from '@/pages/StreamForm/StreamForm';
 import { ActionType, StateType } from '@/types/stream';
 
 import { config } from './config';
+import { createStreamAggregatorToken, Session } from './login';
 
 const bee = new Bee(config.writerBeeUrl);
 const gsocTopic = config.streamerGsocTopic;
@@ -24,18 +25,6 @@ async function sendMessageToGsocOwn(message: string): Promise<void> {
 async function uploadThumbnail(thumbnail: File): Promise<string> {
   const res = await bee.uploadFile(stamp, thumbnail);
   return res.reference.toHex();
-}
-
-function createAuthData(privateKey: string) {
-  const signer = new PrivateKey(privateKey);
-  const nonce = crypto.randomUUID();
-  const signature = signer.sign(nonce);
-
-  return {
-    nonce,
-    signature: signature.toHex(),
-    publicKey: config.appOwner,
-  };
 }
 
 export async function fetchThumbnail(ref: string, { url = true }): Promise<Blob | string | null> {
@@ -59,15 +48,13 @@ export async function fetchThumbnail(ref: string, { url = true }): Promise<Blob 
   }
 }
 
-export async function createStream(meta: StreamMetadata, privateKey: string) {
+export async function createStream(session: Session, meta: StreamMetadata) {
   const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail as File) : '';
-  const authData = createAuthData(privateKey);
 
   const message = JSON.stringify({
-    ...authData,
     action: ActionType.CREATE,
     data: {
-      owner: config.appOwner,
+      owner: session.userId,
       topic: crypto.randomUUID(),
       title: meta.title,
       description: meta.description,
@@ -78,14 +65,12 @@ export async function createStream(meta: StreamMetadata, privateKey: string) {
     },
   });
 
-  await sendMessageToGsocOwn(message);
+  const token = await createStreamAggregatorToken(session, message);
+  await sendMessageToGsocOwn(token);
 }
 
-export async function deleteStream(privateKey: string, topic: string, owner: string) {
-  const authData = createAuthData(privateKey);
-
+export async function deleteStream(session: Session, topic: string, owner: string) {
   const message = JSON.stringify({
-    ...authData,
     action: ActionType.DELETE,
     data: {
       owner,
@@ -93,10 +78,11 @@ export async function deleteStream(privateKey: string, topic: string, owner: str
     },
   });
 
-  await sendMessageToGsocOwn(message);
+  const token = await createStreamAggregatorToken(session, message);
+  await sendMessageToGsocOwn(token);
 }
 
-export async function updateStream(meta: StreamMetadata, privateKey: string, topic: string, owner: string) {
+export async function updateStream(session: Session, meta: StreamMetadata, topic: string, owner: string) {
   let ref = '';
   if (meta.thumbnail) {
     if (meta.thumbnail instanceof File) {
@@ -106,10 +92,7 @@ export async function updateStream(meta: StreamMetadata, privateKey: string, top
     }
   }
 
-  const authData = createAuthData(privateKey);
-
   const message = JSON.stringify({
-    ...authData,
     action: ActionType.UPDATE,
     data: {
       owner,
@@ -123,5 +106,6 @@ export async function updateStream(meta: StreamMetadata, privateKey: string, top
     },
   });
 
-  await sendMessageToGsocOwn(message);
+  const token = await createStreamAggregatorToken(session, message);
+  await sendMessageToGsocOwn(token);
 }
