@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
 import { ERROR_MESSAGES, LIMITS, StreamMetadata } from '@/pages/StreamForm/StreamForm';
-import { MediaType, type Stream } from '@/types/stream';
+import { MediaType, type StateEntry } from '@/types/stream';
 import { fetchThumbnail } from '@/utils/stream';
 
 export function useStreamForm() {
@@ -44,7 +44,7 @@ export function useStreamForm() {
     return null;
   };
 
-  const initializeFromStream = useCallback(async (stream: Stream) => {
+  const initializeFromStream = useCallback(async (stream: StateEntry) => {
     setIsInitializing(true);
     const thumbnail = await getThumbnail(stream.thumbnail);
 

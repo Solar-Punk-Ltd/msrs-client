@@ -1,14 +1,14 @@
-import { Stream } from '@/types/stream';
+import { StateEntry } from '@/types/stream';
 
 import { StreamThumbnail } from '../StreamThumbnail/StreamThumbnail';
 
 import './StreamListItem.scss';
 
 interface StreamListItemProps {
-  stream: Stream;
+  stream: StateEntry;
   thumbnailRef?: string;
   manifestUrl: string;
-  renderActions?: (stream: Stream) => React.ReactNode;
+  renderActions?: (stream: StateEntry) => React.ReactNode;
   className?: string;
 }
 

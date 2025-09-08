@@ -2,7 +2,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, u
 import { Topic } from '@ethersphere/bee-js';
 import { mutate } from 'swr';
 
-import { Stream } from '@/types/stream';
+import { StateEntry } from '@/types/stream';
 import { config } from '@/utils/config';
 
 type ChangeType = 'create' | 'delete' | 'update';
@@ -13,11 +13,11 @@ interface ExpectedChange {
 }
 
 interface AppContextState {
-  streamList: Stream[] | null;
+  streamList: StateEntry[] | null;
   isLoading: boolean;
   error: Error | null;
-  setNewStreamList: (data: Stream[]) => void;
-  fetchAppState: () => Promise<Stream[]>;
+  setNewStreamList: (data: StateEntry[]) => void;
+  fetchAppState: () => Promise<StateEntry[]>;
   refreshStreamList: (expectedChange: ExpectedChange) => Promise<void>;
   setLoadingState: (loading: boolean) => void;
 }
@@ -37,7 +37,7 @@ export const useAppContext = () => {
   return context;
 };
 
-const fetchStreamData = async (): Promise<Stream[]> => {
+const fetchStreamData = async (): Promise<StateEntry[]> => {
   try {
     const topic = Topic.fromString(config.rawAppTopic);
     const response = await fetch(`${config.readerBeeUrl}/feeds/${config.appOwner}/${topic.toString()}`);
@@ -53,7 +53,7 @@ const fetchStreamData = async (): Promise<Stream[]> => {
   }
 };
 
-const hasNewerData = (newData: Stream[], existingData: Stream[] | null): boolean => {
+const hasNewerData = (newData: StateEntry[], existingData: StateEntry[] | null): boolean => {
   if (!existingData || existingData.length === 0) return true;
   if (newData.length === 0) return false;
 
@@ -68,12 +68,12 @@ interface AppContextProviderProps {
 }
 
 export const AppContextProvider = ({ children }: AppContextProviderProps) => {
-  const [streamList, setStreamList] = useState<Stream[] | null>(null);
+  const [streamList, setStreamList] = useState<StateEntry[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const previousListRef = useRef<Stream[] | null>(null);
+  const previousListRef = useRef<StateEntry[] | null>(null);
 
-  const fetchAppState = useCallback(async (): Promise<Stream[]> => {
+  const fetchAppState = useCallback(async (): Promise<StateEntry[]> => {
     try {
       setError(null);
       const data = await fetchStreamData();
@@ -85,7 +85,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     }
   }, []);
 
-  const setNewStreamList = useCallback((data: Stream[]) => {
+  const setNewStreamList = useCallback((data: StateEntry[]) => {
     if (!Array.isArray(data)) {
       console.error('Invalid data: expected array');
       return;
@@ -113,7 +113,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     setIsLoading(loading);
   }, []);
 
-  const checkExpectedChange = useCallback((newData: Stream[], expectedChange?: ExpectedChange): boolean => {
+  const checkExpectedChange = useCallback((newData: StateEntry[], expectedChange?: ExpectedChange): boolean => {
     const currentList = previousListRef.current || [];
 
     switch (expectedChange?.type) {
@@ -131,6 +131,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     }
   }, []);
 
+  // Debt: meh, undeterministic results
   const refreshStreamList = useCallback(
     async (expectedChange: ExpectedChange) => {
       setIsLoading(true);

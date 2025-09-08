@@ -1,7 +1,14 @@
+import bs58 from 'bs58';
 import CryptoJS from 'crypto-js';
+import msgpack from 'msgpack-lite';
+import { deflate } from 'pako';
+
+import { Message } from '@/types/stream';
 
 import { config } from './config';
 import { getSigner } from './wallet';
+
+const messagepackEncode = msgpack.encode;
 
 export interface InstanceConfig {
   swarmRef: string;
@@ -44,18 +51,6 @@ export interface LoginResult {
   error?: string;
 }
 
-interface TokenData {
-  instanceId: string;
-  encryptedPayload: {
-    encrypted: string;
-    iv: string;
-    authTag: string;
-  };
-  createdAt: number;
-  expiresAt: number;
-  signature: string;
-}
-
 type ServerType = 'msrsIngestion' | 'streamAggregator';
 
 export class TokenGenerator {
@@ -67,7 +62,7 @@ export class TokenGenerator {
 
   public async generateServerToken(
     serverType: ServerType,
-    messageData: string,
+    messageData: object,
     expirationHours: number = 24,
   ): Promise<string> {
     const serverKey = this.credentials.serverKeys[serverType];
@@ -75,50 +70,44 @@ export class TokenGenerator {
       throw new Error(`No server key found for ${serverType}`);
     }
 
-    const tokenMetadata = {
-      instanceId: this.credentials.instanceId,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + expirationHours * 60 * 60 * 1000,
-    };
+    const createdAt = Date.now();
+    const expiresAt = createdAt + expirationHours * 60 * 60 * 1000;
 
     const payload = {
-      credentials: {
-        userId: this.credentials.userId,
-        userSecret: this.credentials.userSecret,
-        instanceId: this.credentials.instanceId,
-      },
-      data: messageData,
-      signatureData: {
-        instanceId: tokenMetadata.instanceId,
-        createdAt: tokenMetadata.createdAt,
-        expiresAt: tokenMetadata.expiresAt,
-      },
+      u: this.credentials.userId,
+      s: this.credentials.userSecret,
+      message: messageData,
     };
 
-    const encryptedPayload = await this.encryptForServer(payload, serverKey);
+    const packedPayload = messagepackEncode(payload);
+    const compressedPayload = deflate(packedPayload);
+
+    const encryptedPayload = await this.encryptForServer(compressedPayload, serverKey);
 
     const dataToSign = {
-      instanceId: tokenMetadata.instanceId,
-      encryptedPayload,
-      createdAt: tokenMetadata.createdAt,
-      expiresAt: tokenMetadata.expiresAt,
+      i: this.credentials.instanceId,
+      p: encryptedPayload,
+      c: createdAt,
+      e: expiresAt,
     };
 
-    const signature = CryptoJS.HmacSHA256(JSON.stringify(dataToSign), this.credentials.userSecret).toString();
+    const signatureBuffer = messagepackEncode(dataToSign);
+    const hexString = Array.from(signatureBuffer)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    const signature = CryptoJS.HmacSHA256(CryptoJS.enc.Hex.parse(hexString), this.credentials.userSecret).toString();
 
-    const tokenData: TokenData = {
-      instanceId: tokenMetadata.instanceId,
-      encryptedPayload,
-      createdAt: tokenMetadata.createdAt,
-      expiresAt: tokenMetadata.expiresAt,
-      signature,
+    const finalTokenData = {
+      s: signature,
+      ...dataToSign,
     };
 
-    return btoa(JSON.stringify(tokenData));
+    const tokenBuffer = messagepackEncode(finalTokenData);
+    return bs58.encode(Buffer.from(tokenBuffer));
   }
 
   private async encryptForServer(
-    payload: any,
+    payload: Uint8Array,
     serverKey: string,
   ): Promise<{ encrypted: string; iv: string; authTag: string }> {
     const encoder = new TextEncoder();
@@ -130,7 +119,6 @@ export class TokenGenerator {
     ]);
 
     const iv = crypto.getRandomValues(new Uint8Array(16));
-    const plaintext = encoder.encode(JSON.stringify(payload));
 
     const ciphertext = await crypto.subtle.encrypt(
       {
@@ -138,7 +126,7 @@ export class TokenGenerator {
         iv: iv,
       },
       cryptoKey,
-      plaintext,
+      payload as BufferSource,
     );
 
     const encrypted = new Uint8Array(ciphertext);
@@ -156,6 +144,7 @@ export class TokenGenerator {
       authTag: toBase64(authTag),
     };
   }
+
   // public async generateRtmpToken(streamSettings: any = {}): Promise<string> {
   //   const messageData = {
   //     type: 'stream',
@@ -320,7 +309,7 @@ export const nicknameLogin = async (nickname: string): Promise<LoginResult> => {
   };
 };
 
-export const createStreamAggregatorToken = async (session: Session, message: string) => {
+export const createStreamAggregatorToken = async (session: Session, message: Partial<Message>) => {
   const tokenGen = new TokenGenerator(session);
   const aggregatorToken = await tokenGen.generateServerToken('streamAggregator', message);
   return aggregatorToken;

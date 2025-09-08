@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ROUTES } from '@/routes';
-import { Stream } from '@/types/stream';
+import { StateEntry } from '@/types/stream';
 
 import { BaseStreamList } from '../BaseStreamList/BaseStreamList';
 import { StreamActionButton } from '../StreamActionButton/StreamActionButton';
@@ -10,14 +10,14 @@ import { StreamActionButton } from '../StreamActionButton/StreamActionButton';
 import './StreamManagerList.scss';
 
 interface StreamManagerListProps {
-  onEdit: (stream: Stream) => void;
-  onDelete: (stream: Stream) => void;
+  onEdit: (stream: StateEntry) => void;
+  onDelete: (stream: StateEntry) => void;
 }
 
 export function StreamManagerList({ onEdit, onDelete }: StreamManagerListProps) {
   const navigate = useNavigate();
 
-  const renderActions = (stream: Stream) => (
+  const renderActions = (stream: StateEntry) => (
     <>
       <StreamActionButton
         onClick={() => onEdit(stream)}

@@ -1,7 +1,7 @@
 import { Bee, Bytes, Identifier, PrivateKey } from '@ethersphere/bee-js';
 
 import { StreamMetadata } from '@/pages/StreamForm/StreamForm';
-import { ActionType, StateType } from '@/types/stream';
+import { ActionType, CreateMessage, DeleteMessage, StateType, UpdateMessage } from '@/types/stream';
 
 import { config } from './config';
 import { createStreamAggregatorToken, Session } from './login';
@@ -51,7 +51,7 @@ export async function fetchThumbnail(ref: string, { url = true }): Promise<Blob 
 export async function createStream(session: Session, meta: StreamMetadata) {
   const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail as File) : '';
 
-  const message = JSON.stringify({
+  const message = {
     action: ActionType.CREATE,
     data: {
       owner: session.userId,
@@ -63,22 +63,22 @@ export async function createStream(session: Session, meta: StreamMetadata) {
       thumbnail: ref,
       scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime : null,
     },
-  });
+  };
 
-  const token = await createStreamAggregatorToken(session, message);
+  const token = await createStreamAggregatorToken(session, message as CreateMessage);
   await sendMessageToGsocOwn(token);
 }
 
 export async function deleteStream(session: Session, topic: string, owner: string) {
-  const message = JSON.stringify({
+  const message = {
     action: ActionType.DELETE,
     data: {
       owner,
       topic,
     },
-  });
+  };
 
-  const token = await createStreamAggregatorToken(session, message);
+  const token = await createStreamAggregatorToken(session, message as DeleteMessage);
   await sendMessageToGsocOwn(token);
 }
 
@@ -92,7 +92,7 @@ export async function updateStream(session: Session, meta: StreamMetadata, topic
     }
   }
 
-  const message = JSON.stringify({
+  const message = {
     action: ActionType.UPDATE,
     data: {
       owner,
@@ -104,8 +104,8 @@ export async function updateStream(session: Session, meta: StreamMetadata, topic
       thumbnail: ref,
       scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime : null,
     },
-  });
+  };
 
-  const token = await createStreamAggregatorToken(session, message);
+  const token = await createStreamAggregatorToken(session, message as UpdateMessage);
   await sendMessageToGsocOwn(token);
 }

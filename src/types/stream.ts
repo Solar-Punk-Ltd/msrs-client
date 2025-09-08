@@ -20,7 +20,7 @@ export enum StateType {
   SCHEDULED = 'scheduled',
 }
 
-export type Stream = {
+export type StateEntry = {
   title: string;
   state: StateType;
   owner: string;
@@ -34,3 +34,20 @@ export type Stream = {
   description?: string;
   scheduledStartTime?: string;
 };
+
+export interface CreateMessage {
+  action: ActionType.CREATE;
+  data: StateEntry;
+}
+
+export interface UpdateMessage {
+  action: ActionType.UPDATE;
+  data: Partial<StateEntry>;
+}
+
+export interface DeleteMessage {
+  action: ActionType.DELETE;
+  data: Partial<StateEntry>;
+}
+
+export type Message = CreateMessage | UpdateMessage | DeleteMessage;

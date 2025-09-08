@@ -6,7 +6,7 @@ import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationMo
 import { StreamManagerList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App';
 import { useUserContext } from '@/providers/User';
-import { Stream } from '@/types/stream';
+import { StateEntry } from '@/types/stream';
 import { deleteStream } from '@/utils/stream';
 
 import './StreamManager.scss';
@@ -17,7 +17,7 @@ export function StreamManager() {
   const { session } = useUserContext();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [streamToDelete, setStreamToDelete] = useState<Stream | null>(null);
+  const [streamToDelete, setStreamToDelete] = useState<StateEntry | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { data } = useSWR('app-state', fetchAppState, {
@@ -31,11 +31,11 @@ export function StreamManager() {
     if (data) setNewStreamList(data);
   }, [data, setNewStreamList]);
 
-  const handleEdit = (stream: Stream) => {
+  const handleEdit = (stream: StateEntry) => {
     navigate(`/edit/${stream.owner}/${stream.topic}`);
   };
 
-  const handleDelete = (stream: Stream) => {
+  const handleDelete = (stream: StateEntry) => {
     setStreamToDelete(stream);
     setDeleteModalOpen(true);
   };

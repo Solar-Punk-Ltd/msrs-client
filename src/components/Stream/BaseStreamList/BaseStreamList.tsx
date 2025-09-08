@@ -3,7 +3,7 @@ import { FeedIndex, Topic } from '@ethersphere/bee-js';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { useAppContext } from '@/providers/App';
-import { StateType, Stream } from '@/types/stream';
+import { StateEntry, StateType } from '@/types/stream';
 import { makeFeedIdentifier } from '@/utils/bee';
 import { config } from '@/utils/config';
 
@@ -12,10 +12,10 @@ import { StreamListItem } from '../StreamListItem/StreamListItem';
 import './BaseStreamList.scss';
 
 interface BaseStreamListProps {
-  renderActions?: (stream: Stream) => React.ReactNode;
+  renderActions?: (stream: StateEntry) => React.ReactNode;
   className?: string;
   itemClassName?: string;
-  sortStreams?: (streams: Stream[]) => Stream[];
+  sortStreams?: (streams: StateEntry[]) => StateEntry[];
   title?: string;
   renderFooter?: () => React.ReactNode;
 }

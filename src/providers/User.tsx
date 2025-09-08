@@ -100,8 +100,8 @@ export function Provider({ children }: Props): ReactElement {
     }
 
     return {
-      private: session.userId,
-      public: session.userSecret,
+      private: session.userSecret,
+      public: session.userId,
     };
   }, [session]);
 
