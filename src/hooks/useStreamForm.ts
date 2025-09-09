@@ -71,9 +71,11 @@ export function useStreamForm() {
     if (metadata.description.length > LIMITS.DESCRIPTION_MAX_LENGTH) {
       return ERROR_MESSAGES.DESCRIPTION_TOO_LONG;
     }
-    if (!metadata.thumbnail) {
-      return ERROR_MESSAGES.THUMBNAIL_REQUIRED;
-    }
+
+    // Note: Do we want thumbnail to be required?
+    // if (!metadata.thumbnail) {
+    //   return ERROR_MESSAGES.THUMBNAIL_REQUIRED;
+    // }
     if (!metadata.scheduledStartTime) {
       return ERROR_MESSAGES.SCHEDULED_TIME_REQUIRED;
     }

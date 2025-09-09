@@ -188,7 +188,6 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
     loadThumbnail();
 
     return () => {
-      cleanupHls();
       if (thumbnailState.thumbnailUrl) {
         URL.revokeObjectURL(thumbnailState.thumbnailUrl);
       }
@@ -206,9 +205,15 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
 
         {thumbnailUrl && !isLoading && <img src={thumbnailUrl} alt={title} className="stream-thumbnail-image" />}
 
-        {shouldShowVideo && (
-          <video ref={videoRef} className="stream-thumbnail-video" controls={false} muted playsInline />
-        )}
+        {/* Always render video element for HLS capture, but only show when needed */}
+        <video
+          ref={videoRef}
+          className="stream-thumbnail-video"
+          controls={false}
+          muted
+          playsInline
+          style={{ display: shouldShowVideo ? 'block' : 'none' }}
+        />
 
         {shouldShowDefault && (
           <img src={DefaultPreviewImage} alt="Default thumbnail" className="stream-thumbnail-image" />

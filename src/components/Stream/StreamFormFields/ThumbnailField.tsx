@@ -40,7 +40,7 @@ export function ThumbnailField({
 
   return (
     <div className="thumbnail-field">
-      <label htmlFor="stream-thumbnail">Upload Thumbnail * (Max 5MB)</label>
+      <label htmlFor="stream-thumbnail">Upload Thumbnail (Max 5MB)</label>
       <input
         ref={inputRef}
         id="stream-thumbnail"
