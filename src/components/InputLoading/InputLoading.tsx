@@ -4,7 +4,7 @@ import './InputLoading.scss';
 
 export const InputLoading: React.FC = () => {
   return (
-    <span id="chat-input-loading">
+    <span id="chat-input-loading" data-testid="input-loading">
       <div className="chat-input-loading-square"></div>
       <div className="chat-input-loading-square"></div>
       <div className="chat-input-loading-square"></div>
