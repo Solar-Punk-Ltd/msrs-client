@@ -39,8 +39,8 @@ export const useAppContext = () => {
 
 const fetchStreamData = async (): Promise<StateEntry[]> => {
   try {
-    const topic = Topic.fromString(config.rawAppTopic);
-    const response = await fetch(`${config.readerBeeUrl}/feeds/${config.appOwner}/${topic.toString()}`);
+    const topic = Topic.fromString(config.streamStateTopic);
+    const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch: ${response.statusText}`);

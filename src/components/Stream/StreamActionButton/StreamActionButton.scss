@@ -1,6 +1,6 @@
 .stream-action-button {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   border: none;
   border-radius: 50%;
   display: flex;
@@ -11,8 +11,8 @@
   backdrop-filter: blur(4px);
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 12px;
+    height: 12px;
   }
 
   &--edit {
@@ -36,6 +36,18 @@
       background: linear-gradient(135deg, #ff7a40 0%, #dc2626 100%);
       transform: scale(1.1);
       box-shadow: 0 4px 12px rgba(255, 138, 80, 0.4);
+    }
+  }
+
+  &--token {
+    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #4338ca 0%, #0891b2 100%);
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
     }
   }
 }

@@ -4,7 +4,7 @@ interface StreamActionButtonProps {
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
-  variant?: 'edit' | 'delete';
+  variant?: 'edit' | 'delete' | 'token';
 }
 
 export function StreamActionButton({ onClick, icon, label, variant = 'edit' }: StreamActionButtonProps) {

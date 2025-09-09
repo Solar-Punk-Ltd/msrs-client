@@ -3,7 +3,7 @@ import CryptoJS from 'crypto-js';
 import msgpack from 'msgpack-lite';
 import { deflate } from 'pako';
 
-import { Message } from '@/types/stream';
+import { MsrsIngMessage, StreamAggMessage } from '@/types/stream';
 
 import { config } from './config';
 import { getSigner } from './wallet';
@@ -144,18 +144,6 @@ export class TokenGenerator {
       authTag: toBase64(authTag),
     };
   }
-
-  // public async generateRtmpToken(streamSettings: any = {}): Promise<string> {
-  //   const messageData = {
-  //     type: 'stream',
-  //     streamKey: crypto.getRandomValues(new Uint8Array(16)).join(''),
-  //     maxBitrate: streamSettings.maxBitrate || 6000,
-  //     permissions: ['stream', 'record'],
-  //     ...streamSettings,
-  //   };
-
-  //   return this.generateServerToken('rtmp', messageData);
-  // }
 }
 
 const createPasswordChecksum = (password: string): string => {
@@ -309,8 +297,14 @@ export const nicknameLogin = async (nickname: string): Promise<LoginResult> => {
   };
 };
 
-export const createStreamAggregatorToken = async (session: Session, message: Partial<Message>) => {
+export const createStreamAggregatorToken = async (session: Session, message: Partial<StreamAggMessage>) => {
   const tokenGen = new TokenGenerator(session);
   const aggregatorToken = await tokenGen.generateServerToken('streamAggregator', message);
   return aggregatorToken;
+};
+
+export const createMsrsIngestionToken = async (session: Session, message: MsrsIngMessage) => {
+  const tokenGen = new TokenGenerator(session);
+  const ingestionToken = await tokenGen.generateServerToken('msrsIngestion', message);
+  return ingestionToken;
 };

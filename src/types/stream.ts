@@ -50,4 +50,11 @@ export interface DeleteMessage {
   data: Partial<StateEntry>;
 }
 
-export type Message = CreateMessage | UpdateMessage | DeleteMessage;
+export type StreamAggMessage = CreateMessage | UpdateMessage | DeleteMessage;
+
+export interface MsrsIngMessage {
+  t: string; // streamStateTopic
+  o: string; // streamStateOwner
+  si: string; // streamId
+  m: MediaType; // mediaType
+}

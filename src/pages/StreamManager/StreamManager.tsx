@@ -7,6 +7,8 @@ import { StreamManagerList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App';
 import { useUserContext } from '@/providers/User';
 import { StateEntry } from '@/types/stream';
+import { config } from '@/utils/config';
+import { createMsrsIngestionToken } from '@/utils/login';
 import { deleteStream } from '@/utils/stream';
 
 import './StreamManager.scss';
@@ -40,6 +42,36 @@ export function StreamManager() {
     setDeleteModalOpen(true);
   };
 
+  const handleShowToken = async (stream: StateEntry) => {
+    if (!session) {
+      console.error('User session not found. Please log in again.');
+      return;
+    }
+
+    const tokenMsg = {
+      t: config.streamStateTopic,
+      o: config.streamStateOwner,
+      si: `${stream.owner}/${stream.topic}`,
+      m: stream.mediaType,
+    };
+
+    const token = await createMsrsIngestionToken(session, tokenMsg);
+
+    if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(token);
+        alert(
+          `MSRS Ingestion Token (copied to clipboard):\n\n${token}\n\nThe token has been automatically copied to your clipboard.`,
+        );
+      } catch (err) {
+        console.error('Failed to copy to clipboard:', err);
+        alert(`MSRS Ingestion Token:\n\n${token}\n\nPlease manually copy this token.`);
+      }
+    } else {
+      alert(`MSRS Ingestion Token:\n\n${token}\n\nPlease manually copy this token.`);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (!streamToDelete) return;
 
@@ -68,7 +100,7 @@ export function StreamManager() {
 
   return (
     <div className="stream-manager">
-      <StreamManagerList onEdit={handleEdit} onDelete={handleDelete} />
+      <StreamManagerList onEdit={handleEdit} onDelete={handleDelete} onShowToken={handleShowToken} />
 
       <ConfirmationModal
         isOpen={deleteModalOpen}
