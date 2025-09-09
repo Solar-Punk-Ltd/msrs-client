@@ -96,6 +96,6 @@ describe('LoginButton', () => {
     render(<LoginButton />);
     fireEvent.click(screen.getByText('TestUser'));
     fireEvent.click(screen.getByText('My Streams'));
-    expect(mockNavigate).toHaveBeenCalledWith('/manager');
+    expect(mockNavigate).toHaveBeenCalledWith('/manage');
   });
 });

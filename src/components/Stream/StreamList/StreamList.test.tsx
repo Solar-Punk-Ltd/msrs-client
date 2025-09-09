@@ -3,7 +3,16 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { StreamList } from './StreamList';
 
-vi.mock('@/components/StreamThumbnail/StreamThumbnail', () => ({
+vi.mock('@/utils/stream', () => ({
+  fetchStreams: vi.fn().mockResolvedValue([]),
+  fetchThumbnail: vi.fn().mockResolvedValue(null),
+  uploadThumbnail: vi.fn().mockResolvedValue('mock-ref'),
+  createStream: vi.fn().mockResolvedValue(undefined),
+  updateStream: vi.fn().mockResolvedValue(undefined),
+  deleteStream: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../StreamThumbnail/StreamThumbnail', () => ({
   StreamThumbnail: (props: any) => <div data-testid="stream-thumbnail">{props.title || props.topic}</div>,
 }));
 vi.mock('@/providers/App', () => ({
@@ -43,14 +52,18 @@ vi.mock('@/utils/config', () => ({
   },
 }));
 vi.mock('@ethersphere/bee-js', () => ({
+  Bee: vi.fn().mockImplementation(() => ({})),
   Topic: { fromString: (s: string) => s },
   FeedIndex: { fromBigInt: () => ({}) },
+  Bytes: { fromUtf8: vi.fn() },
+  PrivateKey: vi.fn(),
+  Identifier: { fromString: vi.fn() },
 }));
 
 describe('StreamList', () => {
   it('renders the stream list title', () => {
     render(<StreamList />);
-    expect(screen.getByText(/Choose a stream!/i)).toBeInTheDocument();
+    expect(screen.getByText(/Watch streams on Swarm!/i)).toBeInTheDocument();
   });
 
   it('renders all StreamThumbnail components for streams', () => {
