@@ -1,7 +1,9 @@
 import { ReactElement } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { AdminGuard } from './components/AdminGuard/AdminGuard';
 import { MainLayout } from './layouts/Main/MainLayout';
+import { NotFound } from './pages/NotFound/NotFound';
 import { StreamBrowser } from './pages/StreamBrowser/StreamBrowser';
 import { StreamForm } from './pages/StreamForm/StreamForm';
 import { StreamManager } from './pages/StreamManager/StreamManager';
@@ -21,9 +23,31 @@ const BaseRouter = (): ReactElement => {
       <Routes>
         <Route path={ROUTES.STREAM_BROWSER} element={<StreamBrowser />} />
         <Route path={ROUTES.STREAM_WATCH} element={<StreamWatcher />} />
-        <Route path={ROUTES.STREAM_CREATE} element={<StreamForm />} />
-        <Route path={ROUTES.STREAM_EDIT} element={<StreamForm />} />
-        <Route path={ROUTES.STREAM_MANAGER} element={<StreamManager />} />
+        <Route
+          path={ROUTES.STREAM_CREATE}
+          element={
+            <AdminGuard>
+              <StreamForm />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path={ROUTES.STREAM_EDIT}
+          element={
+            <AdminGuard>
+              <StreamForm />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path={ROUTES.STREAM_MANAGER}
+          element={
+            <AdminGuard>
+              <StreamManager />
+            </AdminGuard>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </MainLayout>
   );
