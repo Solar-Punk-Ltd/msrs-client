@@ -182,7 +182,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
       thumbnailUrl: null,
       hasData: success,
     });
-  }, [state, thumbnailRef, fetchThumbnail, captureFromHls]);
+  }, [state, thumbnailRef, captureFromHls]);
 
   useEffect(() => {
     loadThumbnail();
@@ -214,7 +214,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
           <img src={DefaultPreviewImage} alt="Default thumbnail" className="stream-thumbnail-image" />
         )}
 
-        {!isLoading && hasData && (
+        {!isLoading && (
           <>
             <div className="stream-thumbnail-play-overlay">
               <img src={PlayIcon} alt="Play" />
