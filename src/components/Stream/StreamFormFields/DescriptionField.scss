@@ -1,0 +1,15 @@
+@use './_shared.scss' as shared;
+
+.description-field {
+  @include shared.field-container;
+
+  .description-textarea {
+    @include shared.input-base;
+    resize: none;
+    min-height: 100px;
+  }
+
+  .description-char-count {
+    @include shared.char-counter;
+  }
+}

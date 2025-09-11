@@ -7,7 +7,7 @@
   padding: 16px;
   background-color: #efefef54;
   backdrop-filter: blur(9px);
-  z-index: 5;
+  z-index: 1000;
   box-sizing: border-box;
 
   @media (min-width: 480px) {
@@ -86,6 +86,24 @@
   padding-bottom: 0px;
   font-size: 18px;
   width: auto !important;
+
+  &.primary {
+    background-color: #fe8950 !important;
+
+    &:hover {
+      background-color: #f9a880 !important;
+    }
+  }
+
+  &.secondary {
+    background: linear-gradient(135deg, #7c3adb 0%, #ff7a40 100%) !important;
+    box-shadow: 0 2px 8px rgba(136, 65, 228, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #8841e4 0%, #ff8a50 100%) !important;
+      box-shadow: 0 4px 12px rgba(136, 65, 228, 0.4);
+    }
+  }
 }
 
 .login-modal-mode-switch {

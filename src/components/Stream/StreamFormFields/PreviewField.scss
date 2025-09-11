@@ -1,0 +1,75 @@
+@use './_shared.scss' as shared;
+
+.preview-field {
+  margin-bottom: 12px;
+
+  label {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.preview-value {
+  padding: 6px 0;
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 1.4;
+  word-break: break-word;
+
+  &.description {
+    max-height: calc(1.4em * 3);
+    overflow-y: auto;
+    padding-right: 8px;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+    }
+  }
+}
+
+.preview-thumbnail {
+  display: flex;
+  flex-direction: column;
+
+  max-width: 210px;
+  width: 100%;
+  aspect-ratio: 210 / 180; // Stream Browser item grid size
+  overflow: hidden;
+  border-radius: 12px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+    display: block;
+  }
+
+  &-filename {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 4px 8px;
+    margin-top: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+}

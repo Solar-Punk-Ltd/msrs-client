@@ -65,7 +65,7 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
       beeUrl: config.writerBeeUrl,
       gsocResourceId: config.chatGsocResourceId,
       gsocTopic: config.chatGsocTopic,
-      chatAddress: config.appOwner,
+      chatAddress: config.streamStateOwner,
       chatTopic: `chat-${topic}`,
       enveloped: false,
     },

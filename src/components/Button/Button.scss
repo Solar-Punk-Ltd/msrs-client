@@ -1,6 +1,7 @@
 .button {
   display: inline-flex;
   justify-content: center;
+  align-items: center;
   width: auto;
   border-radius: 12px;
   border: none;
@@ -33,10 +34,6 @@
 
   &.secondary {
     background-color: #0000006b;
-
-    @media (min-width: 480px) {
-      width: 250px;
-    }
 
     &:hover {
       background-color: #959595;

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { StreamBrowser } from './StreamBrowser';
 
-vi.mock('@/components/StreamList/StreamList', () => ({
+vi.mock('@/components/Stream', () => ({
   StreamList: () => <div data-testid="stream-list">StreamList</div>,
 }));
 

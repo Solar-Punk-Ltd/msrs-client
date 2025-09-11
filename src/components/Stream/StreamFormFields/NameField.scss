@@ -1,0 +1,13 @@
+@use './_shared.scss' as shared;
+
+.name-field {
+  @include shared.field-container;
+
+  .name-input {
+    @include shared.input-base;
+  }
+
+  .name-char-count {
+    @include shared.char-counter;
+  }
+}

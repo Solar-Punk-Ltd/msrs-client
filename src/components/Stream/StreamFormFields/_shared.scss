@@ -1,0 +1,64 @@
+@mixin field-container {
+  margin-bottom: 16px;
+
+  label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #ffffff;
+  }
+}
+
+@mixin input-base {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin char-counter {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  float: right;
+  margin-top: 4px;
+}
+
+.form-field {
+  @include field-container;
+}
+
+.form-input {
+  @include input-base;
+}
+
+.form-textarea {
+  @include input-base;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-char-count {
+  @include char-counter;
+}

@@ -1,0 +1,27 @@
+.unauthorized-warning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  min-height: 300px;
+  background-color: rgba(0, 0, 0, 0.547);
+  border-radius: 8px;
+  margin: 2rem;
+  margin-top: 200px;
+
+  h2 {
+    color: #ff0000;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: #ff0000;
+    font-size: 1rem;
+    line-height: 1.5;
+    max-width: 400px;
+  }
+}

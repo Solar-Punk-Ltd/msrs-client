@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
 import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 
+import { MediaType } from '@/types/stream';
+
 import { CustomManifestLoader } from './CustomManifestLoader';
 import { ManifestStateManager } from './ManifestManagement';
 
@@ -10,13 +12,13 @@ import './SwarmHlsPlayer.scss';
 interface HlsPlayerProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
   owner: string;
   topic: string;
-  mediatype: string;
+  mediaType: MediaType;
 }
 
 export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   owner,
   topic,
-  mediatype,
+  mediaType,
   autoPlay = true,
   controls = true,
   ...videoProps
@@ -106,9 +108,9 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
         hls = null;
       }
     };
-  }, [autoPlay, restartTrigger]);
+  }, [autoPlay, restartTrigger, owner, topic]);
 
-  return mediatype === 'video' ? (
+  return mediaType === MediaType.VIDEO ? (
     <video
       className="swarm-hls-player-video"
       ref={videoRef}

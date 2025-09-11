@@ -1,0 +1,18 @@
+@use './_shared.scss' as shared;
+
+.schedule-field {
+  @include shared.field-container;
+
+  .schedule-input {
+    @include shared.input-base;
+
+    &[type='datetime-local'] {
+      color-scheme: white;
+
+      &::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+      }
+    }
+  }
+}

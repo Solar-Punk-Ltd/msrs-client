@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import useSWR from 'swr';
 
-import { StreamList } from '@/components/StreamList/StreamList';
+import { StreamList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App';
 
 import './StreamBrowser.scss';

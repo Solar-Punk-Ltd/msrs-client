@@ -8,8 +8,10 @@ export const config = {
   readerBeeUrl: getEnv('VITE_READER_BEE_URL'),
   writerBeeUrl: getEnv('VITE_WRITER_BEE_URL'),
   stamp: getEnv('VITE_STAMP'),
-  appOwner: getEnv('VITE_APP_OWNER'),
-  rawAppTopic: getEnv('VITE_APP_RAW_TOPIC'),
+  streamStateOwner: getEnv('VITE_STREAM_STATE_OWNER'),
+  streamStateTopic: getEnv('VITE_STREAM_STATE_TOPIC'),
   chatGsocResourceId: getEnv('VITE_CHAT_GSOC_RESOURCE_ID'),
   chatGsocTopic: getEnv('VITE_CHAT_GSOC_TOPIC'),
+  streamerGsocResourceId: getEnv('VITE_STREAMER_GSOC_RESOURCE_ID'),
+  streamerGsocTopic: getEnv('VITE_STREAMER_GSOC_TOPIC'),
 };
