@@ -50,7 +50,7 @@ export const LoginButton = () => {
         {isDropdownOpen && (
           <div className="login-dropdown">
             <button className="login-dropdown-item" onClick={handleBrowser}>
-              Browser
+              Stream Browser
             </button>
             {isAdmin && (
               <button className="login-dropdown-item" onClick={handleMyStreams}>

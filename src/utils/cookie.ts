@@ -16,11 +16,11 @@ interface CookieOptions {
 }
 
 const COOKIE_NAME = 'msrs_session';
-const COOKIE_EXPIRY_24_HOUR = 24 * 60 * 60 * 1000;
+const COOKIE_EXPIRY_24_HOURS = 24 * 60 * 60 * 1000;
 
 export const setCookie = (session: Session, options: CookieOptions = {}): void => {
   const {
-    expires = new Date(Date.now() + COOKIE_EXPIRY_24_HOUR),
+    expires = new Date(Date.now() + COOKIE_EXPIRY_24_HOURS),
     path = '/',
     domain,
     secure = true,
