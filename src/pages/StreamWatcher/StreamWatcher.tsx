@@ -72,7 +72,7 @@ export function StreamWatcher() {
       )}
 
       <div className="stream-item-chat">
-        <Chat topic={topic} />
+        <Chat owner={owner} topic={topic} />
       </div>
     </div>
   );

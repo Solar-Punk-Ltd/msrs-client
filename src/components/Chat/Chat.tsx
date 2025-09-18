@@ -12,6 +12,7 @@ import { config } from '@/utils/config';
 import './Chat.scss';
 
 interface ChatProps {
+  owner: string;
   topic: string;
 }
 
@@ -35,7 +36,7 @@ function getColorForName(name: string): string {
 
 const privKeyPlaceholder = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-export const Chat: React.FC<ChatProps> = ({ topic }) => {
+export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
   const { nickname, keys, setIsLoginModalOpen } = useUserContext();
   const [selectedMessage, setSelectedMessage] = useState<VisibleMessage | null>(null);
   const [isThreadView, setIsThreadView] = useState(false);
@@ -74,7 +75,9 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
   const handleMessageSending = async (text: string) => {
     try {
       setIsSendingMessage(true);
-      await sendMessage(text);
+      await sendMessage(text, {
+        streamId: `${owner}/${topic}`,
+      });
     } finally {
       setIsSendingMessage(false);
     }
@@ -87,7 +90,9 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
 
     try {
       setReactionLoadingState((prev) => ({ ...prev, [loadingKey]: emoji }));
-      await sendReaction(messageId, emoji);
+      await sendReaction(messageId, emoji, {
+        streamId: `${owner}/${topic}`,
+      });
     } finally {
       // Clear loading state after a short delay to prevent rapid clicking
       setTimeout(() => {
@@ -113,7 +118,9 @@ export const Chat: React.FC<ChatProps> = ({ topic }) => {
     if (selectedMessage) {
       try {
         setIsSendingThreadMessage(true);
-        await sendReply(selectedMessage.id, text);
+        await sendReply(selectedMessage.id, text, {
+          streamId: `${owner}/${topic}`,
+        });
       } finally {
         setIsSendingThreadMessage(false);
       }
