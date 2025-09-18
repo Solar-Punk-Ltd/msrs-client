@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@ethersphere/bee-js": "^9.0.3",
-    "@solarpunkltd/swarm-chat-js": "^5.0.0",
+    "@solarpunkltd/swarm-chat-js": "^5.1.0",
     "bs58": "^6.0.0",
     "cafe-utility": "^27.16.2",
     "clsx": "^2.1.1",

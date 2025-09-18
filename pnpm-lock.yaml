@@ -12,8 +12,8 @@ importers:
         specifier: ^9.0.3
         version: 9.1.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@solarpunkltd/swarm-chat-js':
-        specifier: ^5.0.0
-        version: 5.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+        specifier: ^5.1.0
+        version: 5.1.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       bs58:
         specifier: ^6.0.0
         version: 6.0.0
@@ -679,8 +679,8 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@solarpunkltd/swarm-chat-js@5.0.0':
-    resolution: {integrity: sha512-S6Ge7XCmaKxpJxFs1m+r105vlD+FdlVGssNT6k3kSkKJorFezyH9LRhz/5s7isAz3BYn5dAT1KfcDvHdn91Jsw==}
+  '@solarpunkltd/swarm-chat-js@5.1.0':
+    resolution: {integrity: sha512-wPWUVRBGriqzSZVGRat6cAZN0dpvoKvI/MQ1JuH8XVwKjurLk7Hz8+yR3Qp7r6juDzwWvcp9LeyWldh4LmD8CA==}
 
   '@swc/core-darwin-arm64@1.11.11':
     resolution: {integrity: sha512-vJcjGVDB8cZH7zyOkC0AfpFYI/7GHKG0NSsH3tpuKrmoAXJyCYspKPGid7FT53EAlWreN7+Pew+bukYf5j+Fmg==}
@@ -3631,7 +3631,7 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@solarpunkltd/swarm-chat-js@5.0.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@solarpunkltd/swarm-chat-js@5.1.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@ethersphere/bee-js': 9.1.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       cafe-utility: 27.16.2

@@ -40,6 +40,10 @@ interface UserCredentials {
     msrsIngestion: string;
     streamAggregator: string;
   };
+  nginxConfig: {
+    adminSecret: string;
+    createdAt: number;
+  };
   username: string;
   createdAt: number;
 }
@@ -76,6 +80,7 @@ export class TokenGenerator {
     const payload = {
       u: this.credentials.userId,
       s: this.credentials.userSecret,
+      n: this.credentials.nginxConfig.adminSecret,
       message: messageData,
     };
 
@@ -287,6 +292,10 @@ export const nicknameLogin = async (nickname: string): Promise<LoginResult> => {
     serverKeys: {
       msrsIngestion: '',
       streamAggregator: '',
+    },
+    nginxConfig: {
+      adminSecret: '',
+      createdAt: Date.now(),
     },
     username: nickname,
     createdAt: Date.now(),
