@@ -104,8 +104,8 @@ export function Provider({ children }: Props): ReactElement {
     }
 
     return {
-      private: session.userSecret,
-      public: session.userId,
+      private: session.userSecret.toLocaleLowerCase(),
+      public: session.userId.toLocaleLowerCase(),
     };
   }, [session]);
 
