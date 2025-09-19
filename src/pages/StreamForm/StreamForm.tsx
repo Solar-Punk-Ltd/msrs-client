@@ -181,7 +181,7 @@ export function StreamForm() {
   const params = useParams<{ owner?: string; topic?: string }>();
 
   const { streamList, refreshStreamList } = useAppContext();
-  const { keys, session } = useUserContext();
+  const { session } = useUserContext();
 
   const { metadata, updateField, validateForm, initializeFromStream, isInitializing } = useStreamForm();
 

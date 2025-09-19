@@ -24,8 +24,8 @@ export function StreamManager() {
 
   const { data } = useSWR('app-state', fetchAppState, {
     revalidateOnFocus: true,
-    refreshInterval: 5000,
-    dedupingInterval: 5000,
+    refreshInterval: 2500,
+    dedupingInterval: 2500,
     shouldRetryOnError: true,
   });
 

@@ -28,7 +28,7 @@ export function BaseStreamList({
   title,
   renderFooter,
 }: BaseStreamListProps) {
-  const { streamList } = useAppContext();
+  const { streamList, isLoading } = useAppContext();
 
   const manifestUrlMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -79,18 +79,7 @@ export function BaseStreamList({
     });
   }, [streamList, sortStreams]);
 
-  if (!streamList) {
-    return (
-      <div className={className}>
-        {title && <h2 className="base-stream-list-title">{title}</h2>}
-        <div className="base-stream-list loading">
-          <InputLoading />
-        </div>
-      </div>
-    );
-  }
-
-  if (streamList.length === 0) {
+  if (!isLoading && streamList?.length === 0) {
     return (
       <div className={className}>
         {title && <h2 className="base-stream-list-title">{title}</h2>}
@@ -102,24 +91,44 @@ export function BaseStreamList({
     );
   }
 
-  return (
-    <div className={className}>
-      {title && <h2 className="base-stream-list-title">{title}</h2>}
-      <div className="base-stream-list">
-        {displayedStreams.map((stream) => {
-          const manifestUrl = manifestUrlMap.get(stream.topic) || '';
-          return (
-            <StreamListItem
-              key={`${stream.owner}-${stream.topic}`}
-              stream={stream}
-              thumbnailRef={stream.thumbnail as string}
-              manifestUrl={manifestUrl}
-              renderActions={renderActions}
-              className={itemClassName}
-            />
-          );
-        })}
+  if (isLoading && (!streamList || streamList.length === 0)) {
+    return (
+      <div className={className}>
+        {title && <h2 className="base-stream-list-title">{title}</h2>}
+        <div className="base-stream-list loading">
+          <InputLoading />
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className={`${className} ${isLoading ? 'loading-overlay' : ''}`}>
+      {isLoading && (
+        <div className="base-stream-list-loading-overlay">
+          <InputLoading />
+        </div>
+      )}
+
+      {title && <h2 className="base-stream-list-title">{title}</h2>}
+      <div className="base-stream-list-container">
+        <div className="base-stream-list">
+          {displayedStreams.map((stream) => {
+            const manifestUrl = manifestUrlMap.get(stream.topic) || '';
+            return (
+              <StreamListItem
+                key={`${stream.owner}-${stream.topic}`}
+                stream={stream}
+                thumbnailRef={stream.thumbnail as string}
+                manifestUrl={manifestUrl}
+                renderActions={renderActions}
+                className={itemClassName}
+              />
+            );
+          })}
+        </div>
+      </div>
+
       {renderFooter && renderFooter()}
     </div>
   );
