@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
 import { Chat } from '@/components/Chat/Chat';
+import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { StreamPreview } from '@/components/Stream';
 import { SwarmHlsPlayer } from '@/components/SwarmHlsPlayer/SwarmHlsPlayer';
 import { useAppContext } from '@/providers/App';
@@ -19,7 +20,7 @@ export function StreamWatcher() {
     state?: string;
   }>();
   const navigate = useNavigate();
-  const { streamList } = useAppContext();
+  const { streamList, isLoading } = useAppContext();
 
   const isScheduled = state === StateType.SCHEDULED;
 
@@ -64,9 +65,16 @@ export function StreamWatcher() {
         />
       )}
 
-      {isScheduled && !foundStream && (
+      {isScheduled && !foundStream && isLoading && (
+        <div className="stream-loading">
+          <InputLoading />
+          <h2>Searching for the scheduled stream...</h2>
+        </div>
+      )}
+
+      {isScheduled && !foundStream && !isLoading && (
         <div className="stream-not-found">
-          <h2>No streams found in this state</h2>
+          <h2>Something went wrong!</h2>
           <p>The scheduled stream you&apos;re looking for could not be found.</p>
         </div>
       )}
