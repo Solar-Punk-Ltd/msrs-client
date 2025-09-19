@@ -1,4 +1,5 @@
 import { MemoryRouter, useParams } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -21,10 +22,21 @@ vi.mock('@/routes', () => ({
   ROUTES: { STREAM_BROWSER: '/streams' },
 }));
 
-// Mock the login utility
 vi.mock('@/utils/login', () => ({
   autoLogin: vi.fn(),
 }));
+
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: () => ({
+      getQueryData: vi.fn(),
+      setQueryData: vi.fn(),
+      invalidateQueries: vi.fn(),
+    }),
+  };
+});
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -37,15 +49,25 @@ vi.mock('react-router-dom', async () => {
 });
 
 describe('StreamWatcher', () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
   const renderStreamWatcher = () =>
     render(
-      <MemoryRouter>
-        <AppContextProvider>
-          <UserProvider>
-            <StreamWatcher />
-          </UserProvider>
-        </AppContextProvider>
-      </MemoryRouter>,
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <AppContextProvider>
+            <UserProvider>
+              <StreamWatcher />
+            </UserProvider>
+          </AppContextProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
 
   beforeEach(() => {

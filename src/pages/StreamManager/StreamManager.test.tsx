@@ -89,6 +89,7 @@ vi.mock('react-router-dom', async () => {
 const mockFetchAppState = vi.fn();
 const mockSetNewStreamList = vi.fn();
 const mockRefreshStreamList = vi.fn();
+const mockIsLoading = false;
 
 vi.mock('@/providers/App', () => ({
   AppContextProvider: ({ children }: any) => children,
@@ -96,8 +97,16 @@ vi.mock('@/providers/App', () => ({
     fetchAppState: mockFetchAppState,
     setNewStreamList: mockSetNewStreamList,
     refreshStreamList: mockRefreshStreamList,
+    isLoading: mockIsLoading,
   }),
 }));
+
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: vi.fn(),
+  useQueryClient: vi.fn(),
+}));
+
+import { useQuery } from '@tanstack/react-query';
 
 const mockSession = {
   address: 'mock-address',
@@ -136,6 +145,16 @@ describe('StreamManager', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (useQuery as any).mockReturnValue({
+      data: [
+        {
+          owner: 'owner1',
+          topic: 'topic1',
+          title: 'Stream 1',
+          mediaType: 'video',
+        },
+      ],
+    });
   });
 
   it('renders the stream manager with list', () => {
@@ -187,10 +206,7 @@ describe('StreamManager', () => {
       expect(deleteStream).toHaveBeenCalledWith(mockSession, 'topic1', 'owner1');
     });
 
-    expect(mockRefreshStreamList).toHaveBeenCalledWith({
-      type: 'delete',
-      streamId: 'owner1/topic1',
-    });
+    expect(mockRefreshStreamList).toHaveBeenCalledWith();
   });
 
   it('generates and copies token to clipboard', async () => {

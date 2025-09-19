@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal';
 import { StreamManagerList } from '@/components/Stream';
@@ -15,18 +15,21 @@ import './StreamManager.scss';
 
 export function StreamManager() {
   const navigate = useNavigate();
-  const { fetchAppState, setNewStreamList, refreshStreamList } = useAppContext();
   const { session } = useUserContext();
+  const { fetchAppState, setNewStreamList, refreshStreamList, isLoading } = useAppContext();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [streamToDelete, setStreamToDelete] = useState<StateEntry | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data } = useSWR('app-state', fetchAppState, {
-    revalidateOnFocus: true,
-    refreshInterval: 2500,
-    dedupingInterval: 2500,
-    shouldRetryOnError: true,
+  const { data } = useQuery({
+    queryKey: ['app-state'],
+    queryFn: () => fetchAppState(),
+    refetchInterval: 2500,
+    retry: true,
+    enabled: !isLoading,
+    staleTime: 0,
+    gcTime: Infinity,
   });
 
   useEffect(() => {
@@ -51,7 +54,7 @@ export function StreamManager() {
     try {
       const newPinState = stream.pinned ? !stream.pinned : true;
       await updateStreamPin(session, stream.topic, stream.owner, newPinState);
-      await refreshStreamList({ type: 'update', streamId: `${stream.owner}/${stream.topic}` });
+      await refreshStreamList();
     } catch (error) {
       console.error('Failed to update stream pin status:', error);
     }
@@ -98,7 +101,7 @@ export function StreamManager() {
     setIsDeleting(true);
     try {
       await deleteStream(session!, streamToDelete.topic, streamToDelete.owner);
-      await refreshStreamList({ type: 'delete', streamId: `${streamToDelete.owner}/${streamToDelete.topic}` });
+      await refreshStreamList();
     } catch (error) {
       console.error('Failed to delete stream:', error);
     } finally {

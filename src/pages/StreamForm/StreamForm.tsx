@@ -238,13 +238,10 @@ export function StreamForm() {
 
       if (isEditMode && streamToEdit) {
         await updateStream(session!, metadata, streamToEdit.topic, streamToEdit.owner);
-        await refreshStreamList({
-          type: 'update',
-          streamId: `${streamToEdit.owner}/${streamToEdit.topic}`,
-        });
+        await refreshStreamList();
       } else {
         await createStream(session!, metadata);
-        await refreshStreamList({ type: 'create' });
+        await refreshStreamList();
       }
 
       navigate(ROUTES.STREAM_MANAGER);

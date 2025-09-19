@@ -1,25 +1,19 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
-import { mutate } from 'swr';
+import { useQueryClient } from '@tanstack/react-query';
+import { cloneDeep, isEqual } from 'lodash';
 
 import { StateEntry } from '@/types/stream';
 import { makeFeedIdentifier } from '@/utils/bee';
 import { config } from '@/utils/config';
-
-type ChangeType = 'create' | 'delete' | 'update';
-
-interface ExpectedChange {
-  type: ChangeType;
-  streamId?: string;
-}
 
 interface AppContextState {
   streamList: StateEntry[] | null;
   isLoading: boolean;
   error: Error | null;
   setNewStreamList: (data: StateEntry[]) => void;
-  fetchAppState: () => Promise<StateEntry[]>;
-  refreshStreamList: (expectedChange: ExpectedChange) => Promise<void>;
+  fetchAppState: () => Promise<StateEntry[] | null>;
+  refreshStreamList: () => Promise<void>;
 }
 
 const RETRY_CONFIG = {
@@ -37,32 +31,22 @@ export const useAppContext = () => {
   return context;
 };
 
-const hasNewerData = (newData: StateEntry[], existingData: StateEntry[] | null): boolean => {
-  if (!existingData || existingData.length === 0) return true;
-  if (newData.length === 0) return false;
-
-  const latestNew = newData[newData.length - 1];
-  const latestExisting = existingData[existingData.length - 1];
-
-  return latestNew.updatedAt > latestExisting.updatedAt;
-};
-
 interface AppContextProviderProps {
   children: ReactNode;
 }
 
 export const AppContextProvider = ({ children }: AppContextProviderProps) => {
-  const [streamList, setStreamList] = useState<StateEntry[] | null>(null);
+  const [streamList, setStreamList] = useState<StateEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const currentIndexRef = useRef<FeedIndex | null>(null);
-  const previousListRef = useRef<StateEntry[] | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     initAppState();
   }, []);
 
-  const fetchAppState = useCallback(async (): Promise<StateEntry[]> => {
+  const fetchAppState = useCallback(async (): Promise<StateEntry[] | null> => {
     try {
       setError(null);
       const topic = Topic.fromString(config.streamStateTopic);
@@ -84,7 +68,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         }
 
         const data = await response.json();
-        previousListRef.current = data;
         return data;
       }
 
@@ -98,33 +81,30 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       });
 
       if (!response.ok) {
-        // No new data yet, return cached
-        if (response.status === 404) {
-          return previousListRef.current || [];
-        }
         throw new Error(`Failed to fetch: ${response.statusText}`);
       }
 
       currentIndexRef.current = nextIndex;
       const data = await response.json();
-      previousListRef.current = data;
       return data;
     } catch (error) {
       console.error('Failed to fetch app state:', error);
       setError(error instanceof Error ? error : new Error('Unknown error occurred'));
-      return previousListRef.current || [];
+      return null;
     }
   }, []);
 
-  const setNewStreamList = useCallback((data: StateEntry[]) => {
+  const setNewStreamList = useCallback((data: any) => {
     if (!Array.isArray(data)) {
       console.error('Invalid data: expected array');
       return;
     }
 
     setStreamList((current) => {
-      if (data.length === 0) return [];
-      if (hasNewerData(data, current)) return data;
+      const clonedData = cloneDeep(data);
+      if (!isEqual(current, clonedData)) {
+        return clonedData;
+      }
       return current;
     });
   }, []);
@@ -133,68 +113,50 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     setIsLoading(true);
     try {
       const data = await fetchAppState();
-      setStreamList(data);
+      setNewStreamList(data);
     } finally {
       setIsLoading(false);
     }
   }, [fetchAppState]);
 
-  const checkExpectedChange = useCallback((newData: StateEntry[], expectedChange?: ExpectedChange): boolean => {
-    const currentList = previousListRef.current || [];
+  const refreshStreamList = useCallback(async () => {
+    setIsLoading(true);
 
-    switch (expectedChange?.type) {
-      case 'create':
-        return newData.length > currentList.length;
+    try {
+      let changeDetected = false;
 
-      case 'delete':
-        return newData.length < currentList.length;
+      const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
 
-      case 'update':
-        return hasNewerData(newData, currentList);
-
-      default:
-        return false;
-    }
-  }, []);
-
-  const refreshStreamList = useCallback(
-    async (expectedChange: ExpectedChange) => {
-      setIsLoading(true);
-
-      try {
-        let changeDetected = false;
-
-        for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
-          if (attempt > 0) {
-            await new Promise((resolve) => setTimeout(resolve, RETRY_CONFIG.retryDelay));
-          }
-
-          const freshData = await mutate('app-state');
-
-          if (freshData) {
-            changeDetected = checkExpectedChange(freshData, expectedChange);
-
-            if (changeDetected) {
-              setStreamList(freshData);
-              await mutate('app-state', freshData, false);
-              break;
-            }
-          }
+      for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
+        if (attempt > 0) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_CONFIG.retryDelay));
         }
 
-        if (!changeDetected) {
-          console.warn('Expected change not detected after maximum retries');
-          // Just keep polling with the current index - the change might appear later
+        const freshData = await fetchAppState();
+
+        if (freshData) {
+          changeDetected = !isEqual(currentStateSnapshot, freshData);
+
+          console.log('Change detected:', changeDetected);
+
+          if (changeDetected) {
+            setNewStreamList(freshData);
+            queryClient.setQueryData(['app-state'], cloneDeep(freshData));
+            break;
+          }
         }
-      } catch (error) {
-        console.error('Error refreshing stream list:', error);
-        setError(error instanceof Error ? error : new Error('Failed to refresh'));
-      } finally {
-        setIsLoading(false);
       }
-    },
-    [checkExpectedChange],
-  );
+
+      if (!changeDetected) {
+        console.warn('No changes detected after maximum retries');
+      }
+    } catch (error) {
+      console.error('Error refreshing stream list:', error);
+      setError(error instanceof Error ? error : new Error('Failed to refresh'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchAppState, setNewStreamList, streamList, queryClient]);
 
   const contextValue: AppContextState = {
     streamList,
