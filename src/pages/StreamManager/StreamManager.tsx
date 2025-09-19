@@ -9,7 +9,7 @@ import { useUserContext } from '@/providers/User';
 import { StateEntry } from '@/types/stream';
 import { config } from '@/utils/config';
 import { createMsrsIngestionToken } from '@/utils/login';
-import { deleteStream } from '@/utils/stream';
+import { deleteStream, updateStreamPin } from '@/utils/stream';
 
 import './StreamManager.scss';
 
@@ -40,6 +40,21 @@ export function StreamManager() {
   const handleDelete = (stream: StateEntry) => {
     setStreamToDelete(stream);
     setDeleteModalOpen(true);
+  };
+
+  const onPin = async (stream: StateEntry) => {
+    if (!session) {
+      console.error('User session not found. Please log in again.');
+      return;
+    }
+
+    try {
+      const newPinState = stream.pinned ? !stream.pinned : true;
+      await updateStreamPin(session, stream.topic, stream.owner, newPinState);
+      await refreshStreamList({ type: 'update', streamId: `${stream.owner}/${stream.topic}` });
+    } catch (error) {
+      console.error('Failed to update stream pin status:', error);
+    }
   };
 
   const handleShowToken = async (stream: StateEntry) => {
@@ -100,7 +115,7 @@ export function StreamManager() {
 
   return (
     <div className="stream-manager">
-      <StreamManagerList onEdit={handleEdit} onDelete={handleDelete} onShowToken={handleShowToken} />
+      <StreamManagerList onEdit={handleEdit} onDelete={handleDelete} onShowToken={handleShowToken} onPin={onPin} />
 
       <ConfirmationModal
         isOpen={deleteModalOpen}

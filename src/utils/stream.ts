@@ -109,3 +109,17 @@ export async function updateStream(session: Session, meta: StreamMetadata, topic
   const token = await createStreamAggregatorToken(session, message as UpdateMessage);
   await sendMessageToGsocOwn(token);
 }
+
+export async function updateStreamPin(session: Session, topic: string, owner: string, pinned: boolean) {
+  const message = {
+    action: ActionType.UPDATE,
+    data: {
+      owner,
+      topic,
+      pinned,
+    },
+  };
+
+  const token = await createStreamAggregatorToken(session, message as UpdateMessage);
+  await sendMessageToGsocOwn(token);
+}

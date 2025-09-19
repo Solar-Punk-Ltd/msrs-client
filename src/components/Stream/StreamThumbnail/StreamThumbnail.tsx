@@ -26,6 +26,7 @@ interface StreamThumbnailProps {
   thumbnailRef?: string;
   state?: StateType;
   duration?: number;
+  pinned?: boolean;
 }
 
 interface ThumbnailState {
@@ -120,6 +121,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   duration,
   mediaType,
   title,
+  pinned,
 }) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -130,7 +132,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
     hasData: false,
   });
 
-  const { captureFromHls, cleanup: cleanupHls } = useHlsThumbnailCapture(videoRef, manifestUrl);
+  const { captureFromHls, cleanup: _cleanupHls } = useHlsThumbnailCapture(videoRef, manifestUrl);
 
   const handleClick = useCallback(() => {
     if (state === StateType.SCHEDULED) {
@@ -199,7 +201,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   const shouldShowDefault = !isLoading && !hasData;
 
   return (
-    <div className="stream-thumbnail">
+    <div className={`stream-thumbnail ${pinned ? 'stream-thumbnail--pinned' : ''}`}>
       <div className="stream-thumbnail-media" onClick={handleClick}>
         {isLoading && <LoadingSpinner />}
 

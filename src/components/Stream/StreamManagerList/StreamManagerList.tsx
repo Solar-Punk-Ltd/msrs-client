@@ -13,9 +13,10 @@ interface StreamManagerListProps {
   onEdit: (stream: StateEntry) => void;
   onDelete: (stream: StateEntry) => void;
   onShowToken: (stream: StateEntry) => Promise<void>;
+  onPin: (stream: StateEntry) => Promise<void>;
 }
 
-export function StreamManagerList({ onEdit, onDelete, onShowToken }: StreamManagerListProps) {
+export function StreamManagerList({ onEdit, onDelete, onShowToken, onPin }: StreamManagerListProps) {
   const navigate = useNavigate();
 
   const renderActions = (stream: StateEntry) => (
@@ -32,16 +33,30 @@ export function StreamManagerList({ onEdit, onDelete, onShowToken }: StreamManag
           }
         />
       )}
-      <StreamActionButton
-        onClick={() => onEdit(stream)}
-        variant="edit"
-        label="Edit stream"
-        icon={
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-          </svg>
-        }
-      />
+      {(stream.state === StateType.LIVE || stream.state === StateType.VOD) && (
+        <StreamActionButton
+          onClick={() => onPin(stream)}
+          variant={stream.pinned ? 'unpin' : 'pin'}
+          label={stream.pinned ? 'Unpin stream' : 'Pin stream'}
+          icon={
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" />
+            </svg>
+          }
+        />
+      )}
+      {stream.state === StateType.SCHEDULED && (
+        <StreamActionButton
+          onClick={() => onEdit(stream)}
+          variant="edit"
+          label="Edit stream"
+          icon={
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+            </svg>
+          }
+        />
+      )}
       <StreamActionButton
         onClick={() => onDelete(stream)}
         variant="delete"
