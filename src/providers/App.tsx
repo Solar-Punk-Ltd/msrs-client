@@ -8,7 +8,7 @@ import { makeFeedIdentifier } from '@/utils/bee';
 import { config } from '@/utils/config';
 
 interface AppContextState {
-  streamList: StateEntry[] | null;
+  streamList: StateEntry[];
   isLoading: boolean;
   error: Error | null;
   setNewStreamList: (data: StateEntry[]) => void;
