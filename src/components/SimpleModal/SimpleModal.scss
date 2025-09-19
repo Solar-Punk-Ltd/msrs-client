@@ -1,0 +1,93 @@
+@use '../../styles/variables.scss' as *;
+
+.simple-modal-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  padding: 16px;
+  backdrop-filter: blur(2.5px);
+  z-index: 1000;
+  box-sizing: border-box;
+
+  @media (min-width: $breakpoint-mobile) {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.simple-modal {
+  position: relative;
+  width: 100%;
+  top: 10%;
+  padding: 24px;
+  max-height: fit-content;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #8841e4 0%, #ff8a50 100%),
+    linear-gradient(0deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0));
+  color: #efefef;
+  font-family: 'Open Sans', sans-serif;
+  border-radius: 12px;
+
+  @media (min-width: $breakpoint-mobile) {
+    max-width: 500px;
+  }
+}
+
+.simple-modal-header {
+  font-size: 24px;
+  margin-bottom: 24px;
+  font-weight: bold;
+}
+
+.simple-modal-content {
+  margin-bottom: 24px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.simple-modal-subheader {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 16px;
+}
+
+.simple-modal-token {
+  word-break: break-all;
+  user-select: all;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: 'Courier New', monospace;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.simple-modal-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.simple-modal-button {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  box-sizing: border-box;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  font-size: 18px;
+  width: auto !important;
+
+  &.primary {
+    background-color: #fe8950 !important;
+
+    &:hover {
+      background-color: #f9a880 !important;
+    }
+  }
+}

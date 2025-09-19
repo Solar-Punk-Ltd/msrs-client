@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal';
+import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StreamManagerList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App';
 import { useUserContext } from '@/providers/User';
@@ -21,6 +22,9 @@ export function StreamManager() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [streamToDelete, setStreamToDelete] = useState<StateEntry | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [tokenModalOpen, setTokenModalOpen] = useState(false);
+  const [displayToken, setDisplayToken] = useState<string>('');
+  const [tokenCopiedToClipboard, setTokenCopiedToClipboard] = useState<boolean>(false);
 
   const { data } = useQuery({
     queryKey: ['app-state'],
@@ -74,20 +78,21 @@ export function StreamManager() {
     };
 
     const token = await createMsrsIngestionToken(session, tokenMsg);
+    setDisplayToken(token);
 
+    let clipboardSuccess = false;
     if (navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(token);
-        alert(
-          `MSRS Ingestion Token (copied to clipboard):\n\n${token}\n\nThe token has been automatically copied to your clipboard.`,
-        );
+        clipboardSuccess = true;
       } catch (err) {
         console.error('Failed to copy to clipboard:', err);
-        alert(`MSRS Ingestion Token:\n\n${token}\n\nPlease manually copy this token.`);
+        clipboardSuccess = false;
       }
-    } else {
-      alert(`MSRS Ingestion Token:\n\n${token}\n\nPlease manually copy this token.`);
     }
+
+    setTokenCopiedToClipboard(clipboardSuccess);
+    setTokenModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -116,6 +121,12 @@ export function StreamManager() {
     setStreamToDelete(null);
   };
 
+  const handleCloseTokenModal = () => {
+    setTokenModalOpen(false);
+    setDisplayToken('');
+    setTokenCopiedToClipboard(false);
+  };
+
   return (
     <div className="stream-manager">
       <StreamManagerList onEdit={handleEdit} onDelete={handleDelete} onShowToken={handleShowToken} onPin={onPin} />
@@ -130,6 +141,20 @@ export function StreamManager() {
         onCancel={handleCancelDelete}
         isLoading={isDeleting}
       />
+
+      <SimpleModal
+        isOpen={tokenModalOpen}
+        title="MSRS Ingestion Token"
+        onClose={handleCloseTokenModal}
+        closeText="Close"
+      >
+        <div className="simple-modal-subheader">
+          {tokenCopiedToClipboard
+            ? 'Token has been copied to your clipboard. Use this token for stream ingestion:'
+            : 'Please manually copy this token for stream ingestion:'}
+        </div>
+        <div className="simple-modal-token">{displayToken}</div>
+      </SimpleModal>
     </div>
   );
 }

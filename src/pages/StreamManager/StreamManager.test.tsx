@@ -209,7 +209,7 @@ describe('StreamManager', () => {
     expect(mockRefreshStreamList).toHaveBeenCalledWith();
   });
 
-  it('generates and copies token to clipboard', async () => {
+  it('shows modal with clipboard success message when clipboard works', async () => {
     const { createMsrsIngestionToken } = await import('@/utils/login');
 
     renderStreamManager();
@@ -226,10 +226,17 @@ describe('StreamManager', () => {
     });
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('mock-token-12345');
-    expect(global.alert).toHaveBeenCalledWith(expect.stringContaining('MSRS Ingestion Token (copied to clipboard)'));
+
+    await waitFor(() => {
+      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
+      expect(
+        screen.getByText('Token has been copied to your clipboard. Use this token for stream ingestion:'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
+    });
   });
 
-  it('shows alert without clipboard when clipboard fails', async () => {
+  it('shows modal with manual copy message when clipboard fails', async () => {
     navigator.clipboard.writeText = vi.fn().mockRejectedValue(new Error('Clipboard failed'));
 
     renderStreamManager();
@@ -237,11 +244,13 @@ describe('StreamManager', () => {
     fireEvent.click(screen.getByText('Show Token Stream 1'));
 
     await waitFor(() => {
-      expect(global.alert).toHaveBeenCalledWith(expect.stringContaining('Please manually copy this token'));
+      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
+      expect(screen.getByText('Please manually copy this token for stream ingestion:')).toBeInTheDocument();
+      expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
     });
   });
 
-  it('shows alert without clipboard when clipboard is not available', async () => {
+  it('shows modal with manual copy message when clipboard is not available', async () => {
     Object.defineProperty(navigator, 'clipboard', {
       value: undefined,
       writable: true,
@@ -252,7 +261,9 @@ describe('StreamManager', () => {
     fireEvent.click(screen.getByText('Show Token Stream 1'));
 
     await waitFor(() => {
-      expect(global.alert).toHaveBeenCalledWith(expect.stringContaining('Please manually copy this token'));
+      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
+      expect(screen.getByText('Please manually copy this token for stream ingestion:')).toBeInTheDocument();
+      expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
     });
   });
 
