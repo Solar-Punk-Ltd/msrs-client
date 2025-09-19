@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,10 +17,13 @@ const queryClient = new QueryClient({
   },
 });
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+function AppWithLoading() {
+  useEffect(() => {
+    // Add class to body to hide initial loading screen
+    document.body.classList.add('react-loaded');
+  }, []);
 
-root.render(
-  <StrictMode>
+  return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
         <UserProvider>
@@ -30,5 +33,13 @@ root.render(
         </UserProvider>
       </AppProvider>
     </QueryClientProvider>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+
+root.render(
+  <StrictMode>
+    <AppWithLoading />
   </StrictMode>,
 );

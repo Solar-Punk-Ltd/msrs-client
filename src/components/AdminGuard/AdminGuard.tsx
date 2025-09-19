@@ -10,7 +10,11 @@ interface AdminGuardProps {
 }
 
 export function AdminGuard({ children, fallback }: AdminGuardProps) {
-  const { isAdmin } = useUserContext();
+  const { isAdmin, isLoading } = useUserContext();
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!isAdmin) {
     return (

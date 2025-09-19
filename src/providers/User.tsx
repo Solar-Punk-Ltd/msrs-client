@@ -17,6 +17,7 @@ interface ContextInterface {
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (isLoginModalOpen: boolean) => void;
   session: Session | null;
+  isLoading: boolean;
 }
 
 const initialValues: ContextInterface = {
@@ -33,6 +34,7 @@ const initialValues: ContextInterface = {
   isLoginModalOpen: false,
   setIsLoginModalOpen: () => {},
   session: null,
+  isLoading: true,
 };
 
 export const Context = createContext<ContextInterface>(initialValues);
@@ -51,12 +53,14 @@ interface Props {
 export function Provider({ children }: Props): ReactElement {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedSession = loadSessionFromCookie();
     if (savedSession) {
       setSession(savedSession);
     }
+    setIsLoading(false);
   }, []);
 
   const loginAsAdmin = async (username: string, password: string) => {
@@ -118,6 +122,7 @@ export function Provider({ children }: Props): ReactElement {
         isLoginModalOpen,
         setIsLoginModalOpen,
         session,
+        isLoading,
       }}
     >
       {children}
