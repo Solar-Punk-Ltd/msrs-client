@@ -1,4 +1,5 @@
 @use '../BaseStreamList/BaseStreamList.scss';
+@use '../../../styles/variables.scss' as *;
 
 .stream-list {
   display: flex;

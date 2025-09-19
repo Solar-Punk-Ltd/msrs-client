@@ -1,4 +1,5 @@
 @use '../BaseStreamList/BaseStreamList.scss';
+@use '../../../styles/variables.scss' as *;
 
 .stream-manager-list {
   display: flex;
@@ -13,6 +14,19 @@
   margin: 0 auto;
   width: 100%;
   overflow: hidden;
+
+  .base-stream-list-container {
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .base-stream-list {
+    max-height: none;
+    overflow-y: auto;
+    height: 100%;
+    align-content: start;
+  }
 }
 
 .stream-manager-item {
@@ -31,7 +45,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: center;
-  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .create-stream-button {

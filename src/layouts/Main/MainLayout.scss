@@ -1,3 +1,5 @@
+@use '../../styles/variables.scss' as *;
+
 .main-layout {
   position: relative;
   height: 100%;
@@ -31,7 +33,7 @@ header {
   width: 100%;
 }
 
-@media (min-width: 500px) {
+@media (min-width: $breakpoint-mobile) {
   .main-layout {
     background: linear-gradient(180deg, #8841e4 0%, #ff8a50 100%),
       linear-gradient(0deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0));

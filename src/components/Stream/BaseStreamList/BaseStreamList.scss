@@ -1,3 +1,5 @@
+@use '../../../styles/variables.scss' as *;
+
 .base-stream-list-title {
   padding: 20px;
   margin: 0;
@@ -12,14 +14,15 @@
   display: grid;
   grid-template-columns: 1fr;
   justify-items: center;
-  gap: 16px;
+  row-gap: 8px;
+  column-gap: 16px;
   padding: 16px;
   width: 100%;
   overflow-y: auto;
   max-height: 80vh;
   box-sizing: border-box;
 
-  @media (min-width: 480px) {
+  @media (min-width: $breakpoint-mobile) {
     grid-template-columns: repeat(2, 1fr);
     justify-items: stretch;
   }
