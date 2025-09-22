@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button, ButtonVariant } from '@/components/Button/Button';
 import { Chat } from '@/components/Chat/Chat';
 import { InputLoading } from '@/components/InputLoading/InputLoading';
-import { StreamPreview } from '@/components/Stream';
+import { StreamInfo } from '@/components/Stream/StreamInfo/StreamInfo';
 import { SwarmHlsPlayer } from '@/components/SwarmHlsPlayer/SwarmHlsPlayer';
 import { useAppContext } from '@/providers/App';
 import { ROUTES } from '@/routes';
@@ -13,25 +13,25 @@ import { MediaType, StateType } from '@/types/stream';
 import './StreamWatcher.scss';
 
 export function StreamWatcher() {
-  const { mediatype, owner, topic, state } = useParams<{
+  const { mediatype, owner, topic } = useParams<{
     mediatype: string;
     owner: string;
     topic: string;
-    state?: string;
   }>();
   const navigate = useNavigate();
   const { streamList, isLoading } = useAppContext();
 
-  const isScheduled = state === StateType.SCHEDULED;
-
   const foundStream = useMemo(() => {
-    if (isScheduled && streamList && owner && topic) {
-      return streamList.find(
-        (stream) => stream.topic === topic && stream.owner === owner && stream.state === StateType.SCHEDULED,
-      );
+    if (streamList && owner && topic) {
+      return streamList.find((stream) => stream.topic === topic && stream.owner === owner);
     }
     return null;
-  }, [isScheduled, streamList, topic, owner]);
+  }, [streamList, topic, owner]);
+
+  const isScheduled = foundStream?.state === StateType.SCHEDULED;
+
+  const shouldShowLoading = isLoading || streamList.length === 0;
+  const shouldShowError = !shouldShowLoading && !foundStream;
 
   const handleBackButtonClick = () => {
     if (window.history.length > 1) {
@@ -51,31 +51,32 @@ export function StreamWatcher() {
         ← Back
       </Button>
 
-      {!isScheduled && (mediatype === MediaType.AUDIO || mediatype === MediaType.VIDEO) && (
+      {foundStream && !isScheduled && (mediatype === MediaType.AUDIO || mediatype === MediaType.VIDEO) && (
         <div className="stream-item-player">
           <SwarmHlsPlayer owner={owner} topic={topic} mediaType={mediatype as MediaType} />
         </div>
       )}
 
-      {isScheduled && foundStream && (
-        <StreamPreview
+      {foundStream && (
+        <StreamInfo
           title={foundStream.title}
           description={foundStream.description || 'No description available'}
-          scheduledStartTime={foundStream.scheduledStartTime || ''}
+          scheduledStartTime={foundStream.scheduledStartTime}
+          isScheduled={isScheduled}
         />
       )}
 
-      {isScheduled && !foundStream && isLoading && (
+      {shouldShowLoading && (
         <div className="stream-loading">
           <InputLoading />
-          <h2>Searching for the scheduled stream...</h2>
+          <h2>Searching for the stream...</h2>
         </div>
       )}
 
-      {isScheduled && !foundStream && !isLoading && (
+      {shouldShowError && (
         <div className="stream-not-found">
           <h2>Something went wrong!</h2>
-          <p>The scheduled stream you&apos;re looking for could not be found.</p>
+          <p>The stream you&apos;re looking for could not be found.</p>
         </div>
       )}
 

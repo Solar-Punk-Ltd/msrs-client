@@ -11,7 +11,7 @@ import { StreamWatcher } from './pages/StreamWatcher/StreamWatcher';
 
 export enum ROUTES {
   STREAM_BROWSER = '/',
-  STREAM_WATCH = '/watch/:mediatype/:owner/:topic/:state?',
+  STREAM_WATCH = '/watch/:mediatype/:owner/:topic',
   STREAM_CREATE = '/create',
   STREAM_EDIT = '/edit/:owner/:topic',
   STREAM_MANAGER = '/manage',

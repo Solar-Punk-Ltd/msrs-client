@@ -93,7 +93,7 @@ The built application will be in the `dist` directory, ready for deployment.
 ### Main Routes
 
 - **`/`** - Stream Browser (discover available streams)
-- **`/watch/:mediatype/:owner/:topic/:state?`** - Stream Watcher (watch and chat)
+- **`/watch/:mediatype/:owner/:topic`** - Stream Watcher (watch and chat)
 - **`/create`** - Create New Stream (admin only)
 - **`/edit/:owner/:topic`** - Edit Stream (admin only)
 - **`/manage`** - Stream Management (admin only)

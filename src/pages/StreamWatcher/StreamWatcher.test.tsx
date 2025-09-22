@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AppContextProvider } from '@/providers/App';
 import { Provider as UserProvider } from '@/providers/User';
 
 import { StreamWatcher } from './StreamWatcher';
@@ -13,6 +12,9 @@ vi.mock('@/components/SwarmHlsPlayer/SwarmHlsPlayer', () => ({
 }));
 vi.mock('@/components/Chat/Chat', () => ({
   Chat: (props: any) => <div data-testid="chat">{JSON.stringify(props)}</div>,
+}));
+vi.mock('@/components/Stream/StreamInfo/StreamInfo', () => ({
+  StreamInfo: (props: any) => <div data-testid="stream-info">{JSON.stringify(props)}</div>,
 }));
 vi.mock('@/components/Button/Button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
@@ -24,6 +26,29 @@ vi.mock('@/routes', () => ({
 
 vi.mock('@/utils/login', () => ({
   autoLogin: vi.fn(),
+}));
+
+vi.mock('@/providers/App', () => ({
+  useAppContext: () => ({
+    streamList: [
+      {
+        topic: 'testtopic',
+        owner: 'alice',
+        title: 'Test Stream',
+        description: 'Test Description',
+        state: 'live',
+        mediaType: 'video',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    ],
+    isLoading: false,
+    error: null,
+    setNewStreamList: vi.fn(),
+    fetchAppState: vi.fn(),
+    refreshStreamList: vi.fn(),
+  }),
+  AppContextProvider: ({ children }: any) => children,
 }));
 
 vi.mock('@tanstack/react-query', async () => {
@@ -61,11 +86,9 @@ describe('StreamWatcher', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
-          <AppContextProvider>
-            <UserProvider>
-              <StreamWatcher />
-            </UserProvider>
-          </AppContextProvider>
+          <UserProvider>
+            <StreamWatcher />
+          </UserProvider>
         </MemoryRouter>
       </QueryClientProvider>,
     );

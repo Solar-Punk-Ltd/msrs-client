@@ -135,12 +135,8 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   const { captureFromHls, cleanup: _cleanupHls } = useHlsThumbnailCapture(videoRef, manifestUrl);
 
   const handleClick = useCallback(() => {
-    if (state === StateType.SCHEDULED) {
-      navigate(`/watch/${mediaType}/${owner}/${topic}/scheduled`);
-    } else {
-      navigate(`/watch/${mediaType}/${owner}/${topic}`);
-    }
-  }, [navigate, mediaType, owner, topic, state]);
+    navigate(`/watch/${mediaType}/${owner}/${topic}`);
+  }, [navigate, mediaType, owner, topic]);
 
   const loadThumbnail = useCallback(async () => {
     setThumbnailState((prev) => ({ ...prev, isLoading: true }));
