@@ -5,7 +5,7 @@ import { Button, ButtonVariant } from '@/components/Button/Button';
 import { Chat } from '@/components/Chat/Chat';
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { StreamInfo } from '@/components/Stream/StreamInfo/StreamInfo';
-import { SwarmHlsPlayer } from '@/components/SwarmHlsPlayer/SwarmHlsPlayer';
+import { SwarmHlsPlayer } from '@/components/Stream/SwarmHlsPlayer/SwarmHlsPlayer';
 import { useAppContext } from '@/providers/App';
 import { ROUTES } from '@/routes';
 import { MediaType, StateType } from '@/types/stream';
