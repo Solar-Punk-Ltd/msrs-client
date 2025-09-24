@@ -37,6 +37,7 @@ interface UserCredentials {
   userId: string;
   userSecret: string;
   serverKeys: {
+    nginx: string;
     msrsIngestion: string;
     streamAggregator: string;
   };
@@ -285,6 +286,7 @@ export const nicknameLogin = async (nickname: string): Promise<LoginResult> => {
     userId: pubKey,
     userSecret: privKey,
     serverKeys: {
+      nginx: '',
       msrsIngestion: '',
       streamAggregator: '',
     },

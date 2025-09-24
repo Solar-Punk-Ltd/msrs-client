@@ -1,0 +1,68 @@
+@use '@/styles/variables.scss' as *;
+
+.stamp-manager {
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #581c87 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(30, 58, 138, 0.25);
+
+    @media (max-width: $breakpoint-mobile) {
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+    }
+  }
+
+  &-title-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+
+    @media (max-width: $breakpoint-mobile) {
+      font-size: 20px;
+    }
+  }
+}
+
+.info-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  color: white;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  &:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+  }
+
+  &[aria-expanded='true'] {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(180deg);
+  }
+}

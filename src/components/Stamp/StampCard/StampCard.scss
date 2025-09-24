@@ -1,12 +1,36 @@
+@use '@/styles/variables.scss' as *;
+
 .stamp-card {
   background: linear-gradient(135deg, #667eea 0%, #cc99ff 100%);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
   backdrop-filter: blur(20px);
-  transition: 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 
-  &.stamp-loading,
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+
+    &::before {
+      transform: translateX(100%);
+    }
+  }
+
   &.stamp-error {
     min-height: 200px;
     display: flex;
@@ -15,122 +39,166 @@
     flex-direction: column;
   }
 
-  .stamp-loader {
-    color: #efefef;
-    font-size: 16px;
-    font-family: 'Open Sans', sans-serif;
+  &.stamp-expired {
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+
+    .stamp-status {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
   }
 
-  .stamp-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  &.stamp-active {
+    .stamp-status {
+      background: rgba(34, 197, 94, 0.2);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
   }
+}
 
-  .stamp-id {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 500;
-    color: #efefef;
-    font-family: 'Open Sans', sans-serif;
-  }
+.stamp-error-message {
+  color: #fe8950;
+  font-size: 14px;
+  margin: 8px 0;
+  text-align: center;
+  font-family: 'Open Sans', sans-serif;
+}
 
-  .stamp-title {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-    font-weight: bold;
-    color: #efefef;
-    font-family: 'Open Sans', sans-serif;
-  }
+.stamp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
 
-  .stamp-status {
-    color: white;
-    font-size: 14px;
-    padding: 6px 0px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-family: 'Open Sans', sans-serif;
-  }
+.stamp-id {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #efefef;
+  font-family: 'Monaco', 'Courier New', monospace;
+  letter-spacing: 0.5px;
+  cursor: help;
 
-  .stamp-details {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .stamp-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding: 8px 0;
-  }
-
-  .stamp-label {
-    color: white;
-    font-size: 14px;
-    font-weight: 400;
-    font-family: 'Open Sans', sans-serif;
-  }
-
-  .stamp-value {
-    color: white;
-    font-size: 14px;
-    font-weight: 500;
-    text-align: right;
-    font-family: 'Open Sans', sans-serif;
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-  }
-
-  .stamp-subtitle {
-    color: white;
+  @media (max-width: $breakpoint-mobile) {
     font-size: 12px;
-    font-weight: 400;
-    font-family: 'Open Sans', sans-serif;
+  }
+}
+
+.stamp-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #efefef;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.stamp-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Open Sans', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.stamp-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stamp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+}
+
+.stamp-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 400;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.stamp-value {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  font-family: 'Open Sans', sans-serif;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.stamp-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 400;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.stamp-actions {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  gap: 12px;
+}
+
+.stamp-button {
+  flex: 1;
+  padding: 12px 24px;
+  background: #fe8950;
+  color: #efefef;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(254, 137, 80, 0.3);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover:not(:disabled) {
+    background: #ff9d66;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(254, 137, 80, 0.4);
   }
 
-  .stamp-error-message {
-    color: #fe8950;
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(254, 137, 80, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #d1d5db;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 10px 20px;
     font-size: 14px;
-    margin: 8px 0;
-    text-align: center;
-    font-family: 'Open Sans', sans-serif;
   }
+}
 
-  .stamp-actions {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    display: flex;
-    gap: 12px;
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
   }
-
-  .stamp-button {
-    flex: 1;
-    padding: 17px 33px;
-    background: #fe8950;
-    color: #efefef;
-    border: none;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 18px;
-    font-family: 'Open Sans', sans-serif;
-    cursor: pointer;
-    box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(20px);
-    transition: 0.3s ease;
-
-    &:active {
-      box-shadow: 0 0px 10px 0 rgba(0, 0, 0, 0.25);
-    }
-
-    &:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
+  50% {
+    opacity: 0.5;
   }
 }

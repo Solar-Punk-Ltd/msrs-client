@@ -1,58 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ethers } from 'ethers';
 
-import { StampInfo, StampService } from '@/utils/stamp';
+import { formatDays, formatStampId } from '@/utils/format';
+import { StampInfo } from '@/utils/stamp';
 
 import './StampCard.scss';
 
 interface StampCardProps {
   stampId: string;
-  provider: ethers.Provider;
+  stampInfo?: StampInfo;
+  error?: string;
   signer?: ethers.Signer;
 }
 
-export function StampCard({ stampId, provider, signer }: StampCardProps) {
-  const [stampInfo, setStampInfo] = useState<StampInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [stampService] = useState(() => new StampService(provider));
-
-  const loadStampData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const info = await stampService.loadStampInfo(stampId);
-      setStampInfo(info);
-    } catch (err) {
-      console.error('Error loading stamp data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load stamp data');
-    } finally {
-      setLoading(false);
-    }
-  }, [stampId, stampService]);
-
-  useEffect(() => {
-    loadStampData();
-  }, [loadStampData]);
+export function StampCard({ stampId, stampInfo, error, signer }: StampCardProps) {
+  const [isTopUpLoading, setIsTopUpLoading] = useState(false);
 
   const handleTopUp = async () => {
     if (!signer) {
       alert('Please connect your wallet first');
       return;
     }
-    // TODO: Implement top-up amount UI
-    console.log('Top-up functionality to be implemented');
-    // Example: await stampService.topUpStamp(stampId, amount, signer);
-  };
 
-  if (loading) {
-    return (
-      <div className="stamp-card stamp-loading">
-        <div className="stamp-loader">Loading stamp data...</div>
-      </div>
-    );
-  }
+    setIsTopUpLoading(true);
+    try {
+      // TODO: Implement top-up functionality
+      console.log('Top-up functionality to be implemented');
+    } finally {
+      setIsTopUpLoading(false);
+    }
+  };
 
   if (error) {
     return (
@@ -72,37 +49,53 @@ export function StampCard({ stampId, provider, signer }: StampCardProps) {
     );
   }
 
-  const { financialStatus, isValid } = stampInfo;
-  const isActive = isValid && financialStatus.isActive;
+  const isActive = stampInfo.isValid && stampInfo.financialStatus.isActive;
+  const { financialStatus } = stampInfo;
 
   return (
-    <div className="stamp-card">
-      <div className="stamp-header">
-        <h3 className="stamp-id" title={stampId}>
-          {stampId.slice(0, 10)}...{stampId.slice(-8)}
-        </h3>
-        <span className="stamp-status">{isActive ? 'ACTIVE' : 'EXPIRED'}</span>
-      </div>
+    <div className={`stamp-card ${isActive ? 'stamp-active' : 'stamp-expired'}`}>
+      <StampHeader stampId={stampId} isActive={isActive} />
+      <StampDetails financialStatus={financialStatus} />
+      {signer && isActive && <StampActions onTopUp={handleTopUp} isLoading={isTopUpLoading} />}
+    </div>
+  );
+}
 
-      <div className="stamp-details">
-        <div className="stamp-row">
-          <span className="stamp-label">TTL:</span>
-          <span className="stamp-value">
-            {financialStatus.isActive ? `${financialStatus.remainingDays.toFixed(1)} days` : 'Expired'}
-            {financialStatus.expirationDate && (
-              <span className="stamp-subtitle"> ({financialStatus.expirationDate.toISOString().slice(0, 10)})</span>
-            )}
-          </span>
-        </div>
-      </div>
+function StampHeader({ stampId, isActive }: { stampId: string; isActive: boolean }) {
+  return (
+    <div className="stamp-header">
+      <h3 className="stamp-id" title={stampId}>
+        {formatStampId(stampId)}
+      </h3>
+      <span className={`stamp-status ${isActive ? 'active' : 'expired'}`}>{isActive ? 'ACTIVE' : 'EXPIRED'}</span>
+    </div>
+  );
+}
 
-      {signer && isActive && (
-        <div className="stamp-actions">
-          <button className="stamp-button" onClick={handleTopUp}>
-            Top Up
-          </button>
-        </div>
-      )}
+function StampDetails({ financialStatus }: { financialStatus: StampInfo['financialStatus'] }) {
+  const formatDate = (date: Date) => date.toISOString().slice(0, 10);
+
+  return (
+    <div className="stamp-details">
+      <div className="stamp-row">
+        <span className="stamp-label">TTL:</span>
+        <span className="stamp-value">
+          {financialStatus.isActive ? formatDays(financialStatus.remainingDays) : 'Expired'}
+          {financialStatus.expirationDate && (
+            <span className="stamp-subtitle">({formatDate(financialStatus.expirationDate)})</span>
+          )}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function StampActions({ onTopUp, isLoading }: { onTopUp: () => void; isLoading: boolean }) {
+  return (
+    <div className="stamp-actions">
+      <button className="stamp-button" onClick={onTopUp} disabled={isLoading} type="button">
+        {isLoading ? 'Processing...' : 'Top Up'}
+      </button>
     </div>
   );
 }

@@ -1,0 +1,41 @@
+@use '@/styles/variables.scss' as *;
+
+.stamp-category {
+  margin-bottom: 32px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &-title {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    padding-left: 4px;
+    font-family: 'Open Sans', sans-serif;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.stamp-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stamp-wrapper {
+  position: relative;
+  width: 100%;
+}
