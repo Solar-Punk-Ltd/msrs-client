@@ -1,7 +1,55 @@
 import { ethers } from 'ethers';
 
-// Types
-interface BatchData {
+const POSTAGE_STAMP_CONTRACT = '0x45a1502382541Cd610CC9068e88727426b696293';
+const GNOSIS_BLOCK_TIME = 5; // seconds
+const MAX_UTILIZATION = 0.9; // General cap on theoretical size for effective size
+
+// Effective size breakpoints based on depth
+// Based on https://docs.ethswarm.org/docs/learn/technology/contracts/postage-stamp/#effective-utilisation-table
+const EFFECTIVE_SIZE_BREAKPOINTS: [number, number][] = [
+  [17, 0.00004089],
+  [18, 0.00609],
+  [19, 0.10249],
+  [20, 0.62891],
+  [21, 2.38],
+  [22, 7.07],
+  [23, 18.24],
+  [24, 43.04],
+  [25, 96.5],
+  [26, 208.52],
+  [27, 435.98],
+  [28, 908.81],
+  [29, 1870],
+  [30, 3810],
+  [31, 7730],
+  [32, 15610],
+  [33, 31430],
+  [34, 63150],
+];
+
+const POSTAGE_STAMP_ABI = [
+  'function batches(bytes32) view returns (address owner, uint8 depth, uint8 bucketDepth, bool immutableFlag, uint256 normalisedBalance, uint256 lastUpdatedBlockNumber)',
+  'function currentTotalOutPayment() view returns (uint256)',
+  'function lastPrice() view returns (uint256)',
+  'function topUp(bytes32 batchId, uint256 amount) payable',
+];
+
+interface PostageStampContract {
+  batches(batchId: string): Promise<{
+    owner: string;
+    depth: number;
+    bucketDepth: number;
+    immutableFlag: boolean;
+    normalisedBalance: bigint;
+    lastUpdatedBlockNumber: bigint;
+  }>;
+  currentTotalOutPayment(): Promise<bigint>;
+  lastPrice(): Promise<bigint>;
+  topUp(batchId: string, amount: bigint): Promise<ethers.ContractTransactionResponse>;
+  connect(signer: ethers.Signer): PostageStampContract;
+}
+
+export interface BatchData {
   owner: string;
   depth: number;
   bucketDepth: number;
@@ -10,145 +58,162 @@ interface BatchData {
   lastUpdatedBlockNumber: bigint;
 }
 
-export interface StampData {
-  owner: string;
-  depth: number;
-  bucketDepth: number;
-  immutable: boolean;
-  remainingBalance: string;
+export interface ContractState {
+  currentTotalOutPayment: bigint;
+  lastPrice: bigint;
+}
+
+export interface FinancialStatus {
+  isActive: boolean;
   remainingDays: number;
-  effectiveGB: string;
-  isExpired: boolean;
-  normalisedBalance: string;
-  lastPrice: string;
+  expirationDate: Date | null;
 }
 
-export interface ExtensionCost {
-  totalCost: string;
-  costPerChunk: string;
+export interface StampInfo {
+  batchData: BatchData;
+  contractState: ContractState;
+  financialStatus: FinancialStatus;
+  effectiveSizeGB: string;
+  theoreticalSizeGB: string;
+  remainingBalance: bigint;
+  isValid: boolean;
 }
-
-// Contract ABIs
-const POSTAGE_STAMP_ABI = [
-  'function batches(bytes32) view returns (address owner, uint8 depth, uint8 bucketDepth, bool immutableFlag, uint256 normalisedBalance, uint256 lastUpdatedBlockNumber)',
-  'function remainingBalance(bytes32) view returns (uint256)',
-  'function currentTotalOutPayment() view returns (uint256)',
-  'function lastPrice() view returns (uint64)',
-  'function topUp(bytes32 batchId, uint256 topupAmountPerChunk)',
-];
-
-const BZZ_TOKEN_ABI = [
-  'function approve(address spender, uint256 amount) returns (bool)',
-  'function balanceOf(address account) view returns (uint256)',
-  'function allowance(address owner, address spender) view returns (uint256)',
-];
-
-// Constants
-export const POSTAGE_STAMP_ADDRESS = '0x621e455C4a139f5C4e4A8122Ce55Dc21630769E4';
-export const BZZ_TOKEN_ADDRESS = '0xdBF3Ea6F5beE45c02255B2c26a16F300502F68da';
-export const BLOCKS_PER_DAY = 17280;
-export const BZZ_DECIMALS = 16;
 
 export class StampService {
-  private provider: ethers.Provider;
-  private postageStamp: ethers.Contract;
+  private contract: PostageStampContract;
 
   constructor(provider: ethers.Provider) {
-    this.provider = provider;
-    this.postageStamp = new ethers.Contract(POSTAGE_STAMP_ADDRESS, POSTAGE_STAMP_ABI, provider);
+    this.contract = new ethers.Contract(
+      POSTAGE_STAMP_CONTRACT,
+      POSTAGE_STAMP_ABI,
+      provider,
+    ) as unknown as PostageStampContract;
   }
 
-  async getStampData(stampId: string): Promise<StampData> {
-    try {
-      const [batch, remainingBalance, currentTotalOutPayment, lastPrice] = await Promise.all([
-        this.postageStamp.batches(stampId) as Promise<BatchData>,
-        this.postageStamp.remainingBalance(stampId),
-        this.postageStamp.currentTotalOutPayment(),
-        this.postageStamp.lastPrice(),
-      ]);
-
-      // Calculate remaining days
-      const remainingBlocks = remainingBalance / lastPrice;
-      const remainingDays = Number(remainingBlocks) / BLOCKS_PER_DAY;
-
-      // Calculate effective size
-      const depth = Number(batch.depth);
-      const theoreticalBytes = 4096 * Math.pow(2, depth);
-      const effectiveGB = (theoreticalBytes * 0.9) / (1024 * 1024 * 1024);
-
-      // Check if expired
-      const isExpired = batch.normalisedBalance <= currentTotalOutPayment;
-
-      return {
-        owner: batch.owner,
-        depth: Number(batch.depth),
-        bucketDepth: Number(batch.bucketDepth),
-        immutable: batch.immutableFlag,
-        remainingBalance: remainingBalance.toString(),
-        remainingDays: isExpired ? 0 : remainingDays,
-        effectiveGB: effectiveGB.toFixed(2),
-        isExpired,
-        normalisedBalance: batch.normalisedBalance.toString(),
-        lastPrice: lastPrice.toString(),
-      };
-    } catch (error) {
-      console.error('Error fetching stamp data:', error);
-      throw error;
-    }
+  formatStampId(stampId: string): string {
+    return stampId.startsWith('0x') ? stampId : `0x${stampId}`;
   }
 
-  calculateExtensionCost(stampData: StampData, days: number): ExtensionCost {
-    if (!stampData) return { totalCost: '0', costPerChunk: '0' };
+  async loadStampInfo(stampId: string): Promise<StampInfo> {
+    const formattedId = this.formatStampId(stampId);
 
-    const additionalBlocks = Math.floor(days * BLOCKS_PER_DAY);
-    const costPerChunk = BigInt(stampData.lastPrice) * BigInt(additionalBlocks);
-    const numChunks = BigInt(2 ** stampData.depth);
-    const totalCost = costPerChunk * numChunks;
+    const batch = await this.contract.batches(formattedId);
+
+    const batchData: BatchData = {
+      owner: batch.owner,
+      depth: Number(batch.depth),
+      bucketDepth: Number(batch.bucketDepth),
+      immutableFlag: batch.immutableFlag,
+      normalisedBalance: batch.normalisedBalance,
+      lastUpdatedBlockNumber: batch.lastUpdatedBlockNumber,
+    };
+
+    const currentTotalOutPayment = await this.contract.currentTotalOutPayment();
+    const lastPrice = await this.contract.lastPrice();
+
+    const contractState: ContractState = {
+      currentTotalOutPayment,
+      lastPrice,
+    };
+
+    const isValid = this.isValidStamp(batchData);
+    const financialStatus = this.calculateFinancialStatus(batchData, contractState, isValid);
+    const effectiveBytes = this.getStampEffectiveBytes(batchData.depth);
+    const theoreticalBytes = this.getStampTheoreticalBytes(batchData.depth);
+
+    const effectiveSizeGB = (effectiveBytes / (1024 * 1024 * 1024)).toFixed(2);
+    const theoreticalSizeGB = (theoreticalBytes / (1024 * 1024 * 1024)).toFixed(2);
+
+    const remainingBalance =
+      batchData.normalisedBalance > contractState.currentTotalOutPayment
+        ? batchData.normalisedBalance - contractState.currentTotalOutPayment
+        : 0n;
 
     return {
-      totalCost: totalCost.toString(),
-      costPerChunk: costPerChunk.toString(),
+      batchData,
+      contractState,
+      financialStatus,
+      effectiveSizeGB,
+      theoreticalSizeGB,
+      remainingBalance,
+      isValid,
     };
   }
 
-  async extendStamp(
-    signer: ethers.Signer,
-    stampId: string,
-    extensionDays: number,
-    stampData: StampData,
-  ): Promise<ethers.ContractTransaction> {
-    const cost = this.calculateExtensionCost(stampData, extensionDays);
-    const postageStamp = new ethers.Contract(POSTAGE_STAMP_ADDRESS, POSTAGE_STAMP_ABI, signer);
-    const bzzToken = new ethers.Contract(BZZ_TOKEN_ADDRESS, BZZ_TOKEN_ABI, signer);
+  private isValidStamp(batchData: BatchData): boolean {
+    return batchData.owner !== '0x0000000000000000000000000000000000000000';
+  }
 
-    // Check and approve if needed
-    const signerAddress = await signer.getAddress();
-    const currentAllowance = await bzzToken.allowance(signerAddress, POSTAGE_STAMP_ADDRESS);
+  private getStampTheoreticalBytes(depth: number): number {
+    return 4096 * Math.pow(2, depth); // 4KB per chunk
+  }
 
-    if (BigInt(currentAllowance) < BigInt(cost.totalCost)) {
-      console.log('Approving BZZ tokens...');
-      const approveTx = await bzzToken.approve(POSTAGE_STAMP_ADDRESS, cost.totalCost);
-      await approveTx.wait();
-      console.log('Approval confirmed');
+  private getStampEffectiveBytes(depth: number): number {
+    if (depth < 17) {
+      return 0;
     }
 
-    // Execute topUp
-    console.log('Extending batch...');
-    const topUpTx = await postageStamp.topUp(stampId, cost.costPerChunk);
-    const receipt = await topUpTx.wait();
+    const breakpoint = EFFECTIVE_SIZE_BREAKPOINTS.find(([d]) => d === depth);
 
-    return receipt;
+    if (breakpoint) {
+      return breakpoint[1] * 1000 * 1000 * 1000; // Convert GB to bytes
+    }
+
+    // For depths above 34, use 90% of theoretical
+    return Math.ceil(this.getStampTheoreticalBytes(depth) * MAX_UTILIZATION);
   }
-}
 
-// Utility functions
-export function formatBZZ(value: bigint | string): string {
-  const inWei = BigInt(value);
-  const bzzValue = inWei / BigInt(10 ** (18 - BZZ_DECIMALS));
-  return (Number(bzzValue) / 10 ** BZZ_DECIMALS).toFixed(4);
-}
+  private calculateFinancialStatus(
+    batchData: BatchData,
+    contractState: ContractState,
+    isValid: boolean,
+  ): FinancialStatus {
+    if (!isValid) {
+      return {
+        isActive: false,
+        remainingDays: 0,
+        expirationDate: null,
+      };
+    }
 
-export function parseBZZ(bzzAmount: string): bigint {
-  const numericAmount = parseFloat(bzzAmount);
-  return BigInt(Math.floor(numericAmount * 10 ** BZZ_DECIMALS)) * BigInt(10 ** (18 - BZZ_DECIMALS));
+    const remainingBalancePerChunk = batchData.normalisedBalance - contractState.currentTotalOutPayment;
+
+    if (remainingBalancePerChunk <= 0n) {
+      return {
+        isActive: false,
+        remainingDays: 0,
+        expirationDate: null,
+      };
+    }
+
+    const remainingBlocks = remainingBalancePerChunk / contractState.lastPrice;
+    const expirationSeconds = Number(remainingBlocks) * GNOSIS_BLOCK_TIME;
+    const expirationDate = new Date(Date.now() + expirationSeconds * 1000);
+    const remainingDays = expirationSeconds / (24 * 60 * 60);
+
+    return {
+      isActive: true,
+      remainingDays,
+      expirationDate,
+    };
+  }
+
+  async topUpStamp(
+    stampId: string,
+    amount: bigint,
+    signer: ethers.Signer,
+  ): Promise<ethers.ContractTransactionResponse> {
+    const formattedId = this.formatStampId(stampId);
+    const contractWithSigner = this.contract.connect(signer);
+
+    return contractWithSigner.topUp(formattedId, amount);
+  }
+
+  async getCurrentTotalOutPayment(): Promise<bigint> {
+    return this.contract.currentTotalOutPayment();
+  }
+
+  async getLastPrice(): Promise<bigint> {
+    return this.contract.lastPrice();
+  }
 }

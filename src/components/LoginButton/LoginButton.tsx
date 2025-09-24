@@ -40,6 +40,11 @@ export const LoginButton = () => {
     setIsDropdownOpen(false);
   };
 
+  const handleMyStamps = () => {
+    navigate(ROUTES.STAMP_DASHBOARD);
+    setIsDropdownOpen(false);
+  };
+
   if (isUserLoggedIn) {
     return (
       <div className="login-button-container" ref={dropdownRef}>
@@ -55,6 +60,11 @@ export const LoginButton = () => {
             {isAdmin && (
               <button className="login-dropdown-item" onClick={handleMyStreams}>
                 My Streams
+              </button>
+            )}
+            {isAdmin && (
+              <button className="login-dropdown-item" onClick={handleMyStamps}>
+                My Stamps
               </button>
             )}
             <button className="login-dropdown-item" onClick={handleLogout}>

@@ -2,19 +2,16 @@
 
 .stamp-dashboard {
   display: flex;
-  flex-direction: column;
   margin: auto;
   height: 100%;
   max-height: 100%;
-  padding: 16px;
+  padding: 0px 16px;
   padding-bottom: 6px;
-  overflow: auto;
+  overflow: hidden;
   width: 100%;
   margin-top: 100px;
-  box-sizing: border-box;
 
   @media (min-width: $breakpoint-mobile) {
     max-width: 1400px;
-    padding: 32px;
   }
 }

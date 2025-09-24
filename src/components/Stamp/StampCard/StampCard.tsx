@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
-import { ExtensionCost, formatBZZ, StampData, StampService } from '@/utils/stamp';
+import { StampInfo, StampService } from '@/utils/stamp';
 
 import './StampCard.scss';
 
@@ -12,144 +12,94 @@ interface StampCardProps {
 }
 
 export function StampCard({ stampId, provider, signer }: StampCardProps) {
-  const [stampData, setStampData] = useState<StampData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [extending, setExtending] = useState<boolean>(false);
-  const [extensionDays, setExtensionDays] = useState<number>(30);
+  const [stampInfo, setStampInfo] = useState<StampInfo | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stampService] = useState(() => new StampService(provider));
 
-  const stampService = useMemo(() => new StampService(provider), [provider]);
-
-  const loadStampData = useCallback(async (): Promise<void> => {
-    if (!provider || !stampId) return;
-
-    setLoading(true);
-    setError(null);
-
+  const loadStampData = useCallback(async () => {
     try {
-      const data = await stampService.getStampData(stampId);
-      setStampData(data);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      setLoading(true);
+      setError(null);
+
+      const info = await stampService.loadStampInfo(stampId);
+      setStampInfo(info);
+    } catch (err) {
+      console.error('Error loading stamp data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load stamp data');
     } finally {
       setLoading(false);
     }
-  }, [stampId, provider, stampService]);
+  }, [stampId, stampService]);
 
   useEffect(() => {
     loadStampData();
   }, [loadStampData]);
 
-  const handleExtend = async (): Promise<void> => {
-    if (!signer || !stampData) return;
-
-    setExtending(true);
-    setError(null);
-
-    try {
-      await stampService.extendStamp(signer, stampId, extensionDays, stampData);
-      await loadStampData(); // Reload data after extension
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-    } finally {
-      setExtending(false);
+  const handleTopUp = async () => {
+    if (!signer) {
+      alert('Please connect your wallet first');
+      return;
     }
+    // TODO: Implement top-up amount UI
+    console.log('Top-up functionality to be implemented');
+    // Example: await stampService.topUpStamp(stampId, amount, signer);
   };
 
   if (loading) {
     return (
-      <div className="stamp-card stamp-card-loading">
-        <div className="spinner"></div>
-        <span>Loading stamp data...</span>
+      <div className="stamp-card stamp-loading">
+        <div className="stamp-loader">Loading stamp data...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="stamp-card stamp-card-error">
-        <h3>Error</h3>
-        <p>{error}</p>
+      <div className="stamp-card stamp-error">
+        <h3 className="stamp-title">Error Loading Stamp</h3>
+        <p className="stamp-error-message">{error}</p>
       </div>
     );
   }
 
-  if (!stampData) {
+  if (!stampInfo) {
     return (
-      <div className="stamp-card stamp-card-empty">
-        <p>No data available</p>
+      <div className="stamp-card stamp-error">
+        <h3 className="stamp-title">No Data</h3>
+        <p className="stamp-error-message">No stamp data available</p>
       </div>
     );
   }
 
-  const extensionCost: ExtensionCost = stampService.calculateExtensionCost(stampData, extensionDays);
+  const { financialStatus, isValid } = stampInfo;
+  const isActive = isValid && financialStatus.isActive;
 
   return (
-    <div className={`stamp-card ${stampData.isExpired ? 'stamp-card-expired' : ''}`}>
-      <div className="stamp-card-header">
-        <h3 className="stamp-card-id" title={stampId}>
-          {stampId.slice(0, 10)}...{stampId.slice(-6)}
+    <div className="stamp-card">
+      <div className="stamp-header">
+        <h3 className="stamp-id" title={stampId}>
+          {stampId.slice(0, 10)}...{stampId.slice(-8)}
         </h3>
-        <span className={`stamp-card-status stamp-card-status-${stampData.isExpired ? 'expired' : 'active'}`}>
-          {stampData.isExpired ? '❌ Expired' : '✅ Active'}
-        </span>
+        <span className="stamp-status">{isActive ? 'ACTIVE' : 'EXPIRED'}</span>
       </div>
 
-      <div className="stamp-card-details">
-        <div className="stamp-card-detail">
-          <span className="stamp-card-label">Owner:</span>
-          <span className="stamp-card-value" title={stampData.owner}>
-            {stampData.owner.slice(0, 6)}...{stampData.owner.slice(-4)}
+      <div className="stamp-details">
+        <div className="stamp-row">
+          <span className="stamp-label">TTL:</span>
+          <span className="stamp-value">
+            {financialStatus.isActive ? `${financialStatus.remainingDays.toFixed(1)} days` : 'Expired'}
+            {financialStatus.expirationDate && (
+              <span className="stamp-subtitle"> ({financialStatus.expirationDate.toISOString().slice(0, 10)})</span>
+            )}
           </span>
         </div>
-
-        <div className="stamp-card-detail">
-          <span className="stamp-card-label">Remaining Days:</span>
-          <span className="stamp-card-value stamp-card-value-highlight">{stampData.remainingDays.toFixed(2)}</span>
-        </div>
-
-        <div className="stamp-card-detail">
-          <span className="stamp-card-label">Effective Size:</span>
-          <span className="stamp-card-value">{stampData.effectiveGB} GB</span>
-        </div>
-
-        <div className="stamp-card-detail">
-          <span className="stamp-card-label">Depth:</span>
-          <span className="stamp-card-value">{stampData.depth}</span>
-        </div>
-
-        <div className="stamp-card-detail">
-          <span className="stamp-card-label">Immutable:</span>
-          <span className="stamp-card-value">{stampData.immutable ? 'Yes' : 'No'}</span>
-        </div>
-
-        <div className="stamp-card-detail">
-          <span className="stamp-card-label">Balance:</span>
-          <span className="stamp-card-value">{formatBZZ(stampData.remainingBalance)} BZZ</span>
-        </div>
       </div>
 
-      {!stampData.isExpired && signer && (
-        <div className="stamp-card-extension">
-          <h4>Extend Duration</h4>
-
-          <div className="stamp-card-extension-input">
-            <input
-              type="number"
-              value={extensionDays}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExtensionDays(Number(e.target.value))}
-              min="1"
-              max="365"
-            />
-            <span>days</span>
-          </div>
-
-          <div className="stamp-card-extension-cost">
-            Cost: <strong>{formatBZZ(extensionCost.totalCost)} BZZ</strong>
-          </div>
-
-          <button className="stamp-card-extension-btn" onClick={handleExtend} disabled={extending}>
-            {extending ? 'Extending...' : 'Extend Duration'}
+      {signer && isActive && (
+        <div className="stamp-actions">
+          <button className="stamp-button" onClick={handleTopUp}>
+            Top Up
           </button>
         </div>
       )}

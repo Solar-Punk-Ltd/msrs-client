@@ -13,11 +13,9 @@ export function StampManager() {
   const [provider, setProvider] = useState<ethers.Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [account, setAccount] = useState<string | null>(null);
-  const [stampIds, setStampIds] = useState<string[]>([
-    '0xee4b3e6dafab78984af1fdfcf1009931688926c8d3018c7f3f8602bf4bc7d3c8',
-  ]);
-  const [newStampId, setNewStampId] = useState<string>('');
+  const [stampIds] = useState<string[]>(['0xee4b3e6dafab78984af1fdfcf1009931688926c8d3018c7f3f8602bf4bc7d3c8']);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [showInfoDropdown, setShowInfoDropdown] = useState<boolean>(false);
 
   useEffect(() => {
     const publicProvider = walletService.getPublicProvider();
@@ -58,41 +56,19 @@ export function StampManager() {
     setProvider(publicProvider);
   };
 
-  const addStampId = (): void => {
-    const cleanId = newStampId.trim();
-
-    if (!cleanId.startsWith('0x') || cleanId.length !== 66) {
-      alert('Invalid stamp ID format. Must be 0x followed by 64 hex characters.');
-      return;
-    }
-
-    if (stampIds.includes(cleanId)) {
-      alert('This stamp ID is already in the list.');
-      return;
-    }
-
-    setStampIds([...stampIds, cleanId]);
-    setNewStampId('');
-  };
-
-  const removeStampId = (idToRemove: string): void => {
-    setStampIds(stampIds.filter((id) => id !== idToRemove));
-  };
-
-  const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Enter') {
-      addStampId();
-    }
-  };
-
   return (
     <div className="stamp-manager">
-      <header className="stamp-manager-header">
-        <div className="stamp-manager-title">
-          <h1>Swarm Stamp Manager</h1>
-          <p>Monitor and extend your Swarm storage stamps</p>
+      <div className="stamp-manager-header">
+        <div className="stamp-manager-title-section">
+          <h2 className="stamp-manager-title">Swarm Stamp Manager</h2>
+          <button
+            className="info-button"
+            onClick={() => setShowInfoDropdown(!showInfoDropdown)}
+            title="Learn more about stamps"
+          >
+            ℹ️
+          </button>
         </div>
-
         <div className="stamp-manager-wallet">
           {account ? (
             <div className="wallet-info">
@@ -110,40 +86,50 @@ export function StampManager() {
           )}
           {connectionError && <div className="error-message">{connectionError}</div>}
         </div>
-      </header>
+      </div>
 
-      <section className="stamp-manager-add-section">
-        <div className="add-stamp">
-          <input
-            type="text"
-            className="add-stamp-input"
-            placeholder="Enter stamp ID (0x...)"
-            value={newStampId}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewStampId(e.target.value)}
-            onKeyPress={handleInputKeyPress}
-          />
-          <button className="btn btn-add" onClick={addStampId} disabled={!newStampId}>
-            Add Stamp
-          </button>
+      {showInfoDropdown && (
+        <div className="stamp-info-dropdown">
+          <div className="stamp-info-content">
+            <h3>Understanding MSRS Stamps</h3>
+            <p>
+              Stamps are required to keep data alive on the Swarm network. Within MSRS, stamps are managed through our
+              Swarm gateway, but it is important to understand how they are used.
+            </p>
+            <p>
+              The system relies on two categories of stamps. First, there are three public stamps that power the core
+              application itself. These are responsible for feeds, notifications, and other essential features that
+              allow MSRS to function properly.
+            </p>
+            <p>
+              In addition, there are ten private stamps dedicated to streams. Each stream operates with two stamps: one
+              manages the storage and distribution of media, while the other ensures that chat messages remain
+              available.
+            </p>
+            <p>
+              Whenever you want to make sure your creations stay visible and accessible on Swarm, you should top up the
+              corresponding stamps. Keeping these stamps funded guarantees that both the application features and your
+              streams continue to run without interruption.
+            </p>
+          </div>
         </div>
-      </section>
-
-      {stampIds.length === 0 ? (
-        <div className="stamp-manager-empty">
-          <p>No stamps added yet. Add a stamp ID to get started.</p>
-        </div>
-      ) : (
-        <section className="stamp-manager-grid">
-          {stampIds.map((id) => (
-            <div key={id} className="stamp-wrapper">
-              {provider && <StampCard stampId={id} provider={provider} signer={signer || undefined} />}
-              <button className="stamp-wrapper-remove" onClick={() => removeStampId(id)} title="Remove stamp">
-                ×
-              </button>
-            </div>
-          ))}
-        </section>
       )}
+
+      <div className="stamp-manager-container">
+        {stampIds.length === 0 ? (
+          <div className="stamp-manager-grid empty">
+            <p>No stamps added yet. Add a stamp ID to get started.</p>
+          </div>
+        ) : (
+          <div className="stamp-manager-grid">
+            {stampIds.map((id) => (
+              <div key={id} className="stamp-wrapper">
+                {provider && <StampCard stampId={id} provider={provider} signer={signer || undefined} />}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
