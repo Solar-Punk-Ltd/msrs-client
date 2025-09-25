@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ethers } from 'ethers';
 
 import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
-import { StampInfo } from '@/utils/stamp';
+import { StampInfo } from '@/utils/stampInfo';
 
 import './StampCard.scss';
 

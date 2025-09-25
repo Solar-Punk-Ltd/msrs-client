@@ -2,8 +2,8 @@ import { ethers } from 'ethers';
 
 import { padStampId } from './format';
 
-const POSTAGE_STAMP_CONTRACT = '0x45a1502382541Cd610CC9068e88727426b696293';
-const GNOSIS_BLOCK_TIME = 5; // seconds
+export const POSTAGE_STAMP_CONTRACT = '0x45a1502382541Cd610CC9068e88727426b696293';
+export const GNOSIS_BLOCK_TIME = 5; // seconds
 const MAX_UTILIZATION = 0.9;
 
 const EFFECTIVE_SIZE_BREAKPOINTS: [number, number][] = [
@@ -206,17 +206,4 @@ export const loadStampInfo = async (stampId: string): Promise<StampInfo> => {
     remainingBalance,
     isValid,
   };
-};
-
-export const topUpStamp = async (
-  provider: ethers.Provider,
-  signer: ethers.Signer,
-  stampId: string,
-  amount: bigint,
-): Promise<ethers.ContractTransactionResponse> => {
-  const contract = createContract(provider);
-  const formattedId = padStampId(stampId);
-  const contractWithSigner = contract.connect(signer);
-
-  return contractWithSigner.topUp(formattedId, amount);
 };

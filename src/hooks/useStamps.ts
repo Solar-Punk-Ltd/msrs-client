@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
 import { fetchGatewayNodes, NodeInfo } from '@/utils/node';
-import { loadStampInfo as loadStampInfoFromContract, StampInfo } from '@/utils/stamp';
+import { loadStampInfo as loadStampInfoFromContract, StampInfo } from '@/utils/stampInfo';
 
 export interface StampWithInfo {
   stampId: string;

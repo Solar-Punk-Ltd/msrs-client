@@ -58,12 +58,15 @@ export function StreamStampCard({ stamp, signer }: StreamStampCardProps) {
         isActive ? 'stream-stamp-active' : 'stream-stamp-expired'
       } stream-stamp-type-${stampType}`}
     >
-      <div className="stream-stamp-type-badge">{stampType}</div>
-
       <div className="stream-stamp-header">
-        <h4 className="stream-stamp-id" title={stamp.stampId}>
-          {formatStampId(stamp.stampId)}
-        </h4>
+        <div>
+          <div className="stream-stamp-type-badge">{stampType}</div>
+
+          <h4 className="stream-stamp-id" title={stamp.stampId}>
+            {formatStampId(stamp.stampId)}
+          </h4>
+        </div>
+
         <span className={`stream-stamp-status ${isActive ? 'active' : 'expired'}`}>
           {isActive ? 'ACTIVE' : 'EXPIRED'}
         </span>

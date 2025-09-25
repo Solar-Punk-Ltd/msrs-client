@@ -24,15 +24,22 @@
 }
 
 .wallet-address {
-  padding: 8px 12px;
+  padding: 10px 20px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   font-family: 'Monaco', 'Courier New', monospace;
   color: white;
   letter-spacing: 0.5px;
+
+  @media (max-width: $breakpoint-tablet) {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+  }
 }
 
 .btn {
@@ -44,9 +51,15 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Monaco', 'Courier New', monospace;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+
+  @media (max-width: $breakpoint-tablet) {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
 
   &:focus {
     outline: 2px solid rgba(255, 255, 255, 0.5);

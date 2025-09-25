@@ -24,8 +24,9 @@
   grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 24px;
 
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 1250px) {
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -35,13 +36,6 @@
   border-radius: 16px;
   padding: 20px;
   backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(204, 153, 255, 0.15) 100%);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
-  }
 }
 
 .stream-group-header {
@@ -81,7 +75,7 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
 
-  @media (max-width: $breakpoint-mobile) {
+  @media (max-width: $breakpoint-tablet) {
     grid-template-columns: 1fr;
   }
 }
