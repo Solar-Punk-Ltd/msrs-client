@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ethers } from 'ethers';
 
 import { StampWithInfo } from '@/hooks/useStamps';
+import { getUserFriendlyErrorMessage } from '@/utils/errorHandling';
 import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
 import { extendStampDuration } from '@/utils/stampTopup';
 
@@ -43,7 +44,8 @@ export function StreamStampCard({
       }
     } catch (error) {
       console.error('Top-up failed:', error);
-      alert(`Top-up failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = getUserFriendlyErrorMessage(error);
+      alert(`Top-up failed: ${errorMessage}`);
     } finally {
       setIsTopUpLoading(false);
     }
