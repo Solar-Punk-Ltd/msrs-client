@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 
+import { StampWithInfo } from '@/hooks/useStamps';
 import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
 import { StampInfo } from '@/utils/stampInfo';
 import { extendStampDuration } from '@/utils/stampTopup';
@@ -10,13 +11,13 @@ import { StampActions } from '../Shared/StampActions';
 import './StampCard.scss';
 
 interface StampCardProps {
-  stampId: string;
-  stampInfo?: StampInfo;
-  error?: string;
+  stamp: StampWithInfo;
   signer?: ethers.Signer;
+  onStampRefresh?: (stampId: string) => Promise<void>;
 }
 
-export function StampCard({ stampId, stampInfo, error, signer }: StampCardProps) {
+export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
+  const { stampId, stampInfo, error } = stamp;
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
 
   const handleTopUp = async (days: number) => {
@@ -29,7 +30,9 @@ export function StampCard({ stampId, stampInfo, error, signer }: StampCardProps)
     try {
       await extendStampDuration(signer, stampId, days);
       console.log(`Successfully topped up stamp for ${days} days`);
-      // You might want to refresh the stamp info here
+      if (onStampRefresh) {
+        await onStampRefresh(stampId);
+      }
     } catch (error) {
       console.error('Top-up failed:', error);
       alert(`Top-up failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -37,6 +40,17 @@ export function StampCard({ stampId, stampInfo, error, signer }: StampCardProps)
       setIsTopUpLoading(false);
     }
   };
+
+  if (stamp.isLoading) {
+    return (
+      <div className="stamp-card stamp-loading">
+        <div className="stamp-loading-indicator">
+          <div className="spinner"></div>
+          <p>Loading stamp info...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

@@ -9,6 +9,7 @@ export interface StampWithInfo {
   stampInfo?: StampInfo;
   error?: string;
   nodeInfo: NodeInfo;
+  isLoading?: boolean;
 }
 
 export interface StreamGroup {
@@ -32,6 +33,45 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
     isLoading: true,
     error: null,
   });
+
+  const updateStampInState = useCallback((stampId: string, updates: Partial<StampWithInfo>) => {
+    setState((prev) => {
+      const updateStampInArray = (stamps: StampWithInfo[]) =>
+        stamps.map((stamp) => (stamp.stampId === stampId ? { ...stamp, ...updates } : stamp));
+
+      const updateStampInStreams = (streams: StreamGroup[]) =>
+        streams.map((stream) => ({
+          ...stream,
+          stamps: updateStampInArray(stream.stamps),
+        }));
+
+      return {
+        ...prev,
+        pinnedStreams: updateStampInStreams(prev.pinnedStreams),
+        privateStamps: updateStampInArray(prev.privateStamps),
+        publicStamps: updateStampInArray(prev.publicStamps),
+      };
+    });
+  }, []);
+
+  const loadStamp = useCallback(
+    async (stampId: string): Promise<void> => {
+      if (!adminSecret) return;
+
+      updateStampInState(stampId, { isLoading: true });
+
+      try {
+        const stampInfo = await loadStampInfoFromContract(stampId);
+        updateStampInState(stampId, { stampInfo, error: undefined, isLoading: false });
+      } catch (error) {
+        updateStampInState(stampId, {
+          error: error instanceof Error ? error.message : 'Failed to load stamp info',
+          isLoading: false,
+        });
+      }
+    },
+    [adminSecret, updateStampInState],
+  );
 
   const loadStamps = useCallback(async () => {
     if (!adminSecret) {
@@ -120,6 +160,9 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
 
   return {
     ...state,
-    refresh: loadStamps,
+    loadStamp,
+    loadStamps,
+    refresh: loadStamp,
+    refreshAll: loadStamps,
   };
 }

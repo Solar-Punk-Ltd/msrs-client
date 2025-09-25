@@ -14,9 +14,16 @@ interface StreamStampCardProps {
   signer?: ethers.Signer;
   sharedExpanded?: boolean;
   onToggleExpanded?: () => void;
+  onStampRefresh?: (stampId: string) => Promise<void>;
 }
 
-export function StreamStampCard({ stamp, signer, sharedExpanded, onToggleExpanded }: StreamStampCardProps) {
+export function StreamStampCard({
+  stamp,
+  signer,
+  sharedExpanded,
+  onToggleExpanded,
+  onStampRefresh,
+}: StreamStampCardProps) {
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
   const { stampInfo, error, nodeInfo } = stamp;
   const stampType = nodeInfo.lock_info?.type || 'unknown';
@@ -31,7 +38,9 @@ export function StreamStampCard({ stamp, signer, sharedExpanded, onToggleExpande
     try {
       await extendStampDuration(signer, stamp.stampId, days);
       console.log(`Successfully topped up stamp for ${days} days`);
-      // You might want to refresh the stamp info here
+      if (onStampRefresh) {
+        await onStampRefresh(stamp.stampId);
+      }
     } catch (error) {
       console.error('Top-up failed:', error);
       alert(`Top-up failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -39,6 +48,17 @@ export function StreamStampCard({ stamp, signer, sharedExpanded, onToggleExpande
       setIsTopUpLoading(false);
     }
   };
+
+  if (stamp.isLoading) {
+    return (
+      <div className="stream-stamp-card stream-stamp-loading">
+        <div className="stream-stamp-loading-indicator">
+          <div className="spinner"></div>
+          <p>Loading stamp info...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

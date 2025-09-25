@@ -33,19 +33,29 @@ export function StampManager() {
 
       <div className="stamp-manager-container">
         {stamps.error ? (
-          <ErrorState message={stamps.error} onRetry={stamps.refresh} />
+          <ErrorState message={stamps.error} onRetry={stamps.refreshAll} />
         ) : stamps.isLoading ? (
           <LoadingState message="Loading stamps..." />
         ) : hasContent ? (
           <>
             {stamps.pinnedStreams.length > 0 && (
-              <PinnedStreamGrid streams={stamps.pinnedStreams} signer={wallet.signer} />
+              <PinnedStreamGrid streams={stamps.pinnedStreams} signer={wallet.signer} onStampRefresh={stamps.refresh} />
             )}
             {stamps.privateStamps.length > 0 && (
-              <StampGrid title="Private Stamps" stamps={stamps.privateStamps} signer={wallet.signer} />
+              <StampGrid
+                title="Private Stamps"
+                stamps={stamps.privateStamps}
+                signer={wallet.signer}
+                onStampRefresh={stamps.refresh}
+              />
             )}
             {stamps.publicStamps.length > 0 && (
-              <StampGrid title="Public Stamps" stamps={stamps.publicStamps} signer={wallet.signer} />
+              <StampGrid
+                title="Public Stamps"
+                stamps={stamps.publicStamps}
+                signer={wallet.signer}
+                onStampRefresh={stamps.refresh}
+              />
             )}
           </>
         ) : (

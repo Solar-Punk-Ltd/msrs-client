@@ -10,9 +10,10 @@ import './PinnedStampGrid.scss';
 interface PinnedStreamGridProps {
   streams: StreamGroup[];
   signer: ethers.Signer | null;
+  onStampRefresh?: (stampId: string) => Promise<void>;
 }
 
-export function PinnedStreamGrid({ streams, signer }: PinnedStreamGridProps) {
+export function PinnedStreamGrid({ streams, signer, onStampRefresh }: PinnedStreamGridProps) {
   const [expandedStreams, setExpandedStreams] = useState<Record<string, boolean>>({});
 
   const handleToggleExpanded = (streamId: string) => {
@@ -24,7 +25,7 @@ export function PinnedStreamGrid({ streams, signer }: PinnedStreamGridProps) {
 
   return (
     <div className="pinned-streams-section">
-      <h2 className="pinned-streams-title">Pinned Streams</h2>
+      <h2 className="pinned-streams-title">Pinned Stamps</h2>
       <div className="pinned-streams-grid">
         {streams.map((stream) => {
           const isExpanded = expandedStreams[stream.streamId] || false;
@@ -43,6 +44,7 @@ export function PinnedStreamGrid({ streams, signer }: PinnedStreamGridProps) {
                     signer={signer || undefined}
                     sharedExpanded={isExpanded}
                     onToggleExpanded={() => handleToggleExpanded(stream.streamId)}
+                    onStampRefresh={onStampRefresh}
                   />
                 ))}
               </div>

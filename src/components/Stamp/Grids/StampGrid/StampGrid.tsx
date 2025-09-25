@@ -10,21 +10,17 @@ interface StampGridProps {
   title: string;
   stamps: StampWithInfo[];
   signer: ethers.Signer | null;
+  onStampRefresh?: (stampId: string) => Promise<void>;
 }
 
-export function StampGrid({ title, stamps, signer }: StampGridProps) {
+export function StampGrid({ title, stamps, signer, onStampRefresh }: StampGridProps) {
   return (
     <div className="stamp-category">
       <h3 className="stamp-category-title">{title}</h3>
       <div className="stamp-manager-grid">
         {stamps.map((stamp) => (
           <div key={stamp.stampId} className="stamp-wrapper">
-            <StampCard
-              stampId={stamp.stampId}
-              stampInfo={stamp.stampInfo}
-              error={stamp.error}
-              signer={signer || undefined}
-            />
+            <StampCard stamp={stamp} signer={signer || undefined} onStampRefresh={onStampRefresh} />
           </div>
         ))}
       </div>
