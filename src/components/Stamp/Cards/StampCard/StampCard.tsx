@@ -3,6 +3,9 @@ import { ethers } from 'ethers';
 
 import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
 import { StampInfo } from '@/utils/stampInfo';
+import { extendStampDuration } from '@/utils/stampTopup';
+
+import { StampActions } from '../Shared/StampActions';
 
 import './StampCard.scss';
 
@@ -16,7 +19,7 @@ interface StampCardProps {
 export function StampCard({ stampId, stampInfo, error, signer }: StampCardProps) {
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
 
-  const handleTopUp = async () => {
+  const handleTopUp = async (days: number) => {
     if (!signer) {
       alert('Please connect your wallet first');
       return;
@@ -24,8 +27,12 @@ export function StampCard({ stampId, stampInfo, error, signer }: StampCardProps)
 
     setIsTopUpLoading(true);
     try {
-      // TODO: Implement top-up functionality
-      console.log('Top-up functionality to be implemented');
+      await extendStampDuration(signer, stampId, days);
+      console.log(`Successfully topped up stamp for ${days} days`);
+      // You might want to refresh the stamp info here
+    } catch (error) {
+      console.error('Top-up failed:', error);
+      alert(`Top-up failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsTopUpLoading(false);
     }
@@ -56,7 +63,9 @@ export function StampCard({ stampId, stampInfo, error, signer }: StampCardProps)
     <div className={`stamp-card ${isActive ? 'stamp-active' : 'stamp-expired'}`}>
       <StampHeader stampId={stampId} isActive={isActive} />
       <StampDetails financialStatus={financialStatus} />
-      {signer && isActive && <StampActions onTopUp={handleTopUp} isLoading={isTopUpLoading} />}
+      {signer && isActive && (
+        <StampActions stampId={stampId} signer={signer} onTopUp={handleTopUp} isLoading={isTopUpLoading} />
+      )}
     </div>
   );
 }
@@ -84,16 +93,6 @@ function StampDetails({ financialStatus }: { financialStatus: StampInfo['financi
           )}
         </span>
       </div>
-    </div>
-  );
-}
-
-function StampActions({ onTopUp, isLoading }: { onTopUp: () => void; isLoading: boolean }) {
-  return (
-    <div className="stamp-actions">
-      <button className="stamp-button" onClick={onTopUp} disabled={isLoading} type="button">
-        {isLoading ? 'Processing...' : 'Top Up'}
-      </button>
     </div>
   );
 }

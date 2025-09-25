@@ -167,6 +167,7 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  width: 100%;
 
   &:hover:not(:disabled) {
     background: linear-gradient(135deg, #ff7a47 0%, #ffa066 50%, #ffc278 100%);

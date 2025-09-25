@@ -3,6 +3,9 @@ import { ethers } from 'ethers';
 
 import { StampWithInfo } from '@/hooks/useStamps';
 import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
+import { extendStampDuration } from '@/utils/stampTopup';
+
+import { StampActions } from '../Shared/StampActions';
 
 import './StreamStampCard.scss';
 
@@ -16,7 +19,7 @@ export function StreamStampCard({ stamp, signer }: StreamStampCardProps) {
   const { stampInfo, error, nodeInfo } = stamp;
   const stampType = nodeInfo.lock_info?.type || 'unknown';
 
-  const handleTopUp = async () => {
+  const handleTopUp = async (days: number) => {
     if (!signer) {
       alert('Please connect your wallet first');
       return;
@@ -24,8 +27,12 @@ export function StreamStampCard({ stamp, signer }: StreamStampCardProps) {
 
     setIsTopUpLoading(true);
     try {
-      // TODO: Implement top-up functionality
-      console.log('Top-up functionality to be implemented');
+      await extendStampDuration(signer, stamp.stampId, days);
+      console.log(`Successfully topped up stamp for ${days} days`);
+      // You might want to refresh the stamp info here
+    } catch (error) {
+      console.error('Top-up failed:', error);
+      alert(`Top-up failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsTopUpLoading(false);
     }
@@ -87,11 +94,13 @@ export function StreamStampCard({ stamp, signer }: StreamStampCardProps) {
       </div>
 
       {signer && isActive && (
-        <div className="stream-stamp-actions">
-          <button className="stream-stamp-button" onClick={handleTopUp} disabled={isTopUpLoading} type="button">
-            {isTopUpLoading ? 'Processing...' : 'Top Up'}
-          </button>
-        </div>
+        <StampActions
+          stampId={stamp.stampId}
+          signer={signer}
+          onTopUp={handleTopUp}
+          isLoading={isTopUpLoading}
+          variant="stream"
+        />
       )}
     </div>
   );

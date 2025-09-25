@@ -21,3 +21,8 @@ export const padStampId = (stampId: string): string => {
 };
 
 export const formatStampExpirationDate = (date: Date) => date.toISOString().slice(0, 10);
+
+export const formatBzzAmount = (costString: string): string => {
+  const numericValue = parseFloat(costString);
+  return numericValue.toFixed(3).replace(/\.?0+$/, '');
+};
