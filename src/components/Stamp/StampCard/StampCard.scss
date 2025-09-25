@@ -23,7 +23,6 @@
   }
 
   &:hover {
-    transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 
     &::before {
@@ -52,14 +51,14 @@
   &.stamp-active {
     .stamp-status {
       background: rgba(34, 197, 94, 0.2);
-      color: #86efac;
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #48f286;
+      border: 1px solid rgba(73, 246, 137, 0.3);
     }
   }
 }
 
 .stamp-error-message {
-  color: #fe8950;
+  color: #990000;
   font-size: 14px;
   margin: 8px 0;
   text-align: center;
@@ -157,7 +156,7 @@
 .stamp-button {
   flex: 1;
   padding: 12px 24px;
-  background: #fe8950;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 50%, #ffb366 100%);
   color: #efefef;
   border: none;
   border-radius: 8px;
@@ -171,8 +170,7 @@
   letter-spacing: 0.5px;
 
   &:hover:not(:disabled) {
-    background: #ff9d66;
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #ff7a47 0%, #ffa066 50%, #ffc278 100%);
     box-shadow: 0 6px 16px rgba(254, 137, 80, 0.4);
   }
 

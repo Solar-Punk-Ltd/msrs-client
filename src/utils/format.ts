@@ -15,3 +15,7 @@ export function formatDays(days: number): string {
 export function formatAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
+
+export const padStampId = (stampId: string): string => {
+  return stampId.startsWith('0x') ? stampId : `0x${stampId}`;
+};

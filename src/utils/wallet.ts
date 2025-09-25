@@ -1,6 +1,8 @@
 import { PrivateKey } from '@ethersphere/bee-js';
 import { ethers, keccak256 } from 'ethers';
 
+import type { EthereumProvider } from '@/types/global';
+
 interface WalletConnection {
   provider: ethers.BrowserProvider;
   signer: ethers.Signer;
@@ -34,24 +36,47 @@ export class WalletService {
   private provider: ethers.BrowserProvider | null;
   private signer: ethers.Signer | null;
   private account: string | null;
+  private ethereum: EthereumProvider | null;
 
   constructor() {
     this.provider = null;
     this.signer = null;
     this.account = null;
+    this.ethereum = null;
+  }
+
+  private getPreferredEthereum(): EthereumProvider {
+    if (!window.ethereum) {
+      throw new Error('MetaMask not installed. Please install MetaMask to continue.');
+    }
+
+    // If multiple providers are available, look for MetaMask in the providers array
+    if (window.ethereum.providers && window.ethereum.providers.length > 0) {
+      const metamask = window.ethereum.providers.find((provider) => provider.isMetaMask);
+      if (metamask) {
+        return metamask;
+      }
+    }
+
+    if (window.ethereum.isMetaMask) {
+      return window.ethereum;
+    }
+
+    // If we reach here, MetaMask is not available
+    throw new Error(
+      'MetaMask not found. Please install MetaMask or disable other wallet extensions that may interfere.',
+    );
   }
 
   async connect(): Promise<WalletConnection> {
-    if (!window.ethereum) {
-      throw new Error('MetaMask not installed');
-    }
+    this.ethereum = this.getPreferredEthereum();
 
     try {
-      const accounts = (await window.ethereum!.request({
+      const accounts = (await this.ethereum.request({
         method: 'eth_requestAccounts',
       })) as string[];
 
-      this.provider = new ethers.BrowserProvider(window.ethereum!);
+      this.provider = new ethers.BrowserProvider(this.ethereum);
       this.signer = await this.provider.getSigner();
       this.account = accounts[0];
 
@@ -77,7 +102,7 @@ export class WalletService {
 
     if (network.chainId !== BigInt(GNOSIS_CHAIN_ID)) {
       try {
-        await window.ethereum!.request({
+        await this.ethereum!.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: GNOSIS_CHAIN_HEX }],
         });
@@ -93,7 +118,7 @@ export class WalletService {
   }
 
   async addGnosisChain(): Promise<void> {
-    await window.ethereum!.request({
+    await this.ethereum!.request({
       method: 'wallet_addEthereumChain',
       params: [
         {
@@ -126,14 +151,14 @@ export class WalletService {
   }
 
   onAccountsChanged(callback: (...args: unknown[]) => void): void {
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', callback);
+    if (this.ethereum?.on) {
+      this.ethereum.on('accountsChanged', callback);
     }
   }
 
   onChainChanged(callback: (...args: unknown[]) => void): void {
-    if (window.ethereum) {
-      window.ethereum.on('chainChanged', callback);
+    if (this.ethereum?.on) {
+      this.ethereum.on('chainChanged', callback);
     }
   }
 }
