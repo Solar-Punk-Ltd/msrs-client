@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 
 import { StreamGroup } from '@/hooks/useStamps';
 
-import { StreamStampCard } from './StreamStampCard';
+import { StreamStampCard } from '../../Cards/StreamStampCard/StreamStampCard';
 
 import './PinnedStampGrid.scss';
 

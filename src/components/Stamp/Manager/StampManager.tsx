@@ -5,9 +5,10 @@ import { useStamps } from '@/hooks/useStamps';
 import { useWallet } from '@/hooks/useWallet';
 import { useUserContext } from '@/providers/User';
 
-import { PinnedStreamGrid } from './PinnedStampGrid';
-import { StampGrid } from './StampGrid';
-import { StampInfoPanel } from './StampInfoPanel';
+import { PinnedStreamGrid } from '../Grids/PinnedStampGrid/PinnedStampGrid';
+import { StampGrid } from '../Grids/StampGrid/StampGrid';
+import { StampInfoPanel } from '../Panels/StampInfoPanel/StampInfoPanel';
+
 import { StampManagerHeader } from './StampManagerHeader';
 
 import './StampManager.scss';

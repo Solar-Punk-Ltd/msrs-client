@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 
 import { StampWithInfo } from '@/hooks/useStamps';
 
-import { StampCard } from '../StampCard/StampCard';
+import { StampCard } from '../../Cards/StampCard/StampCard';
 
 import './StampGrid.scss';
 

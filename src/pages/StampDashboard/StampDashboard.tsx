@@ -1,4 +1,4 @@
-import { StampManager } from '@/components/Stamp/StampManager/StampManager';
+import { StampManager } from '@/components/Stamp/Manager/StampManager';
 
 import './StampDashboard.scss';
 
