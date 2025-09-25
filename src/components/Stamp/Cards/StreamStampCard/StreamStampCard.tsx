@@ -12,9 +12,11 @@ import './StreamStampCard.scss';
 interface StreamStampCardProps {
   stamp: StampWithInfo;
   signer?: ethers.Signer;
+  sharedExpanded?: boolean;
+  onToggleExpanded?: () => void;
 }
 
-export function StreamStampCard({ stamp, signer }: StreamStampCardProps) {
+export function StreamStampCard({ stamp, signer, sharedExpanded, onToggleExpanded }: StreamStampCardProps) {
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
   const { stampInfo, error, nodeInfo } = stamp;
   const stampType = nodeInfo.lock_info?.type || 'unknown';
@@ -100,6 +102,8 @@ export function StreamStampCard({ stamp, signer }: StreamStampCardProps) {
           onTopUp={handleTopUp}
           isLoading={isTopUpLoading}
           variant="stream"
+          externalExpanded={sharedExpanded}
+          onToggleExpanded={onToggleExpanded}
         />
       )}
     </div>

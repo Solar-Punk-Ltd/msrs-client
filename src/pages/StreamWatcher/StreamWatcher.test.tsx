@@ -7,7 +7,7 @@ import { Provider as UserProvider } from '@/providers/User';
 
 import { StreamWatcher } from './StreamWatcher';
 
-vi.mock('@/components/SwarmHlsPlayer/SwarmHlsPlayer', () => ({
+vi.mock('@/components/Stream/SwarmHlsPlayer/SwarmHlsPlayer', () => ({
   SwarmHlsPlayer: (props: any) => <div data-testid="swarm-hls-player">{JSON.stringify(props)}</div>,
 }));
 vi.mock('@/components/Chat/Chat', () => ({

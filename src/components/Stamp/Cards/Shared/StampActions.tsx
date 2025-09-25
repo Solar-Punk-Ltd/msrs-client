@@ -12,11 +12,31 @@ interface StampActionsProps {
   onTopUp: (days: number) => Promise<void>;
   isLoading: boolean;
   variant?: 'default' | 'stream';
+  externalExpanded?: boolean;
+  onToggleExpanded?: () => void;
 }
 
-export function StampActions({ stampId, signer, onTopUp, isLoading, variant = 'default' }: StampActionsProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedDays, setSelectedDays] = useState(10);
+export function StampActions({
+  stampId,
+  signer,
+  onTopUp,
+  isLoading,
+  variant = 'default',
+  externalExpanded,
+  onToggleExpanded,
+}: StampActionsProps) {
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const [selectedDays, setSelectedDays] = useState(1);
+
+  const isExpanded = externalExpanded !== undefined ? externalExpanded : internalExpanded;
+
+  const handleToggle = () => {
+    if (onToggleExpanded) {
+      onToggleExpanded();
+    } else {
+      setInternalExpanded(!internalExpanded);
+    }
+  };
   const [costCalculation, setCostCalculation] = useState<ExtensionDaysCalculation | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
 
@@ -31,15 +51,24 @@ export function StampActions({ stampId, signer, onTopUp, isLoading, variant = 'd
   }, [isExpanded, selectedDays, stampId, signer.provider]);
 
   const handleTopUpClick = async () => {
-    await onTopUp(selectedDays);
-    setIsExpanded(false);
+    try {
+      await onTopUp(selectedDays);
+      // Close the expansion after successful top-up
+      if (onToggleExpanded && isExpanded) {
+        onToggleExpanded();
+      } else if (!onToggleExpanded && internalExpanded) {
+        setInternalExpanded(false);
+      }
+    } catch (error) {
+      console.error('Error topping up stamp:', error);
+    }
   };
 
   const classPrefix = variant === 'stream' ? 'stream-stamp' : 'stamp';
 
   return (
     <div className={`${classPrefix}-actions`}>
-      <button className={`${classPrefix}-toggle-link`} onClick={() => setIsExpanded(!isExpanded)} type="button">
+      <button className={`${classPrefix}-toggle-link`} onClick={handleToggle} type="button">
         {isExpanded ? 'Cancel top-up' : 'Top-up'}
       </button>
 
