@@ -5,6 +5,7 @@ import { useStamps } from '@/hooks/useStamps';
 import { useWallet } from '@/hooks/useWallet';
 import { useUserContext } from '@/providers/User';
 
+import { PinnedStreamGrid } from './PinnedStampGrid';
 import { StampGrid } from './StampGrid';
 import { StampInfoPanel } from './StampInfoPanel';
 import { StampManagerHeader } from './StampManagerHeader';
@@ -12,13 +13,16 @@ import { StampManagerHeader } from './StampManagerHeader';
 import './StampManager.scss';
 
 export function StampManager() {
-  const { session } = useUserContext();
-
   const wallet = useWallet();
+
+  const { session } = useUserContext();
 
   const stamps = useStamps(session?.serverKeys.nginx, wallet.provider);
 
   const [showInfo, setShowInfo] = useState(false);
+
+  const hasContent =
+    stamps.pinnedStreams.length > 0 || stamps.privateStamps.length > 0 || stamps.publicStamps.length > 0;
 
   return (
     <div className="stamp-manager">
@@ -31,8 +35,11 @@ export function StampManager() {
           <ErrorState message={stamps.error} onRetry={stamps.refresh} />
         ) : stamps.isLoading ? (
           <LoadingState message="Loading stamps..." />
-        ) : stamps.privateStamps.length > 0 || stamps.publicStamps.length > 0 ? (
+        ) : hasContent ? (
           <>
+            {stamps.pinnedStreams.length > 0 && (
+              <PinnedStreamGrid streams={stamps.pinnedStreams} signer={wallet.signer} />
+            )}
             {stamps.privateStamps.length > 0 && (
               <StampGrid title="Private Stamps" stamps={stamps.privateStamps} signer={wallet.signer} />
             )}

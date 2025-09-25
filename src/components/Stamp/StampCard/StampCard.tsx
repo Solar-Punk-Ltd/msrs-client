@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 
-import { formatDays, formatStampId } from '@/utils/format';
+import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
 import { StampInfo } from '@/utils/stamp';
 
 import './StampCard.scss';
@@ -73,8 +73,6 @@ function StampHeader({ stampId, isActive }: { stampId: string; isActive: boolean
 }
 
 function StampDetails({ financialStatus }: { financialStatus: StampInfo['financialStatus'] }) {
-  const formatDate = (date: Date) => date.toISOString().slice(0, 10);
-
   return (
     <div className="stamp-details">
       <div className="stamp-row">
@@ -82,7 +80,7 @@ function StampDetails({ financialStatus }: { financialStatus: StampInfo['financi
         <span className="stamp-value">
           {financialStatus.isActive ? formatDays(financialStatus.remainingDays) : 'Expired'}
           {financialStatus.expirationDate && (
-            <span className="stamp-subtitle">({formatDate(financialStatus.expirationDate)})</span>
+            <span className="stamp-subtitle">({formatStampExpirationDate(financialStatus.expirationDate)})</span>
           )}
         </span>
       </div>

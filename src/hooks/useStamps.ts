@@ -8,9 +8,16 @@ export interface StampWithInfo {
   stampId: string;
   stampInfo?: StampInfo;
   error?: string;
+  nodeInfo: NodeInfo;
+}
+
+export interface StreamGroup {
+  streamId: string;
+  stamps: StampWithInfo[];
 }
 
 interface StampsState {
+  pinnedStreams: StreamGroup[];
   privateStamps: StampWithInfo[];
   publicStamps: StampWithInfo[];
   isLoading: boolean;
@@ -19,6 +26,7 @@ interface StampsState {
 
 export function useStamps(adminSecret: string | undefined, _provider: ethers.Provider | null) {
   const [state, setState] = useState<StampsState>({
+    pinnedStreams: [],
     privateStamps: [],
     publicStamps: [],
     isLoading: true,
@@ -27,7 +35,14 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
 
   const loadStamps = useCallback(async () => {
     if (!adminSecret) {
-      setState((prev) => ({ ...prev, isLoading: false, error: null, privateStamps: [], publicStamps: [] }));
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: null,
+        pinnedStreams: [],
+        privateStamps: [],
+        publicStamps: [],
+      }));
       return;
     }
 
@@ -42,10 +57,12 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
           return {
             stampId: node.hash,
             stampInfo,
+            nodeInfo: node,
           };
         } catch (error) {
           return {
             stampId: node.hash,
+            nodeInfo: node,
             error: error instanceof Error ? error.message : 'Failed to load stamp info',
           };
         }
@@ -56,9 +73,35 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         Promise.all(nodes.nodes.public_writers.map(loadStampInfo)),
       ]);
 
+      const pinnedStamps = privateStampsWithInfo.filter((stamp) => stamp.nodeInfo.lock_info?.pinned);
+      const unpinnedPrivateStamps = privateStampsWithInfo.filter((stamp) => !stamp.nodeInfo.lock_info?.pinned);
+
+      const streamGroups = new Map<string, StampWithInfo[]>();
+      pinnedStamps.forEach((stamp) => {
+        const streamId = stamp.nodeInfo.lock_info?.stream_id;
+        if (streamId) {
+          if (!streamGroups.has(streamId)) {
+            streamGroups.set(streamId, []);
+          }
+          streamGroups.get(streamId)!.push(stamp);
+        }
+      });
+
+      const pinnedStreams: StreamGroup[] = Array.from(streamGroups.entries()).map(([streamId, stamps]) => ({
+        streamId,
+        stamps: stamps.sort((a, b) => {
+          const typeA = a.nodeInfo.lock_info?.type || '';
+          const typeB = b.nodeInfo.lock_info?.type || '';
+          if (typeA === 'media' && typeB === 'chat') return -1;
+          if (typeA === 'chat' && typeB === 'media') return 1;
+          return 0;
+        }),
+      }));
+
       setState((prev) => ({
         ...prev,
-        privateStamps: privateStampsWithInfo,
+        pinnedStreams,
+        privateStamps: unpinnedPrivateStamps,
         publicStamps: publicStampsWithInfo,
         isLoading: false,
       }));

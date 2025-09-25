@@ -19,3 +19,5 @@ export function formatAddress(address: string): string {
 export const padStampId = (stampId: string): string => {
   return stampId.startsWith('0x') ? stampId : `0x${stampId}`;
 };
+
+export const formatStampExpirationDate = (date: Date) => date.toISOString().slice(0, 10);
