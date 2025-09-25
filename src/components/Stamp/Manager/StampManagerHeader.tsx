@@ -3,18 +3,11 @@ import { WalletConnection } from '../../WalletConnection/WalletConnection';
 import './StampManagerHeader.scss';
 
 interface StampManagerHeaderProps {
-  wallet: {
-    account: string | null;
-    connectionError: string | null;
-    isConnecting: boolean;
-    connect: () => Promise<void>;
-    disconnect: () => void;
-  };
   showInfo: boolean;
   onToggleInfo: () => void;
 }
 
-export function StampManagerHeader({ wallet, showInfo, onToggleInfo }: StampManagerHeaderProps) {
+export function StampManagerHeader({ showInfo, onToggleInfo }: StampManagerHeaderProps) {
   return (
     <div className="stamp-manager-header">
       <div className="stamp-manager-title-section">
@@ -29,7 +22,7 @@ export function StampManagerHeader({ wallet, showInfo, onToggleInfo }: StampMana
           ℹ️
         </button>
       </div>
-      <WalletConnection {...wallet} />
+      <WalletConnection />
     </div>
   );
 }

@@ -37,13 +37,6 @@
     justify-content: center;
     flex-direction: column;
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-
-    .stream-stamp-type-badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      margin-bottom: 0;
-    }
   }
 
   &.stream-stamp-expired {

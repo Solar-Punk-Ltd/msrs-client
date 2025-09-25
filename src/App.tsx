@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AppContextProvider as AppProvider } from './providers/App';
 import { Provider as UserProvider } from './providers/User';
+import { WalletProvider } from './providers/Wallet';
 import BaseRouter from './routes';
 
 import '@/styles/globals.scss';
@@ -25,13 +26,15 @@ function AppWithLoading() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <UserProvider>
-          <HashRouter>
-            <BaseRouter />
-          </HashRouter>
-        </UserProvider>
-      </AppProvider>
+      <WalletProvider>
+        <AppProvider>
+          <UserProvider>
+            <HashRouter>
+              <BaseRouter />
+            </HashRouter>
+          </UserProvider>
+        </AppProvider>
+      </WalletProvider>
     </QueryClientProvider>
   );
 }

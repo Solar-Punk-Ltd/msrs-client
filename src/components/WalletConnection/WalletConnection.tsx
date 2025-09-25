@@ -1,22 +1,21 @@
+import { useWallet } from '@/providers/Wallet';
 import { formatAddress } from '@/utils/format';
 
 import './WalletConnection.scss';
 
-interface WalletConnectionProps {
-  account: string | null;
-  connectionError: string | null;
-  isConnecting: boolean;
-  connect: () => Promise<void>;
-  disconnect: () => void;
-}
+export function WalletConnection() {
+  const { account, isConnecting, isReconnecting, error, chainError, connect, disconnect, switchToGnosis } = useWallet();
 
-export function WalletConnection({
-  account,
-  connectionError,
-  isConnecting,
-  connect,
-  disconnect,
-}: WalletConnectionProps) {
+  if (isReconnecting) {
+    return (
+      <div className="wallet-connection">
+        <div className="wallet-status">
+          <span className="status-text">Reconnecting...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="wallet-connection">
       {account ? (
@@ -31,9 +30,19 @@ export function WalletConnection({
           {isConnecting ? 'Connecting...' : 'Connect MetaMask'}
         </button>
       )}
-      {connectionError && (
+
+      {chainError && (
+        <div className="network-error">
+          <span className="error-text">Wrong network!</span>
+          <button className="btn btn-switch" onClick={switchToGnosis} type="button">
+            Switch to Gnosis
+          </button>
+        </div>
+      )}
+
+      {error && !chainError && (
         <div className="error-message" role="alert">
-          {connectionError}
+          {error}
         </div>
       )}
     </div>

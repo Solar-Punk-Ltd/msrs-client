@@ -23,6 +23,32 @@
   }
 }
 
+.wallet-status {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+
+  @media (max-width: $breakpoint-tablet) {
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Monaco', 'Courier New', monospace;
+
+  @media (max-width: $breakpoint-tablet) {
+    font-size: 12px;
+  }
+}
+
 .wallet-address {
   padding: 10px 20px;
   background: rgba(255, 255, 255, 0.15);
@@ -99,6 +125,30 @@
     }
   }
 
+  &-switch {
+    background: #ffc107;
+    color: #333;
+    font-size: 12px;
+    padding: 6px 12px;
+    animation: pulse 1.5s ease-in-out infinite;
+
+    &:hover:not(:disabled) {
+      background: #ffb300;
+      transform: translateY(-1px);
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.8;
+      }
+    }
+  }
+
   &-retry {
     background: #667eea;
     color: white;
@@ -125,5 +175,34 @@
     text-align: center;
     border-left: none;
     border-top: 3px solid #ef4444;
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.network-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .error-text {
+    font-size: 12px;
+    color: #ffc107;
+    font-weight: 600;
+    font-family: 'Monaco', 'Courier New', monospace;
+
+    @media (max-width: $breakpoint-tablet) {
+      font-size: 11px;
+    }
   }
 }

@@ -63,7 +63,6 @@ export function StreamStampCard({
   if (error) {
     return (
       <div className="stream-stamp-card stream-stamp-error">
-        <div className="stream-stamp-type-badge">{stampType}</div>
         <p className="stream-stamp-error-message">{error}</p>
       </div>
     );

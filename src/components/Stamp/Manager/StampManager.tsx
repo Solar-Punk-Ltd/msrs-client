@@ -2,8 +2,8 @@ import { useState } from 'react';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { useStamps } from '@/hooks/useStamps';
-import { useWallet } from '@/hooks/useWallet';
 import { useUserContext } from '@/providers/User';
+import { useWallet } from '@/providers/Wallet';
 
 import { PinnedStreamGrid } from '../Grids/PinnedStampGrid/PinnedStampGrid';
 import { StampGrid } from '../Grids/StampGrid/StampGrid';
@@ -14,11 +14,11 @@ import { StampManagerHeader } from './StampManagerHeader';
 import './StampManager.scss';
 
 export function StampManager() {
-  const wallet = useWallet();
+  const { provider, signer } = useWallet();
 
   const { session } = useUserContext();
 
-  const stamps = useStamps(session?.serverKeys.nginx, wallet.provider);
+  const stamps = useStamps(session?.serverKeys.nginx, provider);
 
   const [showInfo, setShowInfo] = useState(false);
 
@@ -27,7 +27,7 @@ export function StampManager() {
 
   return (
     <div className="stamp-manager">
-      <StampManagerHeader wallet={wallet} showInfo={showInfo} onToggleInfo={() => setShowInfo(!showInfo)} />
+      <StampManagerHeader showInfo={showInfo} onToggleInfo={() => setShowInfo(!showInfo)} />
 
       {showInfo && <StampInfoPanel />}
 
@@ -39,13 +39,13 @@ export function StampManager() {
         ) : hasContent ? (
           <>
             {stamps.pinnedStreams.length > 0 && (
-              <PinnedStreamGrid streams={stamps.pinnedStreams} signer={wallet.signer} onStampRefresh={stamps.refresh} />
+              <PinnedStreamGrid streams={stamps.pinnedStreams} signer={signer} onStampRefresh={stamps.refresh} />
             )}
             {stamps.privateStamps.length > 0 && (
               <StampGrid
                 title="Private Stamps"
                 stamps={stamps.privateStamps}
-                signer={wallet.signer}
+                signer={signer}
                 onStampRefresh={stamps.refresh}
               />
             )}
@@ -53,7 +53,7 @@ export function StampManager() {
               <StampGrid
                 title="Public Stamps"
                 stamps={stamps.publicStamps}
-                signer={wallet.signer}
+                signer={signer}
                 onStampRefresh={stamps.refresh}
               />
             )}

@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 
 import { padStampId } from './format';
+import { getWalletService } from './wallet';
 
 export const POSTAGE_STAMP_CONTRACT = '0x45a1502382541Cd610CC9068e88727426b696293';
 export const GNOSIS_BLOCK_TIME = 5; // seconds
@@ -80,15 +81,22 @@ export interface StampInfo {
 }
 
 export const createContract = (provider?: ethers.Provider): PostageStampContract => {
-  if (!provider && !window.ethereum) {
-    throw new Error('No provider available to create contract');
+  if (!provider) {
+    const walletService = getWalletService();
+
+    if (walletService.isConnected()) {
+      const walletProvider = walletService.getProvider();
+      if (walletProvider) {
+        provider = walletProvider;
+      }
+    }
+
+    if (!provider) {
+      provider = walletService.getPublicProvider();
+    }
   }
 
-  return new ethers.Contract(
-    POSTAGE_STAMP_CONTRACT,
-    POSTAGE_STAMP_ABI,
-    provider || new ethers.BrowserProvider(window.ethereum!),
-  ) as unknown as PostageStampContract;
+  return new ethers.Contract(POSTAGE_STAMP_CONTRACT, POSTAGE_STAMP_ABI, provider) as unknown as PostageStampContract;
 };
 
 export const isValidStamp = (batchData: BatchData): boolean => {
