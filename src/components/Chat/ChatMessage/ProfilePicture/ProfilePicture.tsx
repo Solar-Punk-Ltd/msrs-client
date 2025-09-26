@@ -2,15 +2,18 @@ import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 
+import { createUniqueUsername } from '@/utils/format';
+
 import './ProfilePicture.scss';
 
 interface ProfilePictureProps {
   name: string;
+  address: string;
   color: string;
   ownMessage?: boolean;
 }
 
-export function ProfilePicture({ name, color, ownMessage = false }: ProfilePictureProps) {
+export function ProfilePicture({ name, address, color, ownMessage = false }: ProfilePictureProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const profileRef = useRef<HTMLDivElement>(null);
@@ -85,7 +88,7 @@ export function ProfilePicture({ name, color, ownMessage = false }: ProfilePictu
               fontFamily: 'Open Sans, sans-serif',
             }}
           >
-            {name}
+            {createUniqueUsername(name, address)}
           </div>,
           document.body,
         )}

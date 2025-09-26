@@ -183,6 +183,7 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
                   requested={Boolean(item.requested)}
                   name={item.username}
                   profileColor={getColorForName(item.username)}
+                  messageOwnerAddress={item.address}
                   ownMessage={item.address === keys.public!}
                   reactions={groupedReactions[item.id] || []}
                   threadCount={getThreadMessages(item.id).count}

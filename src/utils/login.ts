@@ -273,7 +273,9 @@ export const adminlogin = async (username: string, password: string): Promise<Lo
 };
 
 export const nicknameLogin = async (nickname: string): Promise<LoginResult> => {
-  const signer = getSigner(nickname);
+  const id = crypto.randomUUID();
+
+  const signer = getSigner(id);
   if (!signer) {
     return { error: 'Invalid nickname' };
   }
