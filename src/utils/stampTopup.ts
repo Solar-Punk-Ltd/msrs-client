@@ -70,9 +70,14 @@ async function ensureBzzApproval(signer: ethers.Signer, amountPlur: bigint): Pro
   }
 
   console.log('Approving BZZ tokens for PostageStamp contract...');
+
+  // I leave this here for future reference
   // Approve max uint256 for convenience (user won't need to approve again)
-  const maxApproval = ethers.MaxUint256;
-  const approveTx = await bzzContract.approve(POSTAGE_STAMP_CONTRACT, maxApproval);
+  // const maxApproval = ethers.MaxUint256;
+  // const approveTx = await bzzContract.approve(POSTAGE_STAMP_CONTRACT, maxApproval);
+
+  // For now only approve the needed amount
+  const approveTx = await bzzContract.approve(POSTAGE_STAMP_CONTRACT, amountPlur);
   const receipt = await approveTx.wait();
 
   console.log('BZZ approval confirmed');
