@@ -30,14 +30,6 @@
 }
 
 .stream-manager-item {
-  .stream-list-item-actions {
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  &:hover .stream-list-item-actions {
-    opacity: 1;
-  }
 }
 
 .stream-manager-footer {
