@@ -2,12 +2,22 @@
 
 .base-stream-list-title {
   padding: 20px;
+  padding-bottom: 8px;
   margin: 0;
   font-size: 20px;
   font-weight: bold;
   text-align: center;
   color: inherit;
   font-family: 'Open Sans', sans-serif;
+  flex-shrink: 0;
+}
+
+.base-stream-list-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .base-stream-list {
@@ -19,12 +29,19 @@
   padding: 16px;
   width: 100%;
   overflow-y: auto;
-  max-height: 80vh;
+  overflow-x: hidden;
+  flex: 1;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 
   @media (min-width: $breakpoint-mobile) {
     grid-template-columns: repeat(2, 1fr);
     justify-items: stretch;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: 1fr;
+    padding: 8px;
   }
 
   &.empty {
@@ -62,6 +79,12 @@
 }
 
 .loading-overlay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+
   .base-stream-list {
     opacity: 0.4;
     pointer-events: none;

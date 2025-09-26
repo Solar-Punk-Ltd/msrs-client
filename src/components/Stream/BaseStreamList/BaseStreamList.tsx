@@ -48,8 +48,10 @@ export function BaseStreamList({
     return (
       <div className={className}>
         {title && <h2 className="base-stream-list-title">{title}</h2>}
-        <div className="base-stream-list empty">
-          <p>No streams available</p>
+        <div className="base-stream-list-container">
+          <div className="base-stream-list empty">
+            <p>No streams available</p>
+          </div>
         </div>
         {renderFooter && renderFooter()}
       </div>
@@ -60,9 +62,12 @@ export function BaseStreamList({
     return (
       <div className={className}>
         {title && <h2 className="base-stream-list-title">{title}</h2>}
-        <div className="base-stream-list loading">
-          <InputLoading />
+        <div className="base-stream-list-container">
+          <div className="base-stream-list loading">
+            <InputLoading />
+          </div>
         </div>
+        {renderFooter && renderFooter()}
       </div>
     );
   }
