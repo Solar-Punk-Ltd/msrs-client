@@ -1,38 +1,35 @@
 @use '@/styles/variables.scss' as *;
 
-.simple-modal-container {
-  position: absolute;
+.simple-modal-overlay {
+  position: fixed;
   top: 0;
   left: 0;
-  height: 100%;
-  width: 100%;
-  padding: 16px;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2.5px);
   z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
   box-sizing: border-box;
-
-  @media (min-width: $breakpoint-mobile) {
-    display: flex;
-    justify-content: center;
-  }
 }
 
 .simple-modal {
   position: relative;
   width: 100%;
-  top: 10%;
+  max-width: 500px;
+  max-height: 80vh;
   padding: 24px;
-  max-height: fit-content;
   box-sizing: border-box;
   background: linear-gradient(180deg, #8841e4 0%, #ff8a50 100%),
     linear-gradient(0deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0));
   color: #efefef;
   font-family: 'Open Sans', sans-serif;
   border-radius: 12px;
-
-  @media (min-width: $breakpoint-mobile) {
-    max-width: 500px;
-  }
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
 }
 
 .simple-modal-header {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 
+import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
 import { getUserFriendlyErrorMessage } from '@/utils/errorHandling';
 import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
@@ -26,12 +27,15 @@ export function StreamStampCard({
   onStampRefresh,
 }: StreamStampCardProps) {
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const { stampInfo, error, nodeInfo } = stamp;
   const stampType = nodeInfo.lock_info?.type || 'unknown';
 
   const handleTopUp = async (days: number) => {
     if (!signer) {
-      alert('Please connect your wallet first');
+      setErrorMessage('Please connect your wallet first');
+      setErrorModalOpen(true);
       return;
     }
 
@@ -44,8 +48,9 @@ export function StreamStampCard({
       }
     } catch (error) {
       console.error('Top-up failed:', error);
-      const errorMessage = getUserFriendlyErrorMessage(error);
-      alert(`Top-up failed: ${errorMessage}`);
+      const friendlyErrorMessage = getUserFriendlyErrorMessage(error);
+      setErrorMessage(`Top-up failed: ${friendlyErrorMessage}`);
+      setErrorModalOpen(true);
     } finally {
       setIsTopUpLoading(false);
     }
@@ -127,6 +132,10 @@ export function StreamStampCard({
           onToggleExpanded={onToggleExpanded}
         />
       )}
+
+      <SimpleModal isOpen={errorModalOpen} title="Error" onClose={() => setErrorModalOpen(false)} closeText="OK">
+        <p>{errorMessage}</p>
+      </SimpleModal>
     </div>
   );
 }

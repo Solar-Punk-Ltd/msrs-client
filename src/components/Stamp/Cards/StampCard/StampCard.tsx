@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 
+import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
 import { getUserFriendlyErrorMessage } from '@/utils/errorHandling';
 import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
@@ -20,10 +21,13 @@ interface StampCardProps {
 export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
   const { stampId, stampInfo, error } = stamp;
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleTopUp = async (days: number) => {
     if (!signer) {
-      alert('Please connect your wallet first');
+      setErrorMessage('Please connect your wallet first');
+      setErrorModalOpen(true);
       return;
     }
 
@@ -36,8 +40,9 @@ export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
       }
     } catch (error) {
       console.error('Top-up failed:', error);
-      const errorMessage = getUserFriendlyErrorMessage(error);
-      alert(`Top-up failed: ${errorMessage}`);
+      const friendlyErrorMessage = getUserFriendlyErrorMessage(error);
+      setErrorMessage(`Top-up failed: ${friendlyErrorMessage}`);
+      setErrorModalOpen(true);
     } finally {
       setIsTopUpLoading(false);
     }
@@ -82,6 +87,10 @@ export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
       {signer && isActive && (
         <StampActions stampId={stampId} signer={signer} onTopUp={handleTopUp} isLoading={isTopUpLoading} />
       )}
+
+      <SimpleModal isOpen={errorModalOpen} title="Error" onClose={() => setErrorModalOpen(false)} closeText="OK">
+        <p>{errorMessage}</p>
+      </SimpleModal>
     </div>
   );
 }

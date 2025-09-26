@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
 
@@ -15,9 +16,9 @@ interface SimpleModalProps {
 export function SimpleModal({ isOpen, title, children, closeText = 'Close', onClose }: SimpleModalProps) {
   if (!isOpen) return null;
 
-  return (
-    <div className="simple-modal-container">
-      <div className="simple-modal">
+  const modalContent = (
+    <div className="simple-modal-overlay" onClick={onClose}>
+      <div className="simple-modal" onClick={(e) => e.stopPropagation()}>
         <div className="simple-modal-header">{title}</div>
         <div className="simple-modal-content">{children}</div>
         <div className="simple-modal-button-container">
@@ -28,4 +29,6 @@ export function SimpleModal({ isOpen, title, children, closeText = 'Close', onCl
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
