@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { useStamps } from '@/hooks/useStamps';
+import { useAppContext } from '@/providers/App';
 import { useUserContext } from '@/providers/User';
 import { useWallet } from '@/providers/Wallet';
 
@@ -15,9 +16,7 @@ import './StampManager.scss';
 
 export function StampManager() {
   const { provider, signer } = useWallet();
-
   const { session } = useUserContext();
-
   const stamps = useStamps(session?.serverKeys.nginx, provider);
 
   const [showInfo, setShowInfo] = useState(false);
