@@ -137,8 +137,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         if (freshData) {
           changeDetected = !isEqual(currentStateSnapshot, freshData);
 
-          console.log('Change detected:', changeDetected);
-
           if (changeDetected) {
             setNewStreamList(freshData);
             queryClient.setQueryData(['app-state'], cloneDeep(freshData));

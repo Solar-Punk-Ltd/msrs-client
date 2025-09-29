@@ -128,13 +128,10 @@
       gap: 8px;
       padding-top: 12px;
       margin-top: 8px;
+      flex-direction: column;
 
-      @media (max-width: 380px) {
-        flex-direction: column;
-
-        button {
-          width: 100%;
-        }
+      button {
+        width: 100%;
       }
     }
   }
@@ -154,6 +151,8 @@
   }
 
   &-submit-button {
+    order: 1;
+
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 
     &:hover {
@@ -163,6 +162,10 @@
     &:disabled {
       background: rgba(255, 255, 255, 0.2) !important;
       opacity: 0.6;
+    }
+
+    @media (max-width: $breakpoint-mobile) {
+      order: 0;
     }
   }
 }

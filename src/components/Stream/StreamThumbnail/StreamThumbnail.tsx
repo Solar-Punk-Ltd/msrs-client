@@ -91,7 +91,6 @@ const useHlsThumbnailCapture = (videoRef: React.RefObject<HTMLVideoElement>, man
     return result ?? false;
   }, [manifestUrl, videoRef]);
 
-  // Cleanup function
   const cleanup = useCallback(() => {
     hlsRef.current?.destroy();
     hlsRef.current = null;
@@ -190,7 +189,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
         URL.revokeObjectURL(thumbnailState.thumbnailUrl);
       }
     };
-  }, [loadThumbnail]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loadThumbnail]);
 
   const { isLoading, thumbnailUrl, hasData } = thumbnailState;
   const shouldShowVideo = !thumbnailUrl && hasData;

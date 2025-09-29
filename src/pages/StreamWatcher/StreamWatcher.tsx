@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
@@ -12,6 +12,8 @@ import { MediaType, StateType } from '@/types/stream';
 
 import './StreamWatcher.scss';
 
+const SCHEDULED_STREAM_POLL_INTERVAL = 5000;
+
 export function StreamWatcher() {
   const { mediatype, owner, topic } = useParams<{
     mediatype: string;
@@ -19,7 +21,9 @@ export function StreamWatcher() {
     topic: string;
   }>();
   const navigate = useNavigate();
-  const { streamList, isLoading } = useAppContext();
+  const { streamList, isLoading, refreshStreamList } = useAppContext();
+
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   const foundStream = useMemo(() => {
     if (streamList && owner && topic) {
@@ -30,8 +34,42 @@ export function StreamWatcher() {
 
   const isScheduled = foundStream?.state === StateType.SCHEDULED;
 
-  const shouldShowLoading = isLoading || streamList.length === 0;
-  const shouldShowError = !shouldShowLoading && !foundStream;
+  useEffect(() => {
+    if (isLoading) {
+      setHasFetchedOnce(true);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (!isScheduled) {
+      return;
+    }
+
+    let timeoutId: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
+    const poll = async () => {
+      if (!isMounted) return;
+
+      await refreshStreamList();
+
+      if (isMounted) {
+        timeoutId = setTimeout(poll, SCHEDULED_STREAM_POLL_INTERVAL);
+      }
+    };
+
+    poll();
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isScheduled, refreshStreamList]);
+
+  const shouldShowLoading = isLoading && streamList.length === 0;
+  const shouldShowError = !isLoading && hasFetchedOnce && !foundStream;
 
   const handleBackButtonClick = () => {
     if (window.history.length > 1) {
