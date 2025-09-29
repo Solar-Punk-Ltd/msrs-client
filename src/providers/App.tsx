@@ -17,7 +17,7 @@ interface AppContextState {
 }
 
 const RETRY_CONFIG = {
-  maxRetries: 5,
+  maxRetries: 3,
   retryDelay: 4000,
 } as const;
 
