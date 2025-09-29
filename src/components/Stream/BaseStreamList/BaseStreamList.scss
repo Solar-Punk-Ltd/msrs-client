@@ -28,10 +28,13 @@
   column-gap: 16px;
   padding: 16px;
   width: 100%;
-  overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
   box-sizing: border-box;
+  max-height: none;
+  overflow-y: auto;
+  height: 100%;
+  align-content: start;
   -webkit-overflow-scrolling: touch;
 
   @media (min-width: $breakpoint-mobile) {
