@@ -30,6 +30,7 @@ export function StreamListItem({
         state={stream.state}
         duration={stream.duration}
         mediaType={stream.mediaType}
+        pinned={stream.pinned}
       />
       {renderActions && <div className="stream-list-item-actions">{renderActions(stream)}</div>}
     </div>

@@ -1,7 +1,7 @@
 import { createContext, ReactChild, ReactElement, useContext, useEffect, useMemo, useState } from 'react';
 
-import { clearSessionCookie, loadSessionFromCookie, setCookie } from '@/utils/cookie';
 import { adminlogin, nicknameLogin, Session } from '@/utils/login';
+import { persistUserSession, purgeUserSession, restoreUserSession, StorageMethod } from '@/utils/persistence';
 
 interface ContextInterface {
   keys: {
@@ -17,6 +17,7 @@ interface ContextInterface {
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (isLoginModalOpen: boolean) => void;
   session: Session | null;
+  isLoading: boolean;
 }
 
 const initialValues: ContextInterface = {
@@ -33,6 +34,7 @@ const initialValues: ContextInterface = {
   isLoginModalOpen: false,
   setIsLoginModalOpen: () => {},
   session: null,
+  isLoading: true,
 };
 
 export const Context = createContext<ContextInterface>(initialValues);
@@ -51,12 +53,14 @@ interface Props {
 export function Provider({ children }: Props): ReactElement {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedSession = loadSessionFromCookie();
+    const savedSession = restoreUserSession(StorageMethod.LOCAL_STORAGE);
     if (savedSession) {
       setSession(savedSession);
     }
+    setIsLoading(false);
   }, []);
 
   const loginAsAdmin = async (username: string, password: string) => {
@@ -64,7 +68,7 @@ export function Provider({ children }: Props): ReactElement {
 
     if (res.session) {
       setSession(res.session);
-      setCookie(res.session);
+      persistUserSession(res.session, { method: StorageMethod.LOCAL_STORAGE });
       setIsLoginModalOpen(false);
     } else {
       console.error('Admin login failed:', res.error);
@@ -76,7 +80,7 @@ export function Provider({ children }: Props): ReactElement {
 
     if (res.session) {
       setSession(res.session);
-      setCookie(res.session);
+      persistUserSession(res.session, { method: StorageMethod.LOCAL_STORAGE });
       setIsLoginModalOpen(false);
     } else {
       console.error('User login failed:', res.error);
@@ -85,7 +89,7 @@ export function Provider({ children }: Props): ReactElement {
 
   const logout = () => {
     setSession(null);
-    clearSessionCookie();
+    purgeUserSession(StorageMethod.LOCAL_STORAGE);
   };
 
   const nickname = useMemo(() => session?.username || '', [session]);
@@ -100,8 +104,8 @@ export function Provider({ children }: Props): ReactElement {
     }
 
     return {
-      private: session.userSecret,
-      public: session.userId,
+      private: session.userSecret.toLocaleLowerCase(),
+      public: session.userId.toLocaleLowerCase(),
     };
   }, [session]);
 
@@ -118,6 +122,7 @@ export function Provider({ children }: Props): ReactElement {
         isLoginModalOpen,
         setIsLoginModalOpen,
         session,
+        isLoading,
       }}
     >
       {children}

@@ -5,12 +5,23 @@
   cursor: pointer;
   transition: transform 0.15s ease;
 
+  &--pinned {
+    .stream-thumbnail-media {
+      border: 2px solid #8841e4;
+      box-shadow: 0 0 8px rgba(136, 65, 228, 0.3);
+    }
+  }
+
   &:hover {
     .stream-thumbnail-play-overlay {
       opacity: 1;
     }
 
     .stream-thumbnail-title {
+      color: #ff8a50;
+    }
+
+    &.stream-thumbnail--pinned .stream-thumbnail-title {
       color: #ff8a50;
     }
   }

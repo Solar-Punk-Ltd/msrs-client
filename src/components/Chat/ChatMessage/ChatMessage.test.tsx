@@ -7,6 +7,7 @@ describe('ChatMessage', () => {
   const baseProps = {
     message: 'Hello world!',
     name: 'Alice',
+    messageOwnerAddress: 'address1',
     profileColor: '#ff0000',
     received: true,
     error: false,

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 
 import { StreamList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App';
@@ -7,12 +7,15 @@ import { useAppContext } from '@/providers/App';
 import './StreamBrowser.scss';
 
 export function StreamBrowser() {
-  const { fetchAppState, setNewStreamList } = useAppContext();
-  const { data } = useSWR('app-state', fetchAppState, {
-    revalidateOnFocus: true,
-    refreshInterval: 5000,
-    dedupingInterval: 5000,
-    shouldRetryOnError: true,
+  const { fetchAppState, setNewStreamList, isLoading } = useAppContext();
+  const { data } = useQuery({
+    queryKey: ['app-state'],
+    queryFn: () => fetchAppState(),
+    refetchInterval: 2500,
+    retry: true,
+    enabled: !isLoading,
+    staleTime: 0,
+    gcTime: Infinity,
   });
 
   useEffect(() => {

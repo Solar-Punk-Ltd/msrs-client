@@ -62,13 +62,13 @@ function StreamMetadataPreview({
 }) {
   return (
     <div className="stream-form-preview">
-      <ErrorMessage error={error} />
-
       <div className="stream-form-preview-header">
         <h2>{isEditMode ? 'Edit Stream Preview' : 'Stream Meta Preview'}</h2>
       </div>
 
       <div className="stream-form-preview-content">
+        <ErrorMessage error={error} />
+
         <PreviewField label="Stream Title" value={metadata.title} />
         <PreviewField label="Description" value={metadata.description} type="description" />
         <PreviewField label="Media Type" value={MEDIA_TYPE_LABELS[metadata.mediaType]} />
@@ -88,6 +88,11 @@ function StreamMetadataPreview({
       </div>
 
       <div className="stream-form-actions">
+        <Button onClick={onConfirm} disabled={isLoading} className="stream-form-submit-button">
+          {isLoading
+            ? `${isEditMode ? 'Updating' : 'Creating'} Stream...`
+            : `${isEditMode ? 'Update' : 'Create'} Stream`}
+        </Button>
         <Button
           variant={ButtonVariant.SECONDARY}
           onClick={onBack}
@@ -95,11 +100,6 @@ function StreamMetadataPreview({
           className="stream-form-cancel-button"
         >
           Back to Edit
-        </Button>
-        <Button onClick={onConfirm} disabled={isLoading} className="stream-form-submit-button">
-          {isLoading
-            ? `${isEditMode ? 'Updating' : 'Creating'} Stream...`
-            : `${isEditMode ? 'Update' : 'Create'} Stream`}
         </Button>
       </div>
     </div>
@@ -129,47 +129,49 @@ function StreamEditForm({
 
   return (
     <div className="stream-form-form">
-      <ErrorMessage error={error} />
+      <div className="stream-form-content">
+        <ErrorMessage error={error} />
 
-      <div className="stream-form-section">
-        <NameField
-          value={metadata.title}
-          onChange={(value) => onFieldChange('title', value)}
-          maxLength={LIMITS.NAME_MAX_LENGTH}
-        />
+        <div className="stream-form-section">
+          <NameField
+            value={metadata.title}
+            onChange={(value) => onFieldChange('title', value)}
+            maxLength={LIMITS.NAME_MAX_LENGTH}
+          />
 
-        <DescriptionField
-          value={metadata.description}
-          onChange={(value) => onFieldChange('description', value)}
-          maxLength={LIMITS.DESCRIPTION_MAX_LENGTH}
-        />
+          <DescriptionField
+            value={metadata.description}
+            onChange={(value) => onFieldChange('description', value)}
+            maxLength={LIMITS.DESCRIPTION_MAX_LENGTH}
+          />
 
-        <MediaTypeField value={metadata.mediaType} onChange={(value) => onFieldChange('mediaType', value)} />
-      </div>
+          <MediaTypeField value={metadata.mediaType} onChange={(value) => onFieldChange('mediaType', value)} />
+        </div>
 
-      <div className="stream-form-section">
-        <ThumbnailField
-          onChange={(file) => onFieldChange('thumbnail', file)}
-          onError={onError}
-          maxSize={LIMITS.THUMBNAIL_MAX_SIZE}
-          errorMessage={ERROR_MESSAGES.THUMBNAIL_TOO_LARGE}
-          currThumbnail={metadata.thumbnail}
-        />
-      </div>
+        <div className="stream-form-section">
+          <ThumbnailField
+            onChange={(file) => onFieldChange('thumbnail', file)}
+            onError={onError}
+            maxSize={LIMITS.THUMBNAIL_MAX_SIZE}
+            errorMessage={ERROR_MESSAGES.THUMBNAIL_TOO_LARGE}
+            currThumbnail={metadata.thumbnail}
+          />
+        </div>
 
-      <div className="stream-form-section">
-        <ScheduleField
-          value={metadata.scheduledStartTime ? new Date(metadata.scheduledStartTime) : undefined}
-          onChange={(date) => onFieldChange('scheduledStartTime', date ? date.toISOString() : undefined)}
-        />
+        <div className="stream-form-section">
+          <ScheduleField
+            value={metadata.scheduledStartTime ? new Date(metadata.scheduledStartTime) : undefined}
+            onChange={(date) => onFieldChange('scheduledStartTime', date ? date.toISOString() : undefined)}
+          />
+        </div>
       </div>
 
       <div className="stream-form-actions">
-        <Button variant={ButtonVariant.SECONDARY} onClick={onCancel} className="stream-form-cancel-button">
-          Cancel
-        </Button>
         <Button onClick={onPreview} className="stream-form-submit-button">
           Preview
+        </Button>
+        <Button variant={ButtonVariant.SECONDARY} onClick={onCancel} className="stream-form-cancel-button">
+          Cancel
         </Button>
       </div>
     </div>
@@ -181,7 +183,7 @@ export function StreamForm() {
   const params = useParams<{ owner?: string; topic?: string }>();
 
   const { streamList, refreshStreamList } = useAppContext();
-  const { keys, session } = useUserContext();
+  const { session } = useUserContext();
 
   const { metadata, updateField, validateForm, initializeFromStream, isInitializing } = useStreamForm();
 
@@ -238,13 +240,10 @@ export function StreamForm() {
 
       if (isEditMode && streamToEdit) {
         await updateStream(session!, metadata, streamToEdit.topic, streamToEdit.owner);
-        await refreshStreamList({
-          type: 'update',
-          streamId: `${streamToEdit.owner}/${streamToEdit.topic}`,
-        });
+        await refreshStreamList();
       } else {
         await createStream(session!, metadata);
-        await refreshStreamList({ type: 'create' });
+        await refreshStreamList();
       }
 
       navigate(ROUTES.STREAM_MANAGER);
@@ -258,26 +257,28 @@ export function StreamForm() {
 
   return (
     <div className="stream-form">
-      {isPreviewMode ? (
-        <StreamMetadataPreview
-          metadata={metadata}
-          error={error}
-          isLoading={isLoading}
-          isEditMode={isEditMode}
-          onBack={handleBackToEdit}
-          onConfirm={handleSubmitStream}
-        />
-      ) : (
-        <StreamEditForm
-          metadata={metadata}
-          error={error}
-          onFieldChange={updateField}
-          onCancel={handleCancel}
-          onPreview={handlePreview}
-          onError={setError}
-          isInitializing={isInitializing}
-        />
-      )}
+      <div className="stream-form-container">
+        {isPreviewMode ? (
+          <StreamMetadataPreview
+            metadata={metadata}
+            error={error}
+            isLoading={isLoading}
+            isEditMode={isEditMode}
+            onBack={handleBackToEdit}
+            onConfirm={handleSubmitStream}
+          />
+        ) : (
+          <StreamEditForm
+            metadata={metadata}
+            error={error}
+            onFieldChange={updateField}
+            onCancel={handleCancel}
+            onPreview={handlePreview}
+            onError={setError}
+            isInitializing={isInitializing}
+          />
+        )}
+      </div>
     </div>
   );
 }

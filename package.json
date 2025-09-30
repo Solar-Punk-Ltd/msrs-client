@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@ethersphere/bee-js": "^9.0.3",
-    "@solarpunkltd/swarm-chat-js": "^5.0.0",
+    "@solarpunkltd/swarm-chat-js": "^5.1.0",
+    "@tanstack/react-query": "^5.89.0",
     "bs58": "^6.0.0",
     "cafe-utility": "^27.16.2",
     "clsx": "^2.1.1",
@@ -22,13 +23,13 @@
     "emoji-picker-react": "^4.13.1",
     "ethers": "^6.13.5",
     "hls.js": "^1.6.2",
+    "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
     "p-queue": "^8.1.0",
     "pako": "^2.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.4.0",
-    "swr": "^2.3.3"
+    "react-router-dom": "^7.4.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
@@ -37,6 +38,7 @@
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/crypto-js": "^4.2.2",
+    "@types/lodash": "^4.17.20",
     "@types/msgpack-lite": "^0.1.11",
     "@types/node": "^22.8.1",
     "@types/pako": "^2.0.4",

@@ -1,17 +1,20 @@
 import { MemoryRouter, useParams } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AppContextProvider } from '@/providers/App';
 import { Provider as UserProvider } from '@/providers/User';
 
 import { StreamWatcher } from './StreamWatcher';
 
-vi.mock('@/components/SwarmHlsPlayer/SwarmHlsPlayer', () => ({
+vi.mock('@/components/Stream/SwarmHlsPlayer/SwarmHlsPlayer', () => ({
   SwarmHlsPlayer: (props: any) => <div data-testid="swarm-hls-player">{JSON.stringify(props)}</div>,
 }));
 vi.mock('@/components/Chat/Chat', () => ({
   Chat: (props: any) => <div data-testid="chat">{JSON.stringify(props)}</div>,
+}));
+vi.mock('@/components/Stream/StreamInfo/StreamInfo', () => ({
+  StreamInfo: (props: any) => <div data-testid="stream-info">{JSON.stringify(props)}</div>,
 }));
 vi.mock('@/components/Button/Button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
@@ -21,10 +24,44 @@ vi.mock('@/routes', () => ({
   ROUTES: { STREAM_BROWSER: '/streams' },
 }));
 
-// Mock the login utility
 vi.mock('@/utils/login', () => ({
   autoLogin: vi.fn(),
 }));
+
+vi.mock('@/providers/App', () => ({
+  useAppContext: () => ({
+    streamList: [
+      {
+        topic: 'testtopic',
+        owner: 'alice',
+        title: 'Test Stream',
+        description: 'Test Description',
+        state: 'live',
+        mediaType: 'video',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    ],
+    isLoading: false,
+    error: null,
+    setNewStreamList: vi.fn(),
+    fetchAppState: vi.fn(),
+    refreshStreamList: vi.fn(),
+  }),
+  AppContextProvider: ({ children }: any) => children,
+}));
+
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: () => ({
+      getQueryData: vi.fn(),
+      setQueryData: vi.fn(),
+      invalidateQueries: vi.fn(),
+    }),
+  };
+});
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -37,15 +74,23 @@ vi.mock('react-router-dom', async () => {
 });
 
 describe('StreamWatcher', () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
   const renderStreamWatcher = () =>
     render(
-      <MemoryRouter>
-        <AppContextProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
           <UserProvider>
             <StreamWatcher />
           </UserProvider>
-        </AppContextProvider>
-      </MemoryRouter>,
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
 
   beforeEach(() => {

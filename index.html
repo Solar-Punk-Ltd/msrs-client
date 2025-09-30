@@ -5,9 +5,26 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1" />
     <title>Multimedia Streaming over Swarm</title>
+    <style>
+      .initial-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, #8841e4 0%, #ff8a50 100%);
+        z-index: 9999;
+      }
+
+      .react-loaded .initial-loading {
+        display: none;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-loading"></div>
+    </div>
     <script type="module" src="/src/App.tsx"></script>
   </body>
 </html>

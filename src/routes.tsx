@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import { AdminGuard } from './components/AdminGuard/AdminGuard';
 import { MainLayout } from './layouts/Main/MainLayout';
 import { NotFound } from './pages/NotFound/NotFound';
+import { StampDashboard } from './pages/StampDashboard/StampDashboard';
 import { StreamBrowser } from './pages/StreamBrowser/StreamBrowser';
 import { StreamForm } from './pages/StreamForm/StreamForm';
 import { StreamManager } from './pages/StreamManager/StreamManager';
@@ -11,10 +12,11 @@ import { StreamWatcher } from './pages/StreamWatcher/StreamWatcher';
 
 export enum ROUTES {
   STREAM_BROWSER = '/',
-  STREAM_WATCH = '/watch/:mediatype/:owner/:topic/:state?',
+  STREAM_WATCH = '/watch/:mediatype/:owner/:topic',
   STREAM_CREATE = '/create',
   STREAM_EDIT = '/edit/:owner/:topic',
   STREAM_MANAGER = '/manage',
+  STAMP_DASHBOARD = '/stamps',
 }
 
 const BaseRouter = (): ReactElement => {
@@ -44,6 +46,14 @@ const BaseRouter = (): ReactElement => {
           element={
             <AdminGuard>
               <StreamManager />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path={ROUTES.STAMP_DASHBOARD}
+          element={
+            <AdminGuard>
+              <StampDashboard />
             </AdminGuard>
           }
         />

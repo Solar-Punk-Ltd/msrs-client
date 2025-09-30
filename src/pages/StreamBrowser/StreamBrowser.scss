@@ -1,4 +1,7 @@
+@use '@/styles/variables.scss' as *;
+
 .stream-browser {
+  position: relative;
   display: flex;
   margin: auto;
   height: 100%;
@@ -7,9 +10,8 @@
   padding-bottom: 6px;
   overflow: hidden;
   width: 100%;
-  margin-top: 100px;
 
-  @media (min-width: 480px) {
+  @media (min-width: $breakpoint-mobile) {
     max-width: 500px;
   }
 }

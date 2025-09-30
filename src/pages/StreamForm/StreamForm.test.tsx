@@ -271,7 +271,7 @@ describe('StreamForm', () => {
         });
       });
 
-      expect(mockRefreshStreamList).toHaveBeenCalledWith({ type: 'create' });
+      expect(mockRefreshStreamList).toHaveBeenCalledWith();
       expect(mockNavigate).toHaveBeenCalledWith('/manage');
     });
 

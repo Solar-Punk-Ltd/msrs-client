@@ -1,4 +1,6 @@
-import { Button, ButtonVariant } from '@/components/Button/Button';
+import { createPortal } from 'react-dom';
+
+import { Button, ButtonVariant } from '../Button/Button';
 
 import './ConfirmationModal.scss';
 
@@ -25,12 +27,11 @@ export function ConfirmationModal({
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
-  return (
-    <div className="confirmation-modal-container" role="main-layout">
-      <div className="confirmation-modal">
+  const modalContent = (
+    <div className="confirmation-modal-overlay" onClick={onCancel}>
+      <div className="confirmation-modal" onClick={(e) => e.stopPropagation()}>
         <div className="confirmation-modal-header">{title}</div>
         <div className="confirmation-modal-content">{message}</div>
-
         <div className="confirmation-modal-button-container">
           <Button className="confirmation-modal-button" onClick={onCancel} disabled={isLoading}>
             {cancelText}
@@ -47,4 +48,6 @@ export function ConfirmationModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

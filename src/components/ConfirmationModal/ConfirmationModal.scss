@@ -1,25 +1,25 @@
-.confirmation-modal-container {
-  position: absolute;
+@use '@/styles/variables.scss' as *;
+
+.confirmation-modal-overlay {
+  position: fixed;
   top: 0;
   left: 0;
-  height: 100%;
-  width: 100%;
-  padding: 16px;
-  background-color: #efefef54;
-  backdrop-filter: blur(9px);
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2.5px);
   z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
   box-sizing: border-box;
-
-  @media (min-width: 480px) {
-    display: flex;
-    justify-content: center;
-  }
 }
 
 .confirmation-modal {
   position: relative;
   width: 100%;
-  top: 10%;
+  max-width: 500px;
   padding: 24px;
   max-height: fit-content;
   box-sizing: border-box;
@@ -28,10 +28,7 @@
   color: #efefef;
   font-family: 'Open Sans', sans-serif;
   border-radius: 12px;
-
-  @media (min-width: 480px) {
-    max-width: 500px;
-  }
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 .confirmation-modal-header {
@@ -48,7 +45,7 @@
 
 .confirmation-modal-button-container {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
   gap: 16px;
   margin-top: 20px;
 }

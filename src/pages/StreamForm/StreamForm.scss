@@ -1,29 +1,79 @@
+@use '@/styles/variables.scss' as *;
+
 .stream-form {
   display: flex;
-  justify-content: center;
-  margin: auto;
-  height: 100%;
-  max-height: 100%;
-  padding: 0px 16px;
-  padding-bottom: 6px;
-  overflow: hidden;
+  flex-direction: column;
   width: 100%;
-  margin-top: 100px;
-  padding: 16px;
+  height: 100%;
   max-width: 420px;
-  margin-bottom: 8px;
-  background-color: #00000040;
-  border-radius: 12px;
-  font-family: 'Open Sans', sans-serif;
+  margin: 0 auto;
+  padding: 16px;
 
-  &-form {
+  @media (max-width: $breakpoint-mobile) {
+    max-width: 100%;
+    padding: 8px;
+    height: 100%;
+  }
+
+  &-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #00000040;
+    border-radius: 12px;
+    font-family: 'Open Sans', sans-serif;
+    padding: 16px;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+
+    @media (max-width: $breakpoint-mobile) {
+      padding: 12px;
+    }
+  }
+
+  &-form,
+  &-preview {
     display: flex;
     flex-direction: column;
     width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  &-content {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+    padding-right: 4px;
+
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+    }
   }
 
   &-section {
+    flex-shrink: 0;
+
     h2 {
       font-size: 20px;
       font-weight: 600;
@@ -34,13 +84,56 @@
     }
   }
 
+  &-preview {
+    &-header {
+      flex-shrink: 0;
+
+      h2 {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 16px 0;
+        color: #ffffff;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        padding-bottom: 8px;
+
+        @media (max-width: $breakpoint-mobile) {
+          font-size: 20px;
+        }
+      }
+    }
+
+    &-content {
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      min-height: 0;
+      gap: 8px;
+      padding-right: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
   &-actions {
     display: flex;
     justify-content: flex-end;
-    margin-top: auto;
-    gap: 16px;
-    padding-top: 24px;
+    gap: 12px;
+    padding-top: 16px;
+    margin-top: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+
+    @media (max-width: $breakpoint-mobile) {
+      gap: 8px;
+      padding-top: 12px;
+      margin-top: 8px;
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
   }
 
   &-cancel-button,
@@ -49,9 +142,17 @@
     padding: 12px 24px !important;
     font-size: 16px;
     font-weight: 600 !important;
+
+    @media (max-width: $breakpoint-mobile) {
+      min-width: 100px !important;
+      padding: 10px 16px !important;
+      font-size: 14px;
+    }
   }
 
   &-submit-button {
+    order: 1;
+
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 
     &:hover {
@@ -62,28 +163,9 @@
       background: rgba(255, 255, 255, 0.2) !important;
       opacity: 0.6;
     }
-  }
 
-  &-preview {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 4px;
-
-    &-header {
-      h2 {
-        font-size: 24px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        color: #ffffff;
-        border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-        padding-bottom: 8px;
-      }
-    }
-
-    &-content {
-      display: flex;
-      flex-direction: column;
+    @media (max-width: $breakpoint-mobile) {
+      order: 0;
     }
   }
 }

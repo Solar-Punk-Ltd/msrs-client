@@ -1,36 +1,75 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
 import { Chat } from '@/components/Chat/Chat';
-import { StreamPreview } from '@/components/Stream';
-import { SwarmHlsPlayer } from '@/components/SwarmHlsPlayer/SwarmHlsPlayer';
+import { InputLoading } from '@/components/InputLoading/InputLoading';
+import { StreamInfo } from '@/components/Stream/StreamInfo/StreamInfo';
+import { SwarmHlsPlayer } from '@/components/Stream/SwarmHlsPlayer/SwarmHlsPlayer';
 import { useAppContext } from '@/providers/App';
 import { ROUTES } from '@/routes';
 import { MediaType, StateType } from '@/types/stream';
 
 import './StreamWatcher.scss';
 
+const SCHEDULED_STREAM_POLL_INTERVAL = 5000;
+
 export function StreamWatcher() {
-  const { mediatype, owner, topic, state } = useParams<{
+  const { mediatype, owner, topic } = useParams<{
     mediatype: string;
     owner: string;
     topic: string;
-    state?: string;
   }>();
   const navigate = useNavigate();
-  const { streamList } = useAppContext();
+  const { streamList, isLoading, refreshStreamList } = useAppContext();
 
-  const isScheduled = state === StateType.SCHEDULED;
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   const foundStream = useMemo(() => {
-    if (isScheduled && streamList && owner && topic) {
-      return streamList.find(
-        (stream) => stream.topic === topic && stream.owner === owner && stream.state === StateType.SCHEDULED,
-      );
+    if (streamList && owner && topic) {
+      return streamList.find((stream) => stream.topic === topic && stream.owner === owner);
     }
     return null;
-  }, [isScheduled, streamList, topic, owner]);
+  }, [streamList, topic, owner]);
+
+  const isScheduled = foundStream?.state === StateType.SCHEDULED;
+
+  useEffect(() => {
+    if (isLoading) {
+      setHasFetchedOnce(true);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (!isScheduled) {
+      return;
+    }
+
+    let timeoutId: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
+    const poll = async () => {
+      if (!isMounted) return;
+
+      await refreshStreamList();
+
+      if (isMounted) {
+        timeoutId = setTimeout(poll, SCHEDULED_STREAM_POLL_INTERVAL);
+      }
+    };
+
+    poll();
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isScheduled, refreshStreamList]);
+
+  const shouldShowLoading = isLoading && streamList.length === 0;
+  const shouldShowError = !isLoading && hasFetchedOnce && !foundStream;
 
   const handleBackButtonClick = () => {
     if (window.history.length > 1) {
@@ -50,29 +89,37 @@ export function StreamWatcher() {
         ← Back
       </Button>
 
-      {!isScheduled && (mediatype === MediaType.AUDIO || mediatype === MediaType.VIDEO) && (
+      {foundStream && !isScheduled && (mediatype === MediaType.AUDIO || mediatype === MediaType.VIDEO) && (
         <div className="stream-item-player">
           <SwarmHlsPlayer owner={owner} topic={topic} mediaType={mediatype as MediaType} />
         </div>
       )}
 
-      {isScheduled && foundStream && (
-        <StreamPreview
+      {foundStream && (
+        <StreamInfo
           title={foundStream.title}
           description={foundStream.description || 'No description available'}
-          scheduledStartTime={foundStream.scheduledStartTime || ''}
+          scheduledStartTime={foundStream.scheduledStartTime}
+          isScheduled={isScheduled}
         />
       )}
 
-      {isScheduled && !foundStream && (
+      {shouldShowLoading && (
+        <div className="stream-loading">
+          <InputLoading />
+          <h2>Searching for the stream...</h2>
+        </div>
+      )}
+
+      {shouldShowError && (
         <div className="stream-not-found">
-          <h2>No streams found in this state</h2>
-          <p>The scheduled stream you&apos;re looking for could not be found.</p>
+          <h2>Something went wrong!</h2>
+          <p>The stream you&apos;re looking for could not be found.</p>
         </div>
       )}
 
       <div className="stream-item-chat">
-        <Chat topic={topic} />
+        <Chat owner={owner} topic={topic} />
       </div>
     </div>
   );

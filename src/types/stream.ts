@@ -33,6 +33,7 @@ export type StateEntry = {
   thumbnail?: string | File;
   description?: string;
   scheduledStartTime?: string;
+  pinned?: boolean;
 };
 
 export interface CreateMessage {

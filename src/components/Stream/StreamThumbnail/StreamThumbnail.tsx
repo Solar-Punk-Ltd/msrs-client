@@ -26,6 +26,7 @@ interface StreamThumbnailProps {
   thumbnailRef?: string;
   state?: StateType;
   duration?: number;
+  pinned?: boolean;
 }
 
 interface ThumbnailState {
@@ -90,7 +91,6 @@ const useHlsThumbnailCapture = (videoRef: React.RefObject<HTMLVideoElement>, man
     return result ?? false;
   }, [manifestUrl, videoRef]);
 
-  // Cleanup function
   const cleanup = useCallback(() => {
     hlsRef.current?.destroy();
     hlsRef.current = null;
@@ -120,6 +120,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   duration,
   mediaType,
   title,
+  pinned,
 }) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -130,15 +131,11 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
     hasData: false,
   });
 
-  const { captureFromHls, cleanup: cleanupHls } = useHlsThumbnailCapture(videoRef, manifestUrl);
+  const { captureFromHls, cleanup: _cleanupHls } = useHlsThumbnailCapture(videoRef, manifestUrl);
 
   const handleClick = useCallback(() => {
-    if (state === StateType.SCHEDULED) {
-      navigate(`/watch/${mediaType}/${owner}/${topic}/scheduled`);
-    } else {
-      navigate(`/watch/${mediaType}/${owner}/${topic}`);
-    }
-  }, [navigate, mediaType, owner, topic, state]);
+    navigate(`/watch/${mediaType}/${owner}/${topic}`);
+  }, [navigate, mediaType, owner, topic]);
 
   const loadThumbnail = useCallback(async () => {
     setThumbnailState((prev) => ({ ...prev, isLoading: true }));
@@ -192,14 +189,14 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
         URL.revokeObjectURL(thumbnailState.thumbnailUrl);
       }
     };
-  }, [loadThumbnail]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loadThumbnail]);
 
   const { isLoading, thumbnailUrl, hasData } = thumbnailState;
   const shouldShowVideo = !thumbnailUrl && hasData;
   const shouldShowDefault = !isLoading && !hasData;
 
   return (
-    <div className="stream-thumbnail">
+    <div className={`stream-thumbnail ${pinned ? 'stream-thumbnail--pinned' : ''}`}>
       <div className="stream-thumbnail-media" onClick={handleClick}>
         {isLoading && <LoadingSpinner />}
 

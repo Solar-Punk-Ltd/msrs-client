@@ -9,16 +9,20 @@ vi.mock('@/components/Stream', () => ({
 
 const setNewStreamList = vi.fn();
 const fetchAppState = vi.fn();
+const isLoading = false;
 vi.mock('@/providers/App', () => ({
   useAppContext: () => ({
     fetchAppState,
     setNewStreamList,
+    isLoading,
   }),
 }));
 
-vi.mock('swr', () => ({ default: vi.fn() }));
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: vi.fn(),
+}));
 
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 
 describe('StreamBrowser', () => {
   beforeEach(() => {
@@ -26,14 +30,14 @@ describe('StreamBrowser', () => {
   });
 
   it('renders the StreamList component', () => {
-    (useSWR as any).mockReturnValue({ data: undefined });
+    (useQuery as any).mockReturnValue({ data: undefined });
     render(<StreamBrowser />);
     expect(screen.getByTestId('stream-list')).toBeInTheDocument();
   });
 
   it('calls setNewStreamList when data is available', () => {
-    (useSWR as any).mockReturnValue({ data: { streams: ['a', 'b'] } });
+    (useQuery as any).mockReturnValue({ data: [{ streams: ['a', 'b'] }] });
     render(<StreamBrowser />);
-    expect(setNewStreamList).toHaveBeenCalledWith({ streams: ['a', 'b'] });
+    expect(setNewStreamList).toHaveBeenCalledWith([{ streams: ['a', 'b'] }]);
   });
 });

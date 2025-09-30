@@ -1,3 +1,5 @@
+@use '@/styles/variables.scss' as *;
+
 .stream-item-page {
   position: relative;
   display: flex;
@@ -12,9 +14,8 @@
   box-sizing: border-box;
   overflow: hidden;
   width: 100%;
-  margin-top: 100px;
 
-  @media (min-width: 480px) {
+  @media (min-width: $breakpoint-mobile) {
     max-width: 500px;
   }
 }
@@ -50,6 +51,27 @@
   }
 }
 
+.stream-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 1rem 0;
+  width: 100%;
+
+  h2 {
+    color: white;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+  }
+}
+
 .stream-not-found {
   display: flex;
   flex-direction: column;
@@ -57,18 +79,20 @@
   justify-content: center;
   padding: 2rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   margin: 1rem 0;
+  width: 100%;
 
   h2 {
-    color: #ff8a50;
+    color: white;
     margin: 0 0 0.5rem 0;
     font-size: 1.25rem;
   }
 
   p {
-    color: #ccc;
+    color: white;
     margin: 0;
     font-size: 0.9rem;
   }

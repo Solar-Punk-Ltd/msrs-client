@@ -15,6 +15,7 @@ interface ChatMessageProps {
   name: string;
   profileColor: string;
   ownMessage?: boolean;
+  messageOwnerAddress: string;
   received: boolean;
   error: boolean;
   uploaded?: boolean;
@@ -84,6 +85,7 @@ export function ChatMessage({
   name,
   profileColor,
   ownMessage = false,
+  messageOwnerAddress,
   received,
   error,
   uploaded = false,
@@ -125,7 +127,7 @@ export function ChatMessage({
 
   return (
     <div className={clsx('chat-message', { 'own-message': ownMessage })} onClick={onMessageClick}>
-      <ProfilePicture name={name} color={profileColor} ownMessage={ownMessage} />
+      <ProfilePicture name={name} address={messageOwnerAddress} color={profileColor} ownMessage={ownMessage} />
 
       <div
         className={clsx('chat-message-text', {

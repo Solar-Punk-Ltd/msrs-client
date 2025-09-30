@@ -89,6 +89,7 @@ vi.mock('react-router-dom', async () => {
 const mockFetchAppState = vi.fn();
 const mockSetNewStreamList = vi.fn();
 const mockRefreshStreamList = vi.fn();
+const mockIsLoading = false;
 
 vi.mock('@/providers/App', () => ({
   AppContextProvider: ({ children }: any) => children,
@@ -96,8 +97,16 @@ vi.mock('@/providers/App', () => ({
     fetchAppState: mockFetchAppState,
     setNewStreamList: mockSetNewStreamList,
     refreshStreamList: mockRefreshStreamList,
+    isLoading: mockIsLoading,
   }),
 }));
+
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: vi.fn(),
+  useQueryClient: vi.fn(),
+}));
+
+import { useQuery } from '@tanstack/react-query';
 
 const mockSession = {
   address: 'mock-address',
@@ -136,6 +145,16 @@ describe('StreamManager', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (useQuery as any).mockReturnValue({
+      data: [
+        {
+          owner: 'owner1',
+          topic: 'topic1',
+          title: 'Stream 1',
+          mediaType: 'video',
+        },
+      ],
+    });
   });
 
   it('renders the stream manager with list', () => {
@@ -187,13 +206,10 @@ describe('StreamManager', () => {
       expect(deleteStream).toHaveBeenCalledWith(mockSession, 'topic1', 'owner1');
     });
 
-    expect(mockRefreshStreamList).toHaveBeenCalledWith({
-      type: 'delete',
-      streamId: 'owner1/topic1',
-    });
+    expect(mockRefreshStreamList).toHaveBeenCalledWith();
   });
 
-  it('generates and copies token to clipboard', async () => {
+  it('shows modal with clipboard success message when clipboard works', async () => {
     const { createMsrsIngestionToken } = await import('@/utils/login');
 
     renderStreamManager();
@@ -210,10 +226,17 @@ describe('StreamManager', () => {
     });
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('mock-token-12345');
-    expect(global.alert).toHaveBeenCalledWith(expect.stringContaining('MSRS Ingestion Token (copied to clipboard)'));
+
+    await waitFor(() => {
+      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
+      expect(
+        screen.getByText('Token has been copied to your clipboard. Use this token for stream ingestion:'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
+    });
   });
 
-  it('shows alert without clipboard when clipboard fails', async () => {
+  it('shows modal with manual copy message when clipboard fails', async () => {
     navigator.clipboard.writeText = vi.fn().mockRejectedValue(new Error('Clipboard failed'));
 
     renderStreamManager();
@@ -221,11 +244,13 @@ describe('StreamManager', () => {
     fireEvent.click(screen.getByText('Show Token Stream 1'));
 
     await waitFor(() => {
-      expect(global.alert).toHaveBeenCalledWith(expect.stringContaining('Please manually copy this token'));
+      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
+      expect(screen.getByText('Please manually copy this token for stream ingestion:')).toBeInTheDocument();
+      expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
     });
   });
 
-  it('shows alert without clipboard when clipboard is not available', async () => {
+  it('shows modal with manual copy message when clipboard is not available', async () => {
     Object.defineProperty(navigator, 'clipboard', {
       value: undefined,
       writable: true,
@@ -236,7 +261,9 @@ describe('StreamManager', () => {
     fireEvent.click(screen.getByText('Show Token Stream 1'));
 
     await waitFor(() => {
-      expect(global.alert).toHaveBeenCalledWith(expect.stringContaining('Please manually copy this token'));
+      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
+      expect(screen.getByText('Please manually copy this token for stream ingestion:')).toBeInTheDocument();
+      expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
     });
   });
 

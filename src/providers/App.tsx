@@ -1,30 +1,24 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Topic } from '@ethersphere/bee-js';
-import { mutate } from 'swr';
+import { FeedIndex, Topic } from '@ethersphere/bee-js';
+import { useQueryClient } from '@tanstack/react-query';
+import { cloneDeep, isEqual } from 'lodash';
 
 import { StateEntry } from '@/types/stream';
+import { makeFeedIdentifier } from '@/utils/bee';
 import { config } from '@/utils/config';
 
-type ChangeType = 'create' | 'delete' | 'update';
-
-interface ExpectedChange {
-  type: ChangeType;
-  streamId?: string;
-}
-
 interface AppContextState {
-  streamList: StateEntry[] | null;
+  streamList: StateEntry[];
   isLoading: boolean;
   error: Error | null;
   setNewStreamList: (data: StateEntry[]) => void;
-  fetchAppState: () => Promise<StateEntry[]>;
-  refreshStreamList: (expectedChange: ExpectedChange) => Promise<void>;
-  setLoadingState: (loading: boolean) => void;
+  fetchAppState: () => Promise<StateEntry[] | null>;
+  refreshStreamList: () => Promise<void>;
 }
 
 const RETRY_CONFIG = {
-  maxRetries: 5,
-  retryDelay: 1000,
+  maxRetries: 3,
+  retryDelay: 4000,
 } as const;
 
 const AppContext = createContext<AppContextState | undefined>(undefined);
@@ -37,63 +31,80 @@ export const useAppContext = () => {
   return context;
 };
 
-const fetchStreamData = async (): Promise<StateEntry[]> => {
-  try {
-    const topic = Topic.fromString(config.streamStateTopic);
-    const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`);
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.statusText}`);
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error('Failed to fetch app state:', error);
-    throw error;
-  }
-};
-
-const hasNewerData = (newData: StateEntry[], existingData: StateEntry[] | null): boolean => {
-  if (!existingData || existingData.length === 0) return true;
-  if (newData.length === 0) return false;
-
-  const latestNew = newData[newData.length - 1];
-  const latestExisting = existingData[existingData.length - 1];
-
-  return latestNew.updatedAt > latestExisting.updatedAt;
-};
-
 interface AppContextProviderProps {
   children: ReactNode;
 }
 
 export const AppContextProvider = ({ children }: AppContextProviderProps) => {
-  const [streamList, setStreamList] = useState<StateEntry[] | null>(null);
+  const [streamList, setStreamList] = useState<StateEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const previousListRef = useRef<StateEntry[] | null>(null);
+  const currentIndexRef = useRef<FeedIndex | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchAppState = useCallback(async (): Promise<StateEntry[]> => {
+  useEffect(() => {
+    initAppState();
+  }, []);
+
+  const fetchAppState = useCallback(async (): Promise<StateEntry[] | null> => {
     try {
       setError(null);
-      const data = await fetchStreamData();
+      const topic = Topic.fromString(config.streamStateTopic);
+
+      if (!currentIndexRef.current) {
+        const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`, {
+          headers: {
+            'swarm-chunk-retrieval-timeout': '2000ms',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
+
+        const hex = response.headers.get('Swarm-Feed-Index');
+        if (hex) {
+          currentIndexRef.current = FeedIndex.fromBigInt(BigInt(`0x${hex}`));
+        }
+
+        const data = await response.json();
+        return data;
+      }
+
+      const nextIndex = currentIndexRef.current.next();
+      const nextId = makeFeedIdentifier(topic, nextIndex);
+
+      const response = await fetch(`${config.readerBeeUrl}/soc/${config.streamStateOwner}/${nextId.toString()}`, {
+        headers: {
+          'swarm-chunk-retrieval-timeout': '2000ms',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.statusText}`);
+      }
+
+      currentIndexRef.current = nextIndex;
+      const data = await response.json();
       return data;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Unknown error occurred');
-      setError(error);
-      return [];
+    } catch (error) {
+      console.error('Failed to fetch app state:', error);
+      setError(error instanceof Error ? error : new Error('Unknown error occurred'));
+      return null;
     }
   }, []);
 
-  const setNewStreamList = useCallback((data: StateEntry[]) => {
+  const setNewStreamList = useCallback((data: any) => {
     if (!Array.isArray(data)) {
       console.error('Invalid data: expected array');
       return;
     }
 
     setStreamList((current) => {
-      if (data.length === 0) return [];
-      if (hasNewerData(data, current)) return data;
+      const clonedData = cloneDeep(data);
+      if (!isEqual(current, clonedData)) {
+        return clonedData;
+      }
       return current;
     });
   }, []);
@@ -102,76 +113,48 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     setIsLoading(true);
     try {
       const data = await fetchAppState();
-      setStreamList(data);
-      previousListRef.current = data;
+      setNewStreamList(data);
     } finally {
       setIsLoading(false);
     }
   }, [fetchAppState]);
 
-  const setLoadingState = useCallback((loading: boolean) => {
-    setIsLoading(loading);
-  }, []);
+  const refreshStreamList = useCallback(async () => {
+    setIsLoading(true);
 
-  const checkExpectedChange = useCallback((newData: StateEntry[], expectedChange?: ExpectedChange): boolean => {
-    const currentList = previousListRef.current || [];
+    try {
+      let changeDetected = false;
 
-    switch (expectedChange?.type) {
-      case 'create':
-        return newData.length > currentList.length;
+      const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
 
-      case 'delete':
-        return newData.length < currentList.length;
+      for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
+        if (attempt > 0) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_CONFIG.retryDelay));
+        }
 
-      case 'update':
-        return hasNewerData(newData, currentList);
+        const freshData = await fetchAppState();
 
-      default:
-        return false;
-    }
-  }, []);
-
-  // Debt: meh, undeterministic results
-  const refreshStreamList = useCallback(
-    async (expectedChange: ExpectedChange) => {
-      setIsLoading(true);
-
-      try {
-        let changeDetected = false;
-
-        for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
-          if (attempt > 0) {
-            await new Promise((resolve) => setTimeout(resolve, RETRY_CONFIG.retryDelay));
-          }
-
-          const freshData = await fetchAppState();
-
-          changeDetected = checkExpectedChange(freshData, expectedChange);
+        if (freshData) {
+          changeDetected = !isEqual(currentStateSnapshot, freshData);
 
           if (changeDetected) {
-            setStreamList(freshData);
-            previousListRef.current = freshData;
-            await mutate('app-state', freshData, false);
+            setNewStreamList(freshData);
+            queryClient.setQueryData(['app-state'], cloneDeep(freshData));
             break;
           }
         }
-
-        if (!changeDetected) {
-          console.warn('Expected change not detected after maximum retries');
-        }
-      } catch (error) {
-        console.error('Error refreshing stream list:', error);
-        setError(error instanceof Error ? error : new Error('Failed to refresh'));
-      } finally {
-        setIsLoading(false);
       }
-    },
-    [fetchAppState, checkExpectedChange],
-  );
 
-  useEffect(() => {
-    initAppState();
-  }, [initAppState]);
+      if (!changeDetected) {
+        console.warn('No changes detected after maximum retries');
+      }
+    } catch (error) {
+      console.error('Error refreshing stream list:', error);
+      setError(error instanceof Error ? error : new Error('Failed to refresh'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchAppState, setNewStreamList, streamList, queryClient]);
 
   const contextValue: AppContextState = {
     streamList,
@@ -180,7 +163,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     setNewStreamList,
     fetchAppState,
     refreshStreamList,
-    setLoadingState,
   };
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;

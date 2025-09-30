@@ -50,4 +50,28 @@
       box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
     }
   }
+
+  &--pin {
+    background: linear-gradient(135deg, #8841e4 0%, #c084fc 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(136, 65, 228, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #7c3adb 0%, #a855f7 100%);
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(136, 65, 228, 0.4);
+    }
+  }
+
+  &--unpin {
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+    }
+  }
 }

@@ -186,17 +186,21 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
     };
   }, [user.privateKey, createMessageHandler]);
 
-  const sendMessage = useCallback((message: string) => chatRef.current?.sendMessage(message, MessageType.TEXT), []);
+  const sendMessage = useCallback(
+    (message: string, additionalProps?: any) =>
+      chatRef.current?.sendMessage(message, MessageType.TEXT, undefined, undefined, additionalProps),
+    [],
+  );
 
   const sendReaction = useCallback(
-    (targetMessageId: string, emoji: string) =>
-      chatRef.current?.sendMessage(emoji, MessageType.REACTION, targetMessageId),
+    (targetMessageId: string, emoji: string, additionalProps?: any) =>
+      chatRef.current?.sendMessage(emoji, MessageType.REACTION, targetMessageId, undefined, additionalProps),
     [],
   );
 
   const sendReply = useCallback(
-    (parentMessageId: string, message: string) =>
-      chatRef.current?.sendMessage(message, MessageType.THREAD, parentMessageId),
+    (parentMessageId: string, message: string, additionalProps?: any) =>
+      chatRef.current?.sendMessage(message, MessageType.THREAD, parentMessageId, undefined, additionalProps),
     [],
   );
 

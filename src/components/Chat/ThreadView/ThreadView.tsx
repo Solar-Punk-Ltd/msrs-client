@@ -56,6 +56,7 @@ export function ThreadView({
             uploaded={Boolean(originalMessage.uploaded)}
             requested={Boolean(originalMessage.requested)}
             name={originalMessage.username}
+            messageOwnerAddress={originalMessage.address}
             profileColor={getColorForName(originalMessage.username)}
             ownMessage={originalMessage.address === currentUserAddress}
             reactions={originalMessageReactions}
@@ -84,6 +85,7 @@ export function ThreadView({
                 uploaded={Boolean(item.uploaded)}
                 requested={Boolean(item.requested)}
                 name={item.username}
+                messageOwnerAddress={item.address}
                 profileColor={getColorForName(item.username)}
                 ownMessage={item.address === currentUserAddress}
                 reactions={groupedReactions[item.id] || []}
