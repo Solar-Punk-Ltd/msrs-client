@@ -8,10 +8,10 @@ type RuntimeConfig = {
   VITE_CHAT_GSOC_TOPIC: string;
   VITE_STREAMER_GSOC_RESOURCE_ID: string;
   VITE_STREAMER_GSOC_TOPIC: string;
+  VITE_WAKU_ENABLED: string;
 };
 
 function getEnv(name: string): string {
-  // First check runtime config - workaround for easy env injection in docker setups
   if (typeof window !== 'undefined') {
     const config = (window as any).__CONFIG__ as RuntimeConfig | undefined;
     if (config) {
@@ -27,6 +27,20 @@ function getEnv(name: string): string {
   return value;
 }
 
+function getBooleanEnv(name: string, defaultValue: boolean = false): boolean {
+  try {
+    const value = getEnv(name);
+    if (typeof value === 'string') {
+      const normalized = value.toLowerCase().trim();
+      if (normalized === 'true' || normalized === '1') return true;
+      if (normalized === 'false' || normalized === '0') return false;
+    }
+    return defaultValue;
+  } catch {
+    return defaultValue;
+  }
+}
+
 export const config = {
   readerBeeUrl: getEnv('VITE_READER_BEE_URL'),
   writerBeeUrl: getEnv('VITE_WRITER_BEE_URL'),
@@ -37,4 +51,5 @@ export const config = {
   chatGsocTopic: getEnv('VITE_CHAT_GSOC_TOPIC'),
   streamerGsocResourceId: getEnv('VITE_STREAMER_GSOC_RESOURCE_ID'),
   streamerGsocTopic: getEnv('VITE_STREAMER_GSOC_TOPIC'),
+  isWakuEnabled: getBooleanEnv('VITE_WAKU_ENABLED', false),
 };
