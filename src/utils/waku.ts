@@ -1,36 +1,19 @@
-import {
-  createDecoder,
-  createLightNode,
-  type Decoder,
-  type IDecodedMessage,
-  type LightNode,
-  Protocols,
-} from '@waku/sdk';
+import { createDecoder, type Decoder, type IDecodedMessage, type LightNode } from '@waku/sdk';
 import { createHash } from 'crypto';
 
 const WAKU_CLUSTER_ID = 1;
 
 export class WakuSubscriber {
-  private wakuNode: LightNode | null = null;
   private activeDecoders = new Map<string, Decoder>();
 
-  public async initialize() {
-    this.wakuNode = await createLightNode({
-      defaultBootstrap: true,
-      networkConfig: { clusterId: WAKU_CLUSTER_ID },
-    });
-
-    await this.wakuNode.start();
-    await this.wakuNode.waitForPeers([Protocols.Filter], 30000);
-    console.log('Waku subscriber initialized');
-  }
+  constructor(private wakuNode: LightNode) {}
 
   public async subscribe(
     topicName: string,
     callback: (message: IDecodedMessage) => void,
   ): Promise<() => Promise<void>> {
-    if (!this.wakuNode || !this.wakuNode.isStarted()) {
-      throw new Error('Waku node not initialized or not started');
+    if (!this.wakuNode) {
+      throw new Error('Waku node not available');
     }
 
     // Derive shardId from topicName
@@ -56,7 +39,7 @@ export class WakuSubscriber {
 
     // Return unsubscribe function
     return async () => {
-      if (this.wakuNode && this.wakuNode.isStarted()) {
+      if (this.wakuNode) {
         const decoder = this.activeDecoders.get(topicName);
         if (decoder) {
           await this.wakuNode.filter.unsubscribe([decoder]);
@@ -67,15 +50,12 @@ export class WakuSubscriber {
   }
 
   public async destroy() {
-    if (this.wakuNode && this.wakuNode.isStarted()) {
+    if (this.wakuNode) {
       const decoders = Array.from(this.activeDecoders.values());
       if (decoders.length > 0) {
         await this.wakuNode.filter.unsubscribe(decoders);
       }
       this.activeDecoders.clear();
-
-      await this.wakuNode.stop();
-      this.wakuNode = null;
     }
   }
 }

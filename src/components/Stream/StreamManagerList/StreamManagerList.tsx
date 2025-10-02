@@ -57,7 +57,7 @@ export function StreamManagerList({ onEdit, onDelete, onShowToken, onPin }: Stre
           }
         />
       )}
-      {(stream.state === StateType.SCHEDULED || stream.state === StateType.VOD) && (
+      {
         <StreamActionButton
           onClick={() => onDelete(stream)}
           variant="delete"
@@ -68,7 +68,7 @@ export function StreamManagerList({ onEdit, onDelete, onShowToken, onPin }: Stre
             </svg>
           }
         />
-      )}
+      }
     </>
   );
 

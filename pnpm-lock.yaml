@@ -17,6 +17,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.89.0
         version: 5.89.0(react@18.3.1)
+      '@waku/react':
+        specifier: 0.0.7-b9d400c
+        version: 0.0.7-b9d400c(@waku/sdk@0.0.35(@multiformats/multiaddr@12.5.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10))(react@18.3.1)
       '@waku/sdk':
         specifier: ^0.0.35
         version: 0.0.35(@multiformats/multiaddr@12.5.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -1165,6 +1168,17 @@ packages:
   '@waku/proto@0.0.14':
     resolution: {integrity: sha512-8zKVHrKzzKQfZBVnpSmJ6G8H1Zd4Gqms1tj3L6K2WCE/NQDR8wJtFwziab3dJ/5rKUTjfPAWFJ57RN97ltzxGA==}
     engines: {node: '>=22'}
+
+  '@waku/react@0.0.7-b9d400c':
+    resolution: {integrity: sha512-v4C9IPdbqyHtUE9w8DEAccvl4nHdpgSNSAz8tJSER87zyJlZW/ER1vCaPXrQ7I3ro1EbwFSBeGkPXBsTxo4m+g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@waku/interfaces': '*'
+      '@waku/sdk': 0.0.30-5674b0e.0
+      react: ^16.8.0 || ^17 || ^18
+    peerDependenciesMeta:
+      '@waku/interfaces':
+        optional: true
 
   '@waku/sdk@0.0.35':
     resolution: {integrity: sha512-bnXl5b8BDCOKSrJ7V6PiJshc3bsBWaGweWy20IsGlXalCJj7257wK31lZxEP62lTFKHS8tPfG+EvDwrPK4oxKA==}
@@ -4836,6 +4850,11 @@ snapshots:
   '@waku/proto@0.0.14':
     dependencies:
       protons-runtime: 5.6.0
+
+  '@waku/react@0.0.7-b9d400c(@waku/sdk@0.0.35(@multiformats/multiaddr@12.5.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10))(react@18.3.1)':
+    dependencies:
+      '@waku/sdk': 0.0.35(@multiformats/multiaddr@12.5.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      react: 18.3.1
 
   '@waku/sdk@0.0.35(@multiformats/multiaddr@12.5.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:

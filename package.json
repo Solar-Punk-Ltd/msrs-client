@@ -16,6 +16,7 @@
     "@ethersphere/bee-js": "^9.0.3",
     "@solarpunkltd/swarm-chat-js": "^5.1.0",
     "@tanstack/react-query": "^5.89.0",
+    "@waku/react": "0.0.7-b9d400c",
     "@waku/sdk": "^0.0.35",
     "bs58": "^6.0.0",
     "cafe-utility": "^27.16.2",
