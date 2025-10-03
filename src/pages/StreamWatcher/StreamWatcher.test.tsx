@@ -5,7 +5,29 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Provider as UserProvider } from '@/providers/User';
 
-import { StreamWatcher } from './StreamWatcher';
+vi.mock('@/providers/App/App', () => ({
+  useAppContext: vi.fn(() => ({
+    streamList: [
+      {
+        topic: 'testtopic',
+        owner: 'alice',
+        title: 'Test Stream',
+        description: 'Test Description',
+        state: 'live',
+        mediaType: 'video',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    ],
+    isLoading: false,
+    error: null,
+    isWakuEnabled: false,
+    setNewStreamList: vi.fn(),
+    fetchAppState: vi.fn(),
+    refreshStreamList: vi.fn(),
+  })),
+  AppContextProvider: ({ children }: any) => children,
+}));
 
 vi.mock('@/components/Stream/SwarmHlsPlayer/SwarmHlsPlayer', () => ({
   SwarmHlsPlayer: (props: any) => <div data-testid="swarm-hls-player">{JSON.stringify(props)}</div>,
@@ -28,28 +50,7 @@ vi.mock('@/utils/login', () => ({
   autoLogin: vi.fn(),
 }));
 
-vi.mock('@/providers/App', () => ({
-  useAppContext: () => ({
-    streamList: [
-      {
-        topic: 'testtopic',
-        owner: 'alice',
-        title: 'Test Stream',
-        description: 'Test Description',
-        state: 'live',
-        mediaType: 'video',
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      },
-    ],
-    isLoading: false,
-    error: null,
-    setNewStreamList: vi.fn(),
-    fetchAppState: vi.fn(),
-    refreshStreamList: vi.fn(),
-  }),
-  AppContextProvider: ({ children }: any) => children,
-}));
+import { StreamWatcher } from './StreamWatcher';
 
 vi.mock('@tanstack/react-query', async () => {
   const actual = await vi.importActual('@tanstack/react-query');

@@ -4,9 +4,25 @@ import { createHash } from 'crypto';
 const WAKU_CLUSTER_ID = 1;
 
 export class WakuSubscriber {
+  private static instance: WakuSubscriber;
   private activeDecoders = new Map<string, Decoder>();
+  private wakuNode: LightNode | null = null;
 
-  constructor(private wakuNode: LightNode) {}
+  private constructor() {}
+
+  public static getInstance(): WakuSubscriber {
+    if (!WakuSubscriber.instance) {
+      WakuSubscriber.instance = new WakuSubscriber();
+    }
+    return WakuSubscriber.instance;
+  }
+
+  public setWakuNode(node: LightNode): void {
+    if (this.wakuNode) {
+      return;
+    }
+    this.wakuNode = node;
+  }
 
   public async subscribe(
     topicName: string,

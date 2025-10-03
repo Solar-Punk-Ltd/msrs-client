@@ -18,7 +18,8 @@ export class WakuManager {
   setNode(wakuNode: LightNode | null): void {
     if (wakuNode && config.isWakuEnabled) {
       if (!this.wakuSubscriber) {
-        this.wakuSubscriber = new WakuSubscriber(wakuNode);
+        this.wakuSubscriber = WakuSubscriber.getInstance();
+        this.wakuSubscriber.setWakuNode(wakuNode);
       }
     } else {
       this.wakuSubscriber = null;

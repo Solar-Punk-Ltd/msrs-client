@@ -17,7 +17,7 @@ module.exports = {
     react: {
       version: 'detect',
     },
-    'import/core-modules': ['@waku/sdk', '@waku/core'],
+    'import/core-modules': ['@waku/sdk', '@waku/core', '@waku/react', '@waku/utils'],
     'import/resolver': {
       node: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
@@ -37,14 +37,9 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.ts', '**/*.tsx'],
+      files: ['src/**/*.{ts,tsx}'],
       rules: {
-        'import/namespace': [
-          'error',
-          {
-            allowComputed: true,
-          },
-        ],
+        'import/namespace': 'off',
       },
     },
   ],

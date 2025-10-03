@@ -1,8 +1,9 @@
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AppContextProvider } from '@/providers/App';
+import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
 import { MediaType } from '@/types/stream';
 
@@ -133,13 +134,21 @@ const mockStreamList = [
   },
 ];
 
-vi.mock('@/providers/App', () => ({
-  AppContextProvider: ({ children }: any) => children,
-  useAppContext: () => ({
-    streamList: mockStreamList,
-    refreshStreamList: mockRefreshStreamList,
-  }),
-}));
+vi.mock('@/providers/App/App', async () => {
+  const actual = await vi.importActual('@/providers/App/App');
+  return {
+    ...actual,
+    useAppContext: () => ({
+      streamList: mockStreamList,
+      refreshStreamList: mockRefreshStreamList,
+      isLoading: false,
+      error: null,
+      isWakuEnabled: false,
+      setNewStreamList: vi.fn(),
+      fetchAppState: vi.fn(),
+    }),
+  };
+});
 
 const mockSession = {
   address: 'mock-address',
@@ -160,16 +169,26 @@ Object.defineProperty(window, 'history', {
 });
 
 describe('StreamForm', () => {
-  const renderStreamForm = (initialRoute = '/create') =>
-    render(
-      <MemoryRouter initialEntries={[initialRoute]}>
-        <UserProvider>
-          <AppContextProvider>
-            <StreamForm />
-          </AppContextProvider>
-        </UserProvider>
-      </MemoryRouter>,
+  const renderStreamForm = (initialRoute = '/create') => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    return render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialRoute]}>
+          <UserProvider>
+            <AppContextProvider>
+              <StreamForm />
+            </AppContextProvider>
+          </UserProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -313,15 +332,24 @@ describe('StreamForm', () => {
 
   describe('Edit Mode', () => {
     it('shows edit preview when in edit mode', () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false },
+          mutations: { retry: false },
+        },
+      });
+
       // For simplicity, we'll test edit mode by just checking the preview text changes
       render(
-        <MemoryRouter>
-          <UserProvider>
-            <AppContextProvider>
-              <StreamForm />
-            </AppContextProvider>
-          </UserProvider>
-        </MemoryRouter>,
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <UserProvider>
+              <AppContextProvider>
+                <StreamForm />
+              </AppContextProvider>
+            </UserProvider>
+          </MemoryRouter>
+        </QueryClientProvider>,
       );
 
       fireEvent.click(screen.getByText('Preview'));
@@ -334,14 +362,23 @@ describe('StreamForm', () => {
 
   describe('Loading and Error States', () => {
     it('handles thumbnail file size error', () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false },
+          mutations: { retry: false },
+        },
+      });
+
       render(
-        <MemoryRouter>
-          <UserProvider>
-            <AppContextProvider>
-              <StreamForm />
-            </AppContextProvider>
-          </UserProvider>
-        </MemoryRouter>,
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <UserProvider>
+              <AppContextProvider>
+                <StreamForm />
+              </AppContextProvider>
+            </UserProvider>
+          </MemoryRouter>
+        </QueryClientProvider>,
       );
 
       const file = new File(['test'.repeat(2000000)], 'large-image.jpg', { type: 'image/jpeg' });
@@ -355,14 +392,23 @@ describe('StreamForm', () => {
 
   describe('Preview Mode', () => {
     it('displays all metadata in preview mode', () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false },
+          mutations: { retry: false },
+        },
+      });
+
       render(
-        <MemoryRouter>
-          <UserProvider>
-            <AppContextProvider>
-              <StreamForm />
-            </AppContextProvider>
-          </UserProvider>
-        </MemoryRouter>,
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <UserProvider>
+              <AppContextProvider>
+                <StreamForm />
+              </AppContextProvider>
+            </UserProvider>
+          </MemoryRouter>
+        </QueryClientProvider>,
       );
 
       fireEvent.click(screen.getByText('Preview'));
@@ -380,14 +426,23 @@ describe('StreamForm', () => {
       });
       vi.mocked(createStream).mockReturnValue(createPromise);
 
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false },
+          mutations: { retry: false },
+        },
+      });
+
       render(
-        <MemoryRouter>
-          <UserProvider>
-            <AppContextProvider>
-              <StreamForm />
-            </AppContextProvider>
-          </UserProvider>
-        </MemoryRouter>,
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <UserProvider>
+              <AppContextProvider>
+                <StreamForm />
+              </AppContextProvider>
+            </UserProvider>
+          </MemoryRouter>
+        </QueryClientProvider>,
       );
 
       fireEvent.click(screen.getByText('Preview'));

@@ -4,7 +4,7 @@ import { HashRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LightNodeProvider } from '@waku/react';
 
-import { AppContextProvider as AppProvider } from './providers/App';
+import { AppContextProvider as AppProvider } from './providers/App/App';
 import { Provider as UserProvider } from './providers/User';
 import { WalletProvider } from './providers/Wallet';
 import BaseRouter from './routes';
@@ -21,7 +21,7 @@ const queryClient = new QueryClient({
 
 const NODE_OPTIONS = {
   defaultBootstrap: true,
-  logLevel: 'error',
+  logLevel: 'FATAL',
 };
 
 function AppWithLoading() {

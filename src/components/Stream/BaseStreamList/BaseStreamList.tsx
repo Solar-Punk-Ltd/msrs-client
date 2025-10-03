@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
-import { useAppContext } from '@/providers/App';
+import { useAppContext } from '@/providers/App/App';
 import { StateEntry } from '@/types/stream';
 import { makeFeedIdentifier } from '@/utils/bee';
 import { config } from '@/utils/config';

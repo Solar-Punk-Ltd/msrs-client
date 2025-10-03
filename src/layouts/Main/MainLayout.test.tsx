@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AppContextProvider } from '@/providers/App';
+import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
 
 import { MainLayout } from './MainLayout';
