@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useWaku } from '@waku/react';
+import type { LightNode } from '@waku/sdk';
 
 import { Button } from '@/components/Button/Button';
 import { ChatMessage } from '@/components/Chat/ChatMessage/ChatMessage';
@@ -37,12 +39,16 @@ function getColorForName(name: string): string {
 const privKeyPlaceholder = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
 export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
+  const { node } = useWaku();
   const { nickname, keys, setIsLoginModalOpen } = useUserContext();
+
   const [selectedMessage, setSelectedMessage] = useState<VisibleMessage | null>(null);
   const [isThreadView, setIsThreadView] = useState(false);
   const [reactionLoadingState, setReactionLoadingState] = useState<Record<string, string>>({});
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isSendingThreadMessage, setIsSendingThreadMessage] = useState(false);
+
+  const wakuNodeLoading = !node;
 
   const {
     chatLoading,
@@ -69,6 +75,10 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
       chatAddress: config.streamStateOwner,
       chatTopic: `chat-${topic}`,
       enveloped: false,
+      waku: {
+        node: node as LightNode,
+        enabled: true,
+      },
     },
   });
 
@@ -158,12 +168,12 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
         />
       ) : (
         <>
-          {chatLoading && (
+          {(wakuNodeLoading || chatLoading) && (
             <div className="chat-loading-overlay">
               <div className="chat-loading">Loading chat...</div>
             </div>
           )}
-          {!chatLoading && hasPreviousMessages() && (
+          {!wakuNodeLoading && !chatLoading && hasPreviousMessages() && (
             <Button onClick={fetchPreviousMessages} className="chat-load-more">
               Load more messages
             </Button>
@@ -202,12 +212,12 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
             />
           )}
 
-          {!chatLoading && !keys.public && (
+          {!wakuNodeLoading && !chatLoading && !keys.public && (
             <Button onClick={() => setIsLoginModalOpen(true)} className="chat-login-prompt">
               Please log in to send messages.
             </Button>
           )}
-          {!chatLoading && keys.public && (
+          {!wakuNodeLoading && !chatLoading && keys.public && (
             <MessageSender onSend={handleMessageSending} disabled={isAnyOperationLoading} />
           )}
         </>
