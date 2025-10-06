@@ -176,7 +176,7 @@ export class ManifestStateManager {
     });
   }
 
-  private handleWakuUpdate(topicId: string, update: ManifestUpdate): void {
+  private async handleWakuUpdate(topicId: string, update: ManifestUpdate): Promise<void> {
     const state = this.topics.get(topicId);
     if (!state) return;
 
@@ -186,7 +186,7 @@ export class ManifestStateManager {
     state.manifest = update.manifest;
 
     if (update.isVod && state.wakuUnsubscribe) {
-      state.wakuUnsubscribe();
+      await state.wakuUnsubscribe();
       delete state.wakuUnsubscribe;
     }
   }
@@ -222,10 +222,10 @@ export class ManifestStateManager {
     return this.topics.get(topicId)!;
   }
 
-  private cleanupTopic(topicId: string): void {
+  private async cleanupTopic(topicId: string): Promise<void> {
     const state = this.topics.get(topicId);
     if (state?.wakuUnsubscribe) {
-      state.wakuUnsubscribe();
+      await state.wakuUnsubscribe();
     }
     this.topics.delete(topicId);
   }
