@@ -1,16 +1,21 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { FeedIndex, Topic } from '@ethersphere/bee-js';
+import { Topic } from '@ethersphere/bee-js';
 import { useQueryClient } from '@tanstack/react-query';
+import { useWaku } from '@waku/react';
+import type { LightNode } from '@waku/sdk';
 import { cloneDeep, isEqual } from 'lodash';
 
 import { StateEntry } from '@/types/stream';
-import { makeFeedIdentifier } from '@/utils/bee';
 import { config } from '@/utils/config';
+import { WakuSubscriber } from '@/utils/waku';
+
+import { WakuStreamManager } from './WakuStreamManager';
 
 interface AppContextState {
   streamList: StateEntry[];
   isLoading: boolean;
   error: Error | null;
+  isWakuEnabled: boolean;
   setNewStreamList: (data: StateEntry[]) => void;
   fetchAppState: () => Promise<StateEntry[] | null>;
   refreshStreamList: () => Promise<void>;
@@ -36,11 +41,44 @@ interface AppContextProviderProps {
 }
 
 export const AppContextProvider = ({ children }: AppContextProviderProps) => {
+  const queryClient = useQueryClient();
+  const { node } = useWaku();
+
   const [streamList, setStreamList] = useState<StateEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const currentIndexRef = useRef<FeedIndex | null>(null);
-  const queryClient = useQueryClient();
+
+  const wakuManagerRef = useRef<WakuStreamManager | null>(null);
+
+  const isWakuEnabled = config.isWakuEnabled;
+
+  useEffect(() => {
+    if (isWakuEnabled && node && !wakuManagerRef.current) {
+      const wakuInstance = WakuSubscriber.getInstance();
+      wakuInstance.setWakuNode(node as LightNode);
+
+      wakuManagerRef.current = new WakuStreamManager();
+
+      const setupWakuSubscription = async () => {
+        try {
+          await wakuManagerRef.current!.subscribe((entries) => {
+            setNewStreamList(entries);
+          });
+        } catch (error) {
+          console.error('Failed to setup Waku subscription:', error);
+        }
+      };
+
+      setupWakuSubscription();
+    }
+
+    return () => {
+      if (wakuManagerRef.current) {
+        wakuManagerRef.current.cleanup();
+        wakuManagerRef.current = null;
+      }
+    };
+  }, [node, isWakuEnabled, queryClient]);
 
   useEffect(() => {
     initAppState();
@@ -51,30 +89,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       setError(null);
       const topic = Topic.fromString(config.streamStateTopic);
 
-      if (!currentIndexRef.current) {
-        const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`, {
-          headers: {
-            'swarm-chunk-retrieval-timeout': '2000ms',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.statusText}`);
-        }
-
-        const hex = response.headers.get('Swarm-Feed-Index');
-        if (hex) {
-          currentIndexRef.current = FeedIndex.fromBigInt(BigInt(`0x${hex}`));
-        }
-
-        const data = await response.json();
-        return data;
-      }
-
-      const nextIndex = currentIndexRef.current.next();
-      const nextId = makeFeedIdentifier(topic, nextIndex);
-
-      const response = await fetch(`${config.readerBeeUrl}/soc/${config.streamStateOwner}/${nextId.toString()}`, {
+      const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`, {
         headers: {
           'swarm-chunk-retrieval-timeout': '2000ms',
         },
@@ -84,7 +99,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         throw new Error(`Failed to fetch: ${response.statusText}`);
       }
 
-      currentIndexRef.current = nextIndex;
       const data = await response.json();
       return data;
     } catch (error) {
@@ -117,36 +131,46 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchAppState]);
+  }, [fetchAppState, setNewStreamList]);
 
   const refreshStreamList = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      let changeDetected = false;
-
-      const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
-
-      for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
-        if (attempt > 0) {
-          await new Promise((resolve) => setTimeout(resolve, RETRY_CONFIG.retryDelay));
-        }
-
-        const freshData = await fetchAppState();
+      if (isWakuEnabled && wakuManagerRef.current) {
+        const freshData = await wakuManagerRef.current.waitForStreamListChange(streamList, 10000);
 
         if (freshData) {
-          changeDetected = !isEqual(currentStateSnapshot, freshData);
+          setNewStreamList(freshData);
+        } else {
+          console.warn('No stream list change detected within timeout');
+        }
+      } else {
+        // Polling mode: use existing logic
+        let changeDetected = false;
+        const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
 
-          if (changeDetected) {
-            setNewStreamList(freshData);
-            queryClient.setQueryData(['app-state'], cloneDeep(freshData));
-            break;
+        for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
+          if (attempt > 0) {
+            await new Promise((resolve) => setTimeout(resolve, RETRY_CONFIG.retryDelay));
+          }
+
+          const freshData = await fetchAppState();
+
+          if (freshData) {
+            changeDetected = !isEqual(currentStateSnapshot, freshData);
+
+            if (changeDetected) {
+              setNewStreamList(freshData);
+              queryClient.setQueryData(['app-state'], cloneDeep(freshData));
+              break;
+            }
           }
         }
-      }
 
-      if (!changeDetected) {
-        console.warn('No changes detected after maximum retries');
+        if (!changeDetected) {
+          console.warn('No changes detected after maximum retries');
+        }
       }
     } catch (error) {
       console.error('Error refreshing stream list:', error);
@@ -154,12 +178,13 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchAppState, setNewStreamList, streamList, queryClient]);
+  }, [fetchAppState, setNewStreamList, streamList, queryClient, isWakuEnabled]);
 
   const contextValue: AppContextState = {
     streamList,
     isLoading,
     error,
+    isWakuEnabled,
     setNewStreamList,
     fetchAppState,
     refreshStreamList,

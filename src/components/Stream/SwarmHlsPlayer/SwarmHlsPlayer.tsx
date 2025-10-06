@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
+import { useWaku } from '@waku/react';
+import type { LightNode } from '@waku/sdk';
 import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 
+import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { MediaType } from '@/types/stream';
 
+import { ManifestStateManager } from './ManifestManagement/ManifestStateManager';
 import { CustomManifestLoader } from './CustomManifestLoader';
-import { ManifestStateManager } from './ManifestManagement';
 
 import './SwarmHlsPlayer.scss';
 
@@ -23,10 +26,39 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   controls = true,
   ...videoProps
 }) => {
+  const { node } = useWaku();
   const [restartTrigger, setRestartTrigger] = useState(0);
+  const [isReady, setIsReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    const topicObj = Topic.fromString(topic);
+    const hexTopic = topicObj.toString();
+    const stateManager = ManifestStateManager.getInstance();
+
+    if (node) {
+      stateManager.setWakuNode(node as LightNode);
+
+      stateManager
+        .setupStreamSubscription(owner, topicObj)
+        .then(() => {
+          console.log('Stream subscription ready');
+          setIsReady(true);
+        })
+        .catch((error) => {
+          console.error('Failed to setup subscription:', error);
+          setIsReady(false);
+        });
+    }
+
+    return () => {
+      stateManager.clear(hexTopic);
+    };
+  }, [owner, topic, node]);
+
+  useEffect(() => {
+    if (!isReady) return;
+
     const video = videoRef.current;
     if (!video) return;
 
@@ -101,14 +133,20 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
 
     return () => {
       if (hls) {
-        const t = Topic.fromString(topic);
-        ManifestStateManager.getInstance().clear(t.toString());
-
         hls.destroy();
         hls = null;
       }
     };
-  }, [autoPlay, restartTrigger, owner, topic]);
+  }, [isReady, autoPlay, restartTrigger, owner, topic]);
+
+  if (!isReady) {
+    return (
+      <div className="swarm-hls-player-loading">
+        <InputLoading />
+        <h2>Initializing stream...</h2>
+      </div>
+    );
+  }
 
   return mediaType === MediaType.VIDEO ? (
     <video

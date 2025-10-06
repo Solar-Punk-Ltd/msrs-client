@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 
 import { PortalTooltip } from '@/components/PortalTooltip/PortalTooltip';
 import { StreamGroup } from '@/hooks/useStamps';
-import { useAppContext } from '@/providers/App';
+import { useAppContext } from '@/providers/App/App';
 import { StateEntry } from '@/types/stream';
 
 import { StreamStampCard } from '../../Cards/StreamStampCard/StreamStampCard';

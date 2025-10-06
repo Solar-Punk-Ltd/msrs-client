@@ -1,7 +1,7 @@
 import type { HlsConfig, Loader, LoaderCallbacks, LoaderConfiguration, PlaylistLoaderContext } from 'hls.js';
 import Hls from 'hls.js';
 
-import { ManifestFetcher } from './ManifestManagement';
+import { ManifestFetcher } from './ManifestManagement/ManifestFetcher';
 
 const manifestFetcher = new ManifestFetcher();
 

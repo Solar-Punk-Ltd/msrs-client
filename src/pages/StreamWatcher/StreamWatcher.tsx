@@ -6,7 +6,7 @@ import { Chat } from '@/components/Chat/Chat';
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { StreamInfo } from '@/components/Stream/StreamInfo/StreamInfo';
 import { SwarmHlsPlayer } from '@/components/Stream/SwarmHlsPlayer/SwarmHlsPlayer';
-import { useAppContext } from '@/providers/App';
+import { useAppContext } from '@/providers/App/App';
 import { ROUTES } from '@/routes';
 import { MediaType, StateType } from '@/types/stream';
 
@@ -21,7 +21,7 @@ export function StreamWatcher() {
     topic: string;
   }>();
   const navigate = useNavigate();
-  const { streamList, isLoading, refreshStreamList } = useAppContext();
+  const { streamList, isLoading, refreshStreamList, isWakuEnabled } = useAppContext();
 
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
@@ -41,7 +41,7 @@ export function StreamWatcher() {
   }, [isLoading]);
 
   useEffect(() => {
-    if (!isScheduled) {
+    if (!isScheduled || isWakuEnabled) {
       return;
     }
 
@@ -66,7 +66,7 @@ export function StreamWatcher() {
         clearTimeout(timeoutId);
       }
     };
-  }, [isScheduled, refreshStreamList]);
+  }, [isScheduled, refreshStreamList, isWakuEnabled]);
 
   const shouldShowLoading = isLoading && streamList.length === 0;
   const shouldShowError = !isLoading && hasFetchedOnce && !foundStream;

@@ -13,7 +13,7 @@ import {
   ThumbnailField,
 } from '@/components/Stream/StreamFormFields';
 import { useStreamForm } from '@/hooks/useStreamForm';
-import { useAppContext } from '@/providers/App';
+import { useAppContext } from '@/providers/App/App';
 import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
 import { MEDIA_TYPE_LABELS, MediaType } from '@/types/stream';

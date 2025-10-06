@@ -3,6 +3,29 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { StreamList } from './StreamList';
 
+const mockStreamList = [
+  {
+    topic: 'topic1',
+    owner: 'owner1',
+    state: 'live',
+    duration: 100,
+    mediatype: 'video',
+    title: 'Live Stream',
+    timestamp: 1000,
+    index: 1,
+  },
+  {
+    topic: 'topic2',
+    owner: 'owner2',
+    state: 'ended',
+    duration: 200,
+    mediatype: 'audio',
+    title: 'Ended Stream',
+    timestamp: 900,
+    index: 2,
+  },
+];
+
 vi.mock('@/utils/stream', () => ({
   fetchStreams: vi.fn().mockResolvedValue([]),
   fetchThumbnail: vi.fn().mockResolvedValue(null),
@@ -15,49 +38,20 @@ vi.mock('@/utils/stream', () => ({
 vi.mock('../StreamThumbnail/StreamThumbnail', () => ({
   StreamThumbnail: (props: any) => <div data-testid="stream-thumbnail">{props.title || props.topic}</div>,
 }));
-vi.mock('@/providers/App', () => ({
-  useAppContext: () => ({
-    streamList: [
-      {
-        topic: 'topic1',
-        owner: 'owner1',
-        state: 'live',
-        duration: 100,
-        mediatype: 'video',
-        title: 'Live Stream',
-        timestamp: 1000,
-        index: 1,
-      },
-      {
-        topic: 'topic2',
-        owner: 'owner2',
-        state: 'ended',
-        duration: 200,
-        mediatype: 'audio',
-        title: 'Ended Stream',
-        timestamp: 900,
-        index: 2,
-      },
-    ],
-  }),
-}));
-vi.mock('@/utils/bee', () => ({
-  makeFeedIdentifier: () => ({
-    toHex: () => 'feedhex',
-  }),
-}));
-vi.mock('@/utils/config', () => ({
-  config: {
-    readerBeeUrl: 'http://mockbee',
-  },
-}));
-vi.mock('@ethersphere/bee-js', () => ({
-  Bee: vi.fn().mockImplementation(() => ({})),
-  Topic: { fromString: (s: string) => s },
-  FeedIndex: { fromBigInt: () => ({}) },
-  Bytes: { fromUtf8: vi.fn() },
-  PrivateKey: vi.fn(),
-  Identifier: { fromString: vi.fn() },
+
+vi.mock('../BaseStreamList/BaseStreamList', () => ({
+  BaseStreamList: ({ title }: any) => (
+    <div>
+      {title && <h2>{title}</h2>}
+      {mockStreamList
+        .sort((a, b) => (a.state === 'live' && b.state !== 'live' ? -1 : 0))
+        .map((stream) => (
+          <div key={stream.topic} data-testid="stream-thumbnail">
+            {stream.title}
+          </div>
+        ))}
+    </div>
+  ),
 }));
 
 describe('StreamList', () => {

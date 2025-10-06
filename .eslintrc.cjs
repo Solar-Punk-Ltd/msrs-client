@@ -17,6 +17,7 @@ module.exports = {
     react: {
       version: 'detect',
     },
+    'import/core-modules': ['@waku/sdk', '@waku/core', '@waku/react', '@waku/utils'],
     'import/resolver': {
       node: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
@@ -35,10 +36,22 @@ module.exports = {
         'import/no-unresolved': 'off',
       },
     },
+    {
+      files: ['src/**/*.{ts,tsx}'],
+      rules: {
+        'import/namespace': 'off',
+      },
+    },
   ],
   ignorePatterns: ['dist', 'node_modules', '.eslintrc.cjs'],
   rules: {
     'import/no-named-as-default': 'off',
+    'import/namespace': [
+      'error',
+      {
+        allowComputed: true,
+      },
+    ],
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-unused-vars': [

@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ConfirmationModal } from '@/components/ConfirmationModal/ConfirmationModal';
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StreamManagerList } from '@/components/Stream';
-import { useAppContext } from '@/providers/App';
+import { useAppContext } from '@/providers/App/App';
 import { useUserContext } from '@/providers/User';
 import { StateEntry } from '@/types/stream';
 import { config } from '@/utils/config';
@@ -17,7 +17,7 @@ import './StreamManager.scss';
 export function StreamManager() {
   const navigate = useNavigate();
   const { session } = useUserContext();
-  const { fetchAppState, setNewStreamList, refreshStreamList, isLoading } = useAppContext();
+  const { fetchAppState, setNewStreamList, refreshStreamList, isLoading, isWakuEnabled } = useAppContext();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [streamToDelete, setStreamToDelete] = useState<StateEntry | null>(null);
@@ -29,16 +29,18 @@ export function StreamManager() {
   const { data } = useQuery({
     queryKey: ['app-state'],
     queryFn: () => fetchAppState(),
-    refetchInterval: 2500,
+    refetchInterval: isWakuEnabled ? false : 2500,
     retry: true,
-    enabled: !isLoading,
+    enabled: !isWakuEnabled && !isLoading,
     staleTime: 0,
     gcTime: Infinity,
   });
 
   useEffect(() => {
-    if (data) setNewStreamList(data);
-  }, [data, setNewStreamList]);
+    if (data && !isWakuEnabled) {
+      setNewStreamList(data);
+    }
+  }, [data, setNewStreamList, isWakuEnabled]);
 
   const handleEdit = (stream: StateEntry) => {
     navigate(`/edit/${stream.owner}/${stream.topic}`);

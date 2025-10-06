@@ -10,11 +10,15 @@ vi.mock('@/components/Stream', () => ({
 const setNewStreamList = vi.fn();
 const fetchAppState = vi.fn();
 const isLoading = false;
-vi.mock('@/providers/App', () => ({
+vi.mock('@/providers/App/App', () => ({
   useAppContext: () => ({
     fetchAppState,
     setNewStreamList,
     isLoading,
+    streamList: [],
+    error: null,
+    isWakuEnabled: false,
+    refreshStreamList: vi.fn(),
   }),
 }));
 

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChatSettings, EVENTS, MessageData, MessageType, SwarmChat } from '@solarpunkltd/swarm-chat-js';
 
+import { config } from '@/utils/config';
+
 export interface VisibleMessage extends MessageData {
   requested?: boolean;
   uploaded?: boolean;
@@ -136,6 +138,10 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
   );
 
   useEffect(() => {
+    if (config.isWakuEnabled && infra.waku?.enabled && !infra.waku?.node) {
+      return;
+    }
+
     if (chatRef.current) return;
 
     const chat = new SwarmChat({ user, infra });
@@ -184,7 +190,8 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
       chat.stop();
       chatRef.current = null;
     };
-  }, [user.privateKey, createMessageHandler]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.privateKey, infra.waku?.node, createMessageHandler]);
 
   const sendMessage = useCallback(
     (message: string, additionalProps?: any) =>

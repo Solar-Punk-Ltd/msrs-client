@@ -2,7 +2,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AppContextProvider } from '@/providers/App';
+import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
 
 import { StreamManager } from './StreamManager';
@@ -91,14 +91,17 @@ const mockSetNewStreamList = vi.fn();
 const mockRefreshStreamList = vi.fn();
 const mockIsLoading = false;
 
-vi.mock('@/providers/App', () => ({
+vi.mock('@/providers/App/App', () => ({
   AppContextProvider: ({ children }: any) => children,
-  useAppContext: () => ({
+  useAppContext: vi.fn(() => ({
     fetchAppState: mockFetchAppState,
     setNewStreamList: mockSetNewStreamList,
     refreshStreamList: mockRefreshStreamList,
     isLoading: mockIsLoading,
-  }),
+    streamList: [],
+    error: null,
+    isWakuEnabled: false,
+  })),
 }));
 
 vi.mock('@tanstack/react-query', () => ({
