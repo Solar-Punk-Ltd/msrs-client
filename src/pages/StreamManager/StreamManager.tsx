@@ -31,7 +31,7 @@ export function StreamManager() {
     queryFn: () => fetchAppState(),
     refetchInterval: isWakuEnabled ? false : 2500,
     retry: true,
-    enabled: !isWakuEnabled && !isLoading,
+    enabled: isWakuEnabled ? false : !isLoading,
     staleTime: 0,
     gcTime: Infinity,
   });

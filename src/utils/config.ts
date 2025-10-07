@@ -51,5 +51,5 @@ export const config = {
   chatGsocTopic: getEnv('VITE_CHAT_GSOC_TOPIC'),
   streamerGsocResourceId: getEnv('VITE_STREAMER_GSOC_RESOURCE_ID'),
   streamerGsocTopic: getEnv('VITE_STREAMER_GSOC_TOPIC'),
-  isWakuEnabled: getBooleanEnv('VITE_IS_WAKU_ENABLED', false),
+  isWakuEnabled: getBooleanEnv('VITE_IS_WAKU_ENABLED', true),
 };
