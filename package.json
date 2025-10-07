@@ -2,6 +2,7 @@
   "name": "msrs-client",
   "version": "0.1.0",
   "type": "module",
+  "node": ">=22",
   "scripts": {
     "prepare": "husky",
     "dev": "vite",
