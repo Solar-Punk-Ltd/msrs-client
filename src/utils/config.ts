@@ -9,6 +9,7 @@ type RuntimeConfig = {
   VITE_STREAMER_GSOC_RESOURCE_ID: string;
   VITE_STREAMER_GSOC_TOPIC: string;
   VITE_IS_WAKU_ENABLED: string;
+  VITE_WAKU_STATIC_PEER: string;
 };
 
 function getEnv(name: string): string {
@@ -52,4 +53,5 @@ export const config = {
   streamerGsocResourceId: getEnv('VITE_STREAMER_GSOC_RESOURCE_ID'),
   streamerGsocTopic: getEnv('VITE_STREAMER_GSOC_TOPIC'),
   isWakuEnabled: getBooleanEnv('VITE_IS_WAKU_ENABLED', true),
+  wakuStaticPeer: getEnv('VITE_WAKU_STATIC_PEER'),
 };
