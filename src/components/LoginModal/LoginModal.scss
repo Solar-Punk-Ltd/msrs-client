@@ -1,29 +1,30 @@
 @use '@/styles/variables.scss' as *;
 
 .login-modal-container {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  height: 100%;
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
   padding: 16px;
   background-color: #efefef54;
   backdrop-filter: blur(9px);
   z-index: 1000;
   box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10vh;
 
   @media (min-width: $breakpoint-mobile) {
-    display: flex;
-    justify-content: center;
+    padding-top: 10vh;
   }
 }
 
 .login-modal {
   position: relative;
   width: 100%;
-  top: 10%;
   padding: 24px;
-  max-height: fit-content;
   box-sizing: border-box;
   background: linear-gradient(180deg, #8841e4 0%, #ff8a50 100%),
     linear-gradient(0deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0));
