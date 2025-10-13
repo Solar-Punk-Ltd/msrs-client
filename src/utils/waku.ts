@@ -44,7 +44,7 @@ export class WakuSubscriber {
       throw new Error('Waku node not available');
     }
 
-    const contentTopic = `solarpunk-msrs/1/${topicName}/proto`;
+    const contentTopic = `/solarpunk-msrs/1/${topicName}/proto`;
 
     const routingInfo = createRoutingInfo(networkConfig, { contentTopic });
 

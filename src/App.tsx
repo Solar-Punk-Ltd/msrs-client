@@ -25,7 +25,12 @@ const queryClient = new QueryClient({
 const NODE_OPTIONS = {
   networkConfig,
   bootstrapPeers: config.wakuStaticPeer ? [config.wakuStaticPeer] : undefined,
-  defaultBootstrap: !config.wakuStaticPeer,
+  defaultBootstrap: !!config.wakuStaticPeer,
+  discovery: {
+    dns: false,
+    peerExchange: true,
+    peerCache: false,
+  },
 };
 
 function AppWithLoading() {
