@@ -15,10 +15,11 @@ export class WakuStreamManager {
     reject: (error: Error) => void;
     timeout: NodeJS.Timeout;
   };
-  private lastProcessedEntries: StateEntry[] | null = null;
-  private lastMessageHash: string | null = null;
+  private messageHashCache: Set<string> = new Set();
   private debounceTimer: NodeJS.Timeout | null = null;
   private readonly DEBOUNCE_DELAY = 3000;
+  private readonly MAX_CACHE_SIZE = 100;
+  private lastMostRecentUpdatedAt: number = 0;
 
   constructor() {
     this.wakuSubscriber = WakuSubscriber.getInstance();
@@ -44,12 +45,13 @@ export class WakuStreamManager {
       try {
         const messageHash = Buffer.from(message.payload).toString('base64');
 
-        if (this.lastMessageHash === messageHash) {
-          console.log('Received duplicate message, ignoring...');
+        if (this.messageHashCache.has(messageHash)) {
+          console.log('Received duplicate message (cached), ignoring...');
           return;
         }
 
-        this.lastMessageHash = messageHash;
+        this.addToCache(messageHash);
+
         const entries = decodeStreamList(message.payload);
         this.handleStreamListUpdate(entries);
       } catch (error) {
@@ -58,14 +60,44 @@ export class WakuStreamManager {
     });
   }
 
-  private areEntriesEqual(entries1: StateEntry[] | null, entries2: StateEntry[]): boolean {
-    if (!entries1) return false;
-    return JSON.stringify(entries1) === JSON.stringify(entries2);
+  private addToCache(messageHash: string): void {
+    if (this.messageHashCache.size >= this.MAX_CACHE_SIZE) {
+      console.log('Message cache full, clearing and restarting...');
+      this.messageHashCache.clear();
+    }
+
+    this.messageHashCache.add(messageHash);
+  }
+
+  private getMostRecentUpdatedAt(entries: StateEntry[]): number {
+    let mostRecent = 0;
+
+    entries.forEach((entry) => {
+      const timestamp = entry.updatedAt || entry.createdAt || 0;
+      if (timestamp > mostRecent) {
+        mostRecent = timestamp;
+      }
+    });
+
+    return mostRecent;
+  }
+
+  private hasNewerUpdates(entries: StateEntry[]): boolean {
+    const currentMostRecent = this.getMostRecentUpdatedAt(entries);
+
+    if (this.lastMostRecentUpdatedAt === 0 || currentMostRecent > this.lastMostRecentUpdatedAt) {
+      this.lastMostRecentUpdatedAt = currentMostRecent;
+      return true;
+    }
+
+    return false;
   }
 
   private handleStreamListUpdate(entries: StateEntry[]): void {
-    if (this.areEntriesEqual(this.lastProcessedEntries, entries)) {
-      console.log('Received duplicate stream list content, ignoring...');
+    const hasNewerData = this.hasNewerUpdates(entries);
+
+    if (!hasNewerData) {
+      console.log('No newer updates detected (most recent:', this.lastMostRecentUpdatedAt, '), ignoring message...');
       return;
     }
 
@@ -74,8 +106,6 @@ export class WakuStreamManager {
     }
 
     this.debounceTimer = setTimeout(() => {
-      this.lastProcessedEntries = [...entries];
-
       if (this.onUpdate) {
         this.onUpdate(entries);
       }
@@ -135,7 +165,8 @@ export class WakuStreamManager {
       this.unsubscribe = undefined;
     }
 
-    this.lastProcessedEntries = null;
-    this.lastMessageHash = null;
+    // Clear the message cache and reset timestamp tracking
+    this.messageHashCache.clear();
+    this.lastMostRecentUpdatedAt = 0;
   }
 }
