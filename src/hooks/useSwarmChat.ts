@@ -132,6 +132,7 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
   const createMessageHandler = useCallback(
     (messageUpdates: Partial<VisibleMessage>) => (data: MessageData | string) => {
       const messageData = typeof data === 'string' ? JSON.parse(data) : data;
+      console.log('Message event:', messageData, messageUpdates);
       updateOrAddMessage({ ...messageData, ...messageUpdates });
     },
     [updateOrAddMessage],
