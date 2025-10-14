@@ -15,6 +15,10 @@ export class WakuStreamManager {
     reject: (error: Error) => void;
     timeout: NodeJS.Timeout;
   };
+  private lastProcessedEntries: StateEntry[] | null = null;
+  private lastMessageHash: string | null = null;
+  private debounceTimer: NodeJS.Timeout | null = null;
+  private readonly DEBOUNCE_DELAY = 3000;
 
   constructor() {
     this.wakuSubscriber = WakuSubscriber.getInstance();
@@ -36,7 +40,16 @@ export class WakuStreamManager {
     this.unsubscribe = await this.wakuSubscriber.subscribe(topicName, (message: IDecodedMessage) => {
       if (!message.payload) return;
 
+      console.log('Received Waku message on topic:', topicName, message);
       try {
+        const messageHash = Buffer.from(message.payload).toString('base64');
+
+        if (this.lastMessageHash === messageHash) {
+          console.log('Received duplicate message, ignoring...');
+          return;
+        }
+
+        this.lastMessageHash = messageHash;
         const entries = decodeStreamList(message.payload);
         this.handleStreamListUpdate(entries);
       } catch (error) {
@@ -45,16 +58,36 @@ export class WakuStreamManager {
     });
   }
 
+  private areEntriesEqual(entries1: StateEntry[] | null, entries2: StateEntry[]): boolean {
+    if (!entries1) return false;
+    return JSON.stringify(entries1) === JSON.stringify(entries2);
+  }
+
   private handleStreamListUpdate(entries: StateEntry[]): void {
-    if (this.onUpdate) {
-      this.onUpdate(entries);
+    if (this.areEntriesEqual(this.lastProcessedEntries, entries)) {
+      console.log('Received duplicate stream list content, ignoring...');
+      return;
     }
 
-    if (this.waitingPromise) {
-      clearTimeout(this.waitingPromise.timeout);
-      this.waitingPromise.resolve(entries);
-      this.waitingPromise = undefined;
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
     }
+
+    this.debounceTimer = setTimeout(() => {
+      this.lastProcessedEntries = [...entries];
+
+      if (this.onUpdate) {
+        this.onUpdate(entries);
+      }
+
+      if (this.waitingPromise) {
+        clearTimeout(this.waitingPromise.timeout);
+        this.waitingPromise.resolve(entries);
+        this.waitingPromise = undefined;
+      }
+
+      this.debounceTimer = null;
+    }, this.DEBOUNCE_DELAY);
   }
 
   async waitForStreamListChange(
@@ -87,6 +120,11 @@ export class WakuStreamManager {
   }
 
   async cleanup(): Promise<void> {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+
     if (this.waitingPromise) {
       clearTimeout(this.waitingPromise.timeout);
       this.waitingPromise = undefined;
@@ -96,5 +134,8 @@ export class WakuStreamManager {
       await this.unsubscribe();
       this.unsubscribe = undefined;
     }
+
+    this.lastProcessedEntries = null;
+    this.lastMessageHash = null;
   }
 }
