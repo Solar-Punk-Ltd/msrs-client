@@ -3,12 +3,11 @@ import { createRoutingInfo } from '@waku/utils';
 
 import { config } from './config';
 
-const WAKU_CLUSTER_ID = 1;
+const WAKU_CLUSTER_ID = 0;
 const PEER_CHECK_INTERVAL = 30000;
 
 export const networkConfig = {
   clusterId: WAKU_CLUSTER_ID,
-  numShardsInCluster: 8,
 };
 
 export class WakuSubscriber {

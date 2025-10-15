@@ -19,7 +19,7 @@ export class WakuStreamManager {
   private debounceTimer: NodeJS.Timeout | null = null;
   private readonly DEBOUNCE_DELAY = 3000;
   private readonly MAX_CACHE_SIZE = 100;
-  private lastMostRecentUpdatedAt: number = 0;
+  private lastProcessedContentHash: string | null = null;
 
   constructor() {
     this.wakuSubscriber = WakuSubscriber.getInstance();
@@ -69,35 +69,25 @@ export class WakuStreamManager {
     this.messageHashCache.add(messageHash);
   }
 
-  private getMostRecentUpdatedAt(entries: StateEntry[]): number {
-    let mostRecent = 0;
-
-    entries.forEach((entry) => {
-      const timestamp = entry.updatedAt || entry.createdAt || 0;
-      if (timestamp > mostRecent) {
-        mostRecent = timestamp;
-      }
-    });
-
-    return mostRecent;
+  private createContentHash(entries: StateEntry[]): string {
+    const contentSignature = entries
+      .map((entry) => `${entry.topic}:${entry.owner}:${entry.updatedAt || entry.createdAt}`)
+      .sort()
+      .join('|');
+    return Buffer.from(contentSignature).toString('base64');
   }
 
   private hasNewerUpdates(entries: StateEntry[]): boolean {
-    const currentMostRecent = this.getMostRecentUpdatedAt(entries);
-
-    if (this.lastMostRecentUpdatedAt === 0 || currentMostRecent > this.lastMostRecentUpdatedAt) {
-      this.lastMostRecentUpdatedAt = currentMostRecent;
-      return true;
-    }
-
-    return false;
+    const currentContentHash = this.createContentHash(entries);
+    const hasContentChange = this.lastProcessedContentHash !== currentContentHash;
+    return hasContentChange;
   }
 
   private handleStreamListUpdate(entries: StateEntry[]): void {
     const hasNewerData = this.hasNewerUpdates(entries);
 
     if (!hasNewerData) {
-      console.log('No newer updates detected (most recent:', this.lastMostRecentUpdatedAt, '), ignoring message...');
+      console.log('No changes detected - same timestamp and content, ignoring message...');
       return;
     }
 
@@ -165,8 +155,7 @@ export class WakuStreamManager {
       this.unsubscribe = undefined;
     }
 
-    // Clear the message cache and reset timestamp tracking
     this.messageHashCache.clear();
-    this.lastMostRecentUpdatedAt = 0;
+    this.lastProcessedContentHash = null;
   }
 }
