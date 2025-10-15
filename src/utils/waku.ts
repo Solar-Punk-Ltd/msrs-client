@@ -8,6 +8,7 @@ const PEER_CHECK_INTERVAL = 30000;
 
 export const networkConfig = {
   clusterId: WAKU_CLUSTER_ID,
+  numShardsInCluster: 8,
 };
 
 export class WakuSubscriber {
