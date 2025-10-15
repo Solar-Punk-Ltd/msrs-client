@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LightNodeProvider } from '@waku/react';
-import { Protocols } from '@waku/sdk';
 
 import { AppContextProvider as AppProvider } from './providers/App/App';
 import { Provider as UserProvider } from './providers/User';
@@ -41,7 +40,7 @@ function AppWithLoading() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LightNodeProvider options={NODE_OPTIONS} protocols={[Protocols.LightPush, Protocols.Filter]}>
+      <LightNodeProvider options={NODE_OPTIONS}>
         <WalletProvider>
           <AppProvider>
             <UserProvider>

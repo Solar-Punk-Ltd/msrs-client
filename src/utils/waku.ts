@@ -3,7 +3,7 @@ import { createRoutingInfo } from '@waku/utils';
 
 import { config } from './config';
 
-const WAKU_CLUSTER_ID = 0;
+const WAKU_CLUSTER_ID = 1;
 const PEER_CHECK_INTERVAL = 30000;
 
 export const networkConfig = {
@@ -89,6 +89,7 @@ export class WakuSubscriber {
 
     try {
       const connectedPeers = await this.wakuNode.getConnectedPeers();
+      console.log(connectedPeers);
 
       console.log(`[WakuSubscriber] Connected peers: ${connectedPeers.length}`);
 
