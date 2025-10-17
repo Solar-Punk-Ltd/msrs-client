@@ -44,6 +44,16 @@ export function BaseStreamList({
     return map;
   }, [streamList]);
 
+  const sortedStreams = useMemo(() => {
+    if (!streamList) return [];
+
+    return [...streamList].sort((a, b) => {
+      const aTime = a.updatedAt || a.createdAt || 0;
+      const bTime = b.updatedAt || b.createdAt || 0;
+      return bTime - aTime;
+    });
+  }, [streamList]);
+
   if (!isLoading && streamList?.length === 0) {
     return (
       <div className={className}>
@@ -83,7 +93,7 @@ export function BaseStreamList({
       {title && <h2 className="base-stream-list-title">{title}</h2>}
       <div className="base-stream-list-container">
         <div className="base-stream-list">
-          {streamList.map((stream) => {
+          {sortedStreams.map((stream) => {
             const manifestUrl = manifestUrlMap.get(stream.topic) || '';
             return (
               <StreamListItem
