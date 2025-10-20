@@ -108,10 +108,19 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         }
       };
 
-      const [privateStampsWithInfo, publicStampsWithInfo] = await Promise.all([
-        Promise.all(nodes.nodes.private_writers.map(loadStampInfo)),
-        Promise.all(nodes.nodes.public_writers.map(loadStampInfo)),
+      const [privateResults, publicResults] = await Promise.all([
+        Promise.allSettled(nodes.nodes.private_writers.map(loadStampInfo)),
+        Promise.allSettled(nodes.nodes.public_writers.map(loadStampInfo)),
       ]);
+
+      // Extract successful results
+      const privateStampsWithInfo = privateResults
+        .filter((result): result is PromiseFulfilledResult<StampWithInfo> => result.status === 'fulfilled')
+        .map((result) => result.value);
+
+      const publicStampsWithInfo = publicResults
+        .filter((result): result is PromiseFulfilledResult<StampWithInfo> => result.status === 'fulfilled')
+        .map((result) => result.value);
 
       const pinnedStamps = privateStampsWithInfo.filter((stamp) => stamp.nodeInfo.lock_info?.pinned);
       const unpinnedPrivateStamps = privateStampsWithInfo.filter((stamp) => !stamp.nodeInfo.lock_info?.pinned);
