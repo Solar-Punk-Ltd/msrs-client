@@ -10,7 +10,7 @@ import {
   getResponsivePickerDimensions,
   PickerDimensions,
   PickerPosition,
-} from '@/utils/emojiPicker';
+} from '@/utils/ui/emojiPicker';
 
 import './MessageActions.scss';
 

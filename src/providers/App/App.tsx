@@ -1,13 +1,12 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
 import { useQueryClient } from '@tanstack/react-query';
-import { useWaku } from '@waku/react';
-import type { LightNode } from '@waku/sdk';
 import { cloneDeep, isEqual } from 'lodash';
 
 import { StateEntry } from '@/types/stream';
-import { config } from '@/utils/config';
-import { WakuSubscriber } from '@/utils/waku';
+import { config } from '@/utils/shared/config';
+
+import { useWakuContext } from '../Waku';
 
 import { WakuStreamManager } from './WakuStreamManager';
 
@@ -41,48 +40,17 @@ interface AppContextProviderProps {
 }
 
 export const AppContextProvider = ({ children }: AppContextProviderProps) => {
+  const { node } = useWakuContext();
   const queryClient = useQueryClient();
-  const { node } = useWaku();
 
   const [streamList, setStreamList] = useState<StateEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const wakuManagerRef = useRef<WakuStreamManager | null>(null);
+  const isSettingUpRef = useRef(false);
 
   const isWakuEnabled = config.isWakuEnabled;
-
-  useEffect(() => {
-    if (isWakuEnabled && node && !wakuManagerRef.current) {
-      const wakuInstance = WakuSubscriber.getInstance();
-      wakuInstance.setWakuNode(node as LightNode);
-
-      wakuManagerRef.current = new WakuStreamManager();
-
-      const setupWakuSubscription = async () => {
-        try {
-          await wakuManagerRef.current!.subscribe((entries) => {
-            setNewStreamList(entries);
-          });
-        } catch (error) {
-          console.error('Failed to setup Waku subscription:', error);
-        }
-      };
-
-      setupWakuSubscription();
-    }
-
-    return () => {
-      if (wakuManagerRef.current) {
-        wakuManagerRef.current.cleanup();
-        wakuManagerRef.current = null;
-      }
-    };
-  }, [node, isWakuEnabled, queryClient]);
-
-  useEffect(() => {
-    initAppState();
-  }, []);
 
   const fetchAppState = useCallback(async (): Promise<StateEntry[] | null> => {
     try {
@@ -108,8 +76,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     }
   }, []);
 
-  const setNewStreamList = useCallback((data: any) => {
-    if (!Array.isArray(data)) {
+  const setNewStreamList = useCallback((data: StateEntry[] | null) => {
+    if (!data || !Array.isArray(data)) {
       console.error('Invalid data: expected array');
       return;
     }
@@ -123,15 +91,88 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     });
   }, []);
 
-  const initAppState = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await fetchAppState();
-      setNewStreamList(data);
-    } finally {
-      setIsLoading(false);
+  const setupStreamManager = useCallback(
+    async (currentNode: typeof node, initialEntries: StateEntry[] | null) => {
+      if (!currentNode || isSettingUpRef.current) {
+        return;
+      }
+
+      isSettingUpRef.current = true;
+
+      try {
+        const manager = new WakuStreamManager(currentNode, initialEntries);
+        wakuManagerRef.current = manager;
+
+        await manager.subscribe((entries) => {
+          console.log('Received stream update via Waku');
+          setNewStreamList(entries);
+        });
+      } catch (error) {
+        setError(error instanceof Error ? error : new Error('Failed to setup Waku'));
+      } finally {
+        isSettingUpRef.current = false;
+      }
+    },
+    [setNewStreamList],
+  );
+
+  const cleanupStreamManager = useCallback(async () => {
+    if (wakuManagerRef.current) {
+      console.log('Cleaning up stream manager');
+      const managerToCleanup = wakuManagerRef.current;
+      wakuManagerRef.current = null;
+
+      try {
+        await managerToCleanup.cleanup();
+      } catch (err) {
+        console.error('Error during cleanup', err);
+      }
     }
-  }, [fetchAppState, setNewStreamList]);
+    isSettingUpRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+    setIsLoading(true);
+
+    const initializeApp = async () => {
+      if (!node || isCancelled) return;
+
+      setIsLoading(true);
+
+      try {
+        const data = await fetchAppState();
+
+        if (isCancelled) return;
+
+        setNewStreamList(data);
+
+        if (isWakuEnabled) {
+          await setupStreamManager(node, data);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          console.error('Failed to initialize app state:', error);
+          setError(error instanceof Error ? error : new Error('Initialization failed'));
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if (node) {
+      initializeApp();
+    }
+
+    return () => {
+      isCancelled = true;
+      if (isWakuEnabled) {
+        cleanupStreamManager();
+      }
+    };
+  }, [node, isWakuEnabled, fetchAppState, setNewStreamList, setupStreamManager, cleanupStreamManager]);
 
   const refreshStreamList = useCallback(async () => {
     setIsLoading(true);
@@ -146,7 +187,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           console.warn('No stream list change detected within timeout');
         }
       } else {
-        // Polling mode: use existing logic
+        // Polling mode
         let changeDetected = false;
         const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
 

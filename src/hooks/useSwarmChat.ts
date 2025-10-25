@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChatSettings, EVENTS, MessageData, MessageType, SwarmChat } from '@solarpunkltd/swarm-chat-js';
 
-import { config } from '@/utils/config';
+import { config } from '@/utils/shared/config';
 
 export interface VisibleMessage extends MessageData {
   requested?: boolean;

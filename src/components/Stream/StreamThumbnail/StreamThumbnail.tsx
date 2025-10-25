@@ -6,8 +6,8 @@ import PQueue from 'p-queue';
 import PlayIcon from '@/assets/icons/playIcon.png';
 import DefaultPreviewImage from '@/assets/images/defaultPreviewImage.png';
 import { MediaType, StateType } from '@/types/stream';
-import { formatDuration } from '@/utils/format';
-import { fetchThumbnail } from '@/utils/stream';
+import { fetchThumbnail } from '@/utils/stream/stream';
+import { formatDuration } from '@/utils/ui/format';
 
 import './StreamThumbnail.scss';
 

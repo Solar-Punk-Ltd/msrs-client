@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 
-import { padStampId } from './format';
+import { padStampId } from '../ui/format';
+
 import { getWalletService } from './wallet';
 
 export const POSTAGE_STAMP_CONTRACT = '0x45a1502382541Cd610CC9068e88727426b696293';

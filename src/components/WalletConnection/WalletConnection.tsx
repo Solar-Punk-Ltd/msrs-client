@@ -1,5 +1,5 @@
 import { useWallet } from '@/providers/Wallet';
-import { formatAddress } from '@/utils/format';
+import { formatAddress } from '@/utils/ui/format';
 
 import './WalletConnection.scss';
 

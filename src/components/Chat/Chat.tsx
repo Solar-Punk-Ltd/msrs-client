@@ -9,7 +9,7 @@ import { ScrollableMessageList } from '@/components/Chat/ScrollableMessageList/S
 import { ThreadView } from '@/components/Chat/ThreadView/ThreadView';
 import { useSwarmChat, VisibleMessage } from '@/hooks/useSwarmChat';
 import { useUserContext } from '@/providers/User';
-import { config } from '@/utils/config';
+import { config } from '@/utils/shared/config';
 
 import './Chat.scss';
 

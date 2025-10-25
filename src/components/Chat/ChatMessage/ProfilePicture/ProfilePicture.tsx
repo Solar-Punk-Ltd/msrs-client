@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 
 import { PortalTooltip } from '@/components/PortalTooltip/PortalTooltip';
-import { createUniqueUsername } from '@/utils/format';
+import { createUniqueUsername } from '@/utils/ui/format';
 
 import './ProfilePicture.scss';
 

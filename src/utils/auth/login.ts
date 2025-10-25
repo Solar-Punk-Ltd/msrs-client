@@ -4,9 +4,9 @@ import msgpack from 'msgpack-lite';
 import { deflate } from 'pako';
 
 import { MsrsIngMessage, StreamAggMessage } from '@/types/stream';
+import { getSigner } from '@/utils/network/wallet';
 
-import { config } from './config';
-import { getSigner } from './wallet';
+import { config } from '../shared/config';
 
 const messagepackEncode = msgpack.encode;
 
@@ -212,7 +212,7 @@ const downloadDataFromSwarm = async (swarmHash: string): Promise<CredentialBundl
 
 export const getAdminConfigs = async (): Promise<AdminConfig[]> => {
   try {
-    const adminConfigs = await import('../configs/instance-admins.json');
+    const adminConfigs = await import('../../configs/instance-admins.json');
     return adminConfigs.default || adminConfigs;
   } catch (error) {
     console.error('Failed to load admin configs:', error);

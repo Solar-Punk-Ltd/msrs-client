@@ -1,8 +1,8 @@
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
 import type { LightNode } from '@waku/sdk';
 
-import { makeFeedIdentifier } from '@/utils/bee';
-import { config } from '@/utils/config';
+import { makeFeedIdentifier } from '@/utils/network/bee';
+import { config } from '@/utils/shared/config';
 
 import { ManifestParser } from './ManifestParser';
 import { SwarmFetcher } from './SwarmFetcher';

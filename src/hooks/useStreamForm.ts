@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { ERROR_MESSAGES, LIMITS, StreamMetadata } from '@/pages/StreamForm/StreamForm';
 import { MediaType, type StateEntry } from '@/types/stream';
-import { fetchThumbnail } from '@/utils/stream';
+import { fetchThumbnail } from '@/utils/stream/stream';
 
 export function useStreamForm() {
   const [metadata, setMetadata] = useState<StreamMetadata>({

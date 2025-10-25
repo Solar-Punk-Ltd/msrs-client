@@ -17,7 +17,7 @@ import { useAppContext } from '@/providers/App/App';
 import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
 import { MEDIA_TYPE_LABELS, MediaType } from '@/types/stream';
-import { createStream, updateStream } from '@/utils/stream';
+import { createStream, updateStream } from '@/utils/stream/stream';
 
 import './StreamForm.scss';
 

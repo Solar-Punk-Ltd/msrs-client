@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
-import { EMOJI_PICKER_CONFIG, getResponsivePickerDimensions, PickerDimensions } from '@/utils/emojiPicker';
+import { EMOJI_PICKER_CONFIG, getResponsivePickerDimensions, PickerDimensions } from '@/utils/ui/emojiPicker';
 
 import './ReactionToolbar.scss';
 

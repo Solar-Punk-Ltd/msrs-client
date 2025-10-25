@@ -3,9 +3,9 @@ import { ethers } from 'ethers';
 
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
-import { getUserFriendlyErrorMessage } from '@/utils/errorHandling';
-import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/format';
-import { extendStampDuration } from '@/utils/stampTopup';
+import { extendStampDuration } from '@/utils/network/stampTopup';
+import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
+import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/ui/format';
 
 import { StampActions } from '../Shared/StampActions';
 

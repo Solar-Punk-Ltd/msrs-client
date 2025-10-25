@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
-import { formatBzzAmount } from '@/utils/format';
-import { calculateCostForDays, ExtensionDaysCalculation } from '@/utils/stampTopup';
+import { calculateCostForDays, ExtensionDaysCalculation } from '@/utils/network/stampTopup';
+import { formatBzzAmount } from '@/utils/ui/format';
 
 import './StampActions.scss';
 

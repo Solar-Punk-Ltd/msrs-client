@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
-import { fetchGatewayNodes, NodeInfo } from '@/utils/node';
-import { loadStampInfo as loadStampInfoFromContract, StampInfo } from '@/utils/stampInfo';
+import { loadStampInfo as loadStampInfoFromContract, StampInfo } from '@/utils/network/stampInfo';
+import { fetchGatewayNodes, NodeInfo } from '@/utils/stream/node';
 
 export interface StampWithInfo {
   stampId: string;

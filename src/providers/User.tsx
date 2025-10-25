@@ -1,7 +1,7 @@
 import { createContext, ReactChild, ReactElement, useContext, useEffect, useMemo, useState } from 'react';
 
-import { adminlogin, nicknameLogin, Session } from '@/utils/login';
-import { persistUserSession, purgeUserSession, restoreUserSession, StorageMethod } from '@/utils/persistence';
+import { adminlogin, nicknameLogin, Session } from '@/utils/auth/login';
+import { persistUserSession, purgeUserSession, restoreUserSession, StorageMethod } from '@/utils/auth/persistence';
 
 interface ContextInterface {
   keys: {

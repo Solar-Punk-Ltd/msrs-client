@@ -5,11 +5,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
+import { WakuProvider } from '@/providers/Waku';
 import { MediaType } from '@/types/stream';
+import { createStream } from '@/utils/stream/stream';
 
 import { StreamForm } from './StreamForm';
 
-vi.mock('@/utils/stream', () => ({
+vi.mock('@/utils/stream/stream', () => ({
   createStream: vi.fn().mockResolvedValue(undefined),
   updateStream: vi.fn().mockResolvedValue(undefined),
   fetchThumbnail: vi.fn().mockResolvedValue(new Blob()),
@@ -163,6 +165,13 @@ vi.mock('@/providers/User', () => ({
   }),
 }));
 
+vi.mock('@/providers/Waku', () => ({
+  WakuProvider: ({ children }: any) => children,
+  useWakuContext: () => ({
+    node: null,
+  }),
+}));
+
 Object.defineProperty(window, 'history', {
   value: { length: 2 },
   writable: true,
@@ -181,9 +190,11 @@ describe('StreamForm', () => {
       <QueryClientProvider client={queryClient}>
         <MemoryRouter initialEntries={[initialRoute]}>
           <UserProvider>
-            <AppContextProvider>
-              <StreamForm />
-            </AppContextProvider>
+            <WakuProvider>
+              <AppContextProvider>
+                <StreamForm />
+              </AppContextProvider>
+            </WakuProvider>
           </UserProvider>
         </MemoryRouter>
       </QueryClientProvider>,
@@ -273,7 +284,7 @@ describe('StreamForm', () => {
     });
 
     it('creates stream when confirm is clicked in preview', async () => {
-      const { createStream } = await import('@/utils/stream');
+      const { createStream } = await import('@/utils/stream/stream');
 
       renderStreamForm();
 
@@ -295,12 +306,11 @@ describe('StreamForm', () => {
     });
 
     it('shows loading state during stream creation', async () => {
-      const { createStream } = await import('@/utils/stream');
       let resolveCreate: () => void;
       const createPromise = new Promise<void>((resolve) => {
         resolveCreate = resolve;
       });
-      vi.mocked(createStream).mockReturnValue(createPromise);
+      vi.mocked(createStream).mockReturnValueOnce(createPromise);
 
       renderStreamForm();
 
@@ -316,8 +326,7 @@ describe('StreamForm', () => {
     });
 
     it('handles error during stream creation', async () => {
-      const { createStream } = await import('@/utils/stream');
-      vi.mocked(createStream).mockRejectedValue(new Error('Creation failed'));
+      vi.mocked(createStream).mockRejectedValueOnce(new Error('Creation failed'));
 
       renderStreamForm();
 
@@ -419,12 +428,11 @@ describe('StreamForm', () => {
     });
 
     it('disables buttons when loading in preview mode', async () => {
-      const { createStream } = await import('@/utils/stream');
       let resolveCreate: () => void;
       const createPromise = new Promise<void>((resolve) => {
         resolveCreate = resolve;
       });
-      vi.mocked(createStream).mockReturnValue(createPromise);
+      vi.mocked(createStream).mockReturnValueOnce(createPromise);
 
       const queryClient = new QueryClient({
         defaultOptions: {
@@ -437,9 +445,11 @@ describe('StreamForm', () => {
         <QueryClientProvider client={queryClient}>
           <MemoryRouter>
             <UserProvider>
-              <AppContextProvider>
-                <StreamForm />
-              </AppContextProvider>
+              <WakuProvider>
+                <AppContextProvider>
+                  <StreamForm />
+                </AppContextProvider>
+              </WakuProvider>
             </UserProvider>
           </MemoryRouter>
         </QueryClientProvider>,

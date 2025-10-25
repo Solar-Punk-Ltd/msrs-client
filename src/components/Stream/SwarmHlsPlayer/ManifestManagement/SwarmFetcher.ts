@@ -1,6 +1,6 @@
 import { FeedIndex } from '@ethersphere/bee-js';
 
-import { config } from '@/utils/config';
+import { config } from '@/utils/shared/config';
 
 export class SwarmFetcher {
   private baseUrl: string;

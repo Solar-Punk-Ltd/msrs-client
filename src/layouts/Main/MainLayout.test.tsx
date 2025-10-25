@@ -5,11 +5,19 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
+import { WakuProvider } from '@/providers/Waku';
 
 import { MainLayout } from './MainLayout';
 
-vi.mock('@/utils/login', () => ({
+vi.mock('@/utils/auth/login', () => ({
   autoLogin: vi.fn(),
+}));
+
+vi.mock('@/providers/Waku', () => ({
+  WakuProvider: ({ children }: any) => children,
+  useWakuContext: () => ({
+    node: null,
+  }),
 }));
 
 vi.mock('@tanstack/react-query', async () => {
@@ -37,11 +45,13 @@ describe('MainLayout', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
-          <AppContextProvider>
-            <UserProvider>
-              <MainLayout>{children}</MainLayout>
-            </UserProvider>
-          </AppContextProvider>
+          <WakuProvider>
+            <AppContextProvider>
+              <UserProvider>
+                <MainLayout>{children}</MainLayout>
+              </UserProvider>
+            </AppContextProvider>
+          </WakuProvider>
         </MemoryRouter>
       </QueryClientProvider>,
     );

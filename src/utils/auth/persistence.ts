@@ -1,4 +1,4 @@
-import { Session } from './login';
+import { Session } from '../auth/login';
 
 export interface AuthSignature {
   message: string;

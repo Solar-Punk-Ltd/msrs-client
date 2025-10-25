@@ -1,8 +1,8 @@
 import type { IDecodedMessage, LightNode } from '@waku/sdk';
 import protobuf from 'protobufjs';
 
-import { config } from '@/utils/config';
-import { WakuSubscriber } from '@/utils/waku';
+import { config } from '@/utils/shared/config';
+import { WakuChannelManager } from '@/utils/waku/WakuChannelManager';
 
 import type { ManifestUpdate, WakuMetadata } from './types';
 
@@ -13,29 +13,26 @@ const ManifestUpdateProtoBuf = new protobuf.Type('ManifestUpdate')
   .add(new protobuf.Field('isVod', 4, 'bool'));
 
 export class WakuManager {
-  private wakuSubscriber: WakuSubscriber | null = null;
+  private channelManager: WakuChannelManager;
+
+  constructor() {
+    this.channelManager = new WakuChannelManager();
+  }
 
   setNode(wakuNode: LightNode | null): void {
-    if (wakuNode && config.isWakuEnabled) {
-      if (!this.wakuSubscriber) {
-        this.wakuSubscriber = WakuSubscriber.getInstance();
-        this.wakuSubscriber.setWakuNode(wakuNode);
-      }
-    } else {
-      this.wakuSubscriber = null;
-    }
+    this.channelManager.setNode(wakuNode);
   }
 
   isAvailable(): boolean {
-    return !!this.wakuSubscriber;
+    return config.isWakuEnabled;
   }
 
   async subscribe(metadata: WakuMetadata, onMessage: (message: IDecodedMessage) => void): Promise<() => Promise<void>> {
-    if (!this.wakuSubscriber) {
+    if (!this.isAvailable()) {
       throw new Error('Waku is not available');
     }
 
-    return this.wakuSubscriber.subscribe(metadata.wakuTopic, onMessage);
+    return this.channelManager.subscribe(`manifest-${metadata.wakuTopic}`, metadata.wakuTopic, onMessage);
   }
 
   decodeManifestUpdate(payload: Uint8Array): ManifestUpdate {

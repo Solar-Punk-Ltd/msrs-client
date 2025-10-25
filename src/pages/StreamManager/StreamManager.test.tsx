@@ -4,21 +4,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
+import { createMsrsIngestionToken } from '@/utils/auth/login';
+import { deleteStream } from '@/utils/stream/stream';
 
 import { StreamManager } from './StreamManager';
 
-vi.mock('@/utils/stream', () => ({
+vi.mock('@/utils/stream/stream', () => ({
   deleteStream: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/utils/login', () => ({
+vi.mock('@/utils/auth/login', () => ({
   createMsrsIngestionToken: vi.fn().mockResolvedValue('mock-token-12345'),
 }));
 
-vi.mock('@/utils/config', () => ({
+vi.mock('@/utils/shared/config', () => ({
   config: {
     streamStateTopic: 'mock-topic',
     streamStateOwner: 'mock-owner',
+    readerBeeUrl: 'http://mock-bee.com',
+    isWakuEnabled: false,
   },
 }));
 
@@ -148,6 +152,8 @@ describe('StreamManager', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(deleteStream).mockResolvedValue(undefined);
+    vi.mocked(createMsrsIngestionToken).mockResolvedValue('mock-token-12345');
     (useQuery as any).mockReturnValue({
       data: [
         {
@@ -198,8 +204,6 @@ describe('StreamManager', () => {
   });
 
   it('deletes stream when confirmed', async () => {
-    const { deleteStream } = await import('@/utils/stream');
-
     renderStreamManager();
 
     fireEvent.click(screen.getByText('Delete Stream 1'));
@@ -213,8 +217,6 @@ describe('StreamManager', () => {
   });
 
   it('shows modal with clipboard success message when clipboard works', async () => {
-    const { createMsrsIngestionToken } = await import('@/utils/login');
-
     renderStreamManager();
 
     fireEvent.click(screen.getByText('Show Token Stream 1'));
@@ -271,8 +273,7 @@ describe('StreamManager', () => {
   });
 
   it('handles error during stream deletion', async () => {
-    const { deleteStream } = await import('@/utils/stream');
-    vi.mocked(deleteStream).mockRejectedValue(new Error('Delete failed'));
+    vi.mocked(deleteStream).mockRejectedValueOnce(new Error('Delete failed'));
 
     renderStreamManager();
 
@@ -285,12 +286,11 @@ describe('StreamManager', () => {
   });
 
   it('shows loading state during deletion', async () => {
-    const { deleteStream } = await import('@/utils/stream');
     let resolveDelete: () => void;
     const deletePromise = new Promise<void>((resolve) => {
       resolveDelete = resolve;
     });
-    vi.mocked(deleteStream).mockReturnValue(deletePromise);
+    vi.mocked(deleteStream).mockReturnValueOnce(deletePromise);
 
     renderStreamManager();
 

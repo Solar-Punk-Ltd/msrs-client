@@ -1,7 +1,8 @@
 import { BZZ, Duration } from '@ethersphere/bee-js';
 import { ethers } from 'ethers';
 
-import { padStampId } from './format';
+import { padStampId } from '../ui/format';
+
 import {
   createContract,
   fetchBatchData,

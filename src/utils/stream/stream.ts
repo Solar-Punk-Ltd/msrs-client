@@ -3,8 +3,8 @@ import { Bee, Bytes, Identifier, PrivateKey } from '@ethersphere/bee-js';
 import { StreamMetadata } from '@/pages/StreamForm/StreamForm';
 import { ActionType, CreateMessage, DeleteMessage, StateType, UpdateMessage } from '@/types/stream';
 
-import { config } from './config';
-import { createStreamAggregatorToken, Session } from './login';
+import { createStreamAggregatorToken, Session } from '../auth/login';
+import { config } from '../shared/config';
 
 const bee = new Bee(config.writerBeeUrl);
 const gsocTopic = config.streamerGsocTopic;

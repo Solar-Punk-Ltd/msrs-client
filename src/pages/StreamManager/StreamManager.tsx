@@ -8,9 +8,9 @@ import { StreamManagerList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App/App';
 import { useUserContext } from '@/providers/User';
 import { StateEntry } from '@/types/stream';
-import { config } from '@/utils/config';
-import { createMsrsIngestionToken } from '@/utils/login';
-import { deleteStream, updateStreamPin } from '@/utils/stream';
+import { createMsrsIngestionToken } from '@/utils/auth/login';
+import { config } from '@/utils/shared/config';
+import { deleteStream, updateStreamPin } from '@/utils/stream/stream';
 
 import './StreamManager.scss';
 

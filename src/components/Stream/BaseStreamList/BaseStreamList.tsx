@@ -4,8 +4,8 @@ import { FeedIndex, Topic } from '@ethersphere/bee-js';
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { useAppContext } from '@/providers/App/App';
 import { StateEntry } from '@/types/stream';
-import { makeFeedIdentifier } from '@/utils/bee';
-import { config } from '@/utils/config';
+import { makeFeedIdentifier } from '@/utils/network/bee';
+import { config } from '@/utils/shared/config';
 
 import { StreamListItem } from '../StreamListItem/StreamListItem';
 

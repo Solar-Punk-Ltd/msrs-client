@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
-import { getWalletService } from '../utils/wallet';
+import { getWalletService } from '../utils/network/wallet';
 
 interface IWalletContext {
   account: string | null;
