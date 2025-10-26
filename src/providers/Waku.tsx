@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import type { LightNode } from '@waku/sdk';
+import type { LightNode } from '@solarpunkltd/waku-sdk';
 
 import { WakuNodeManager } from '../utils/waku/WakuNodeManager';
 

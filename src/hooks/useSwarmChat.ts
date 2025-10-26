@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ChatSettings, EVENTS, MessageData, MessageType, SwarmChat } from '@solarpunkltd/swarm-chat-js';
 
 import { config } from '@/utils/shared/config';
+
+import { useSerializedEffect } from './useSerializedEffect';
 
 export interface VisibleMessage extends MessageData {
   requested?: boolean;
@@ -111,88 +113,110 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
     [messagesByType.threads],
   );
 
-  const updateOrAddMessage = useCallback((newMessage: VisibleMessage) => {
-    setMessages((prevMessages) => {
-      const existingIndex = prevMessages.findIndex((msg) => msg.id === newMessage.id);
+  useSerializedEffect(
+    'swarm-chat',
+    async (isMounted) => {
+      // Check if Waku is required but not available
+      if (config.isWakuEnabled && !infra.wakuNode) {
+        // Clean up existing chat if it exists
+        if (chatRef.current) {
+          await chatRef.current.stop();
+          chatRef.current = null;
 
-      let updatedMessages: VisibleMessage[];
-      if (existingIndex !== -1) {
-        // Update existing message
-        updatedMessages = [...prevMessages];
-        updatedMessages[existingIndex] = { ...updatedMessages[existingIndex], ...newMessage };
-      } else {
-        // Add new message
-        updatedMessages = [...prevMessages, newMessage];
+          // Reset state
+          if (isMounted()) {
+            setMessages([]);
+            setChatLoading(true);
+            setMessagesLoading(false);
+            setError(null);
+          }
+        }
+
+        return;
       }
 
-      return chatRef.current?.orderMessages?.(updatedMessages) ?? updatedMessages;
-    });
-  }, []);
+      // Skip if already initialized
+      if (chatRef.current) {
+        console.log('✅ Chat already exists and Waku is available');
+        return;
+      }
 
-  const createMessageHandler = useCallback(
-    (messageUpdates: Partial<VisibleMessage>) => (data: MessageData | string) => {
-      const messageData = typeof data === 'string' ? JSON.parse(data) : data;
-      console.log('Message event:', messageData, messageUpdates);
-      updateOrAddMessage({ ...messageData, ...messageUpdates });
+      // Start fresh - either first time or after cleanup
+      const chat = new SwarmChat({ user, infra });
+
+      // Check if still mounted after instantiation
+      if (!isMounted()) {
+        console.log('⏭️  Unmounted during instantiation, aborting');
+        await chat.stop();
+        return;
+      }
+
+      chatRef.current = chat;
+
+      const { on } = chat.getEmitter();
+
+      // Create safe handlers with mounted check
+      const createSafeHandler = (updates: Partial<VisibleMessage>) => (data: MessageData | string) => {
+        if (!isMounted()) {
+          return;
+        }
+
+        const messageData = typeof data === 'string' ? JSON.parse(data) : data;
+        console.log('Message event:', messageData, updates);
+
+        setMessages((prevMessages) => {
+          const existingIndex = prevMessages.findIndex((msg) => msg.id === messageData.id);
+          let updatedMessages: VisibleMessage[];
+
+          if (existingIndex !== -1) {
+            updatedMessages = [...prevMessages];
+            updatedMessages[existingIndex] = { ...updatedMessages[existingIndex], ...messageData, ...updates };
+          } else {
+            updatedMessages = [...prevMessages, { ...messageData, ...updates }];
+          }
+
+          return chatRef.current?.orderMessages?.(updatedMessages) ?? updatedMessages;
+        });
+      };
+
+      // Event-based loading handlers
+      const safeChatLoading = (loading: boolean) => {
+        if (isMounted()) setChatLoading(loading);
+      };
+      const safeMessagesLoading = (loading: boolean) => {
+        if (isMounted()) setMessagesLoading(loading);
+      };
+      const safeError = (err: any) => {
+        if (isMounted()) setError(err);
+      };
+
+      // Register event handlers
+      on(EVENTS.MESSAGE_REQUEST_INITIATED, createSafeHandler({ error: false, requested: true }));
+      on(EVENTS.MESSAGE_REQUEST_UPLOADED, createSafeHandler({ error: false, uploaded: true }));
+      on(EVENTS.MESSAGE_RECEIVED, createSafeHandler({ error: false, received: true }));
+      on(EVENTS.MESSAGE_REQUEST_ERROR, createSafeHandler({ error: true }));
+      on(EVENTS.LOADING_INIT, safeChatLoading);
+      on(EVENTS.LOADING_PREVIOUS_MESSAGES, safeMessagesLoading);
+      on(EVENTS.CRITICAL_ERROR, safeError);
+
+      await chat.start();
+
+      // Check if still mounted after start
+      if (!isMounted()) {
+        console.log('⏭️  Unmounted after start, stopping');
+        await chat.stop();
+        chatRef.current = null;
+        return;
+      }
     },
-    [updateOrAddMessage],
+    async () => {
+      if (chatRef.current) {
+        await chatRef.current.stop();
+        chatRef.current = null;
+      }
+    },
+    [user.privateKey, infra.wakuNode],
   );
-
-  useEffect(() => {
-    if (config.isWakuEnabled && infra.waku?.enabled && !infra.waku?.node) {
-      return;
-    }
-
-    if (chatRef.current) return;
-
-    const chat = new SwarmChat({ user, infra });
-    chatRef.current = chat;
-
-    const { on } = chat.getEmitter();
-
-    // Message lifecycle events
-    on(
-      EVENTS.MESSAGE_REQUEST_INITIATED,
-      createMessageHandler({
-        error: false,
-        requested: true,
-      }),
-    );
-    on(
-      EVENTS.MESSAGE_REQUEST_UPLOADED,
-      createMessageHandler({
-        error: false,
-        uploaded: true,
-      }),
-    );
-    on(
-      EVENTS.MESSAGE_RECEIVED,
-      createMessageHandler({
-        error: false,
-        received: true,
-      }),
-    );
-
-    on(
-      EVENTS.MESSAGE_REQUEST_ERROR,
-      createMessageHandler({
-        error: true,
-      }),
-    );
-
-    // Loading and error states
-    on(EVENTS.LOADING_INIT, setChatLoading);
-    on(EVENTS.LOADING_PREVIOUS_MESSAGES, setMessagesLoading);
-    on(EVENTS.CRITICAL_ERROR, setError);
-
-    chat.start();
-
-    return () => {
-      chat.stop();
-      chatRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.privateKey, infra.waku?.node, createMessageHandler]);
 
   const sendMessage = useCallback(
     (message: string, additionalProps?: any) =>

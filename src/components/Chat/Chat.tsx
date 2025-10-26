@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useWaku } from '@waku/react';
-import type { LightNode } from '@waku/sdk';
 
 import { Button } from '@/components/Button/Button';
 import { ChatMessage } from '@/components/Chat/ChatMessage/ChatMessage';
@@ -9,6 +7,7 @@ import { ScrollableMessageList } from '@/components/Chat/ScrollableMessageList/S
 import { ThreadView } from '@/components/Chat/ThreadView/ThreadView';
 import { useSwarmChat, VisibleMessage } from '@/hooks/useSwarmChat';
 import { useUserContext } from '@/providers/User';
+import { useWakuContext } from '@/providers/Waku';
 import { config } from '@/utils/shared/config';
 
 import './Chat.scss';
@@ -39,7 +38,7 @@ function getColorForName(name: string): string {
 const privKeyPlaceholder = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
 export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
-  const { node, isLoading } = useWaku();
+  const { node } = useWakuContext();
   const { nickname, keys, setIsLoginModalOpen } = useUserContext();
 
   const [selectedMessage, setSelectedMessage] = useState<VisibleMessage | null>(null);
@@ -48,7 +47,7 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isSendingThreadMessage, setIsSendingThreadMessage] = useState(false);
 
-  const wakuNodeLoading = !node && isLoading;
+  const wakuNodeLoading = !node;
 
   const {
     chatLoading,
@@ -75,10 +74,7 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
       chatAddress: config.streamStateOwner,
       chatTopic: `chat-${topic}`,
       enveloped: false,
-      waku: {
-        node: node as LightNode,
-        enabled: true,
-      },
+      wakuNode: node ?? undefined,
     },
   });
 

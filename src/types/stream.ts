@@ -36,6 +36,11 @@ export type StateEntry = {
   pinned?: boolean;
 };
 
+export interface StateArrayWithTimestamp {
+  entries: StateEntry[];
+  lastModified: number;
+}
+
 export interface CreateMessage {
   action: ActionType.CREATE;
   data: StateEntry;

@@ -1,4 +1,4 @@
-import { createLightNode, HealthStatus, type LightNode, WakuEvent } from '@waku/sdk';
+import { createLightNode, HealthStatus, type LightNode, WakuEvent } from '@solarpunkltd/waku-sdk';
 
 import { config } from '../shared/config';
 

@@ -1,4 +1,4 @@
-import type { IDecodedMessage, LightNode } from '@waku/sdk';
+import type { IDecodedMessage, LightNode } from '@solarpunkltd/waku-sdk';
 import protobuf from 'protobufjs';
 
 import { config } from '@/utils/shared/config';
@@ -13,11 +13,7 @@ const ManifestUpdateProtoBuf = new protobuf.Type('ManifestUpdate')
   .add(new protobuf.Field('isVod', 4, 'bool'));
 
 export class WakuManager {
-  private channelManager: WakuChannelManager;
-
-  constructor() {
-    this.channelManager = new WakuChannelManager();
-  }
+  constructor(private channelManager: WakuChannelManager) {}
 
   setNode(wakuNode: LightNode | null): void {
     this.channelManager.setNode(wakuNode);
@@ -32,7 +28,10 @@ export class WakuManager {
       throw new Error('Waku is not available');
     }
 
-    return this.channelManager.subscribe(`manifest-${metadata.wakuTopic}`, metadata.wakuTopic, onMessage);
+    const streamId = metadata.wakuTopic.replace(/^hls-manifest-/, '');
+    const channelName = `solarpunk-msrs-${streamId}-channel`;
+
+    return this.channelManager.subscribe(channelName, metadata.wakuTopic, onMessage);
   }
 
   decodeManifestUpdate(payload: Uint8Array): ManifestUpdate {

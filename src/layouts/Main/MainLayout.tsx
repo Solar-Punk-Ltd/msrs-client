@@ -12,12 +12,12 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const { isOnline } = useNetworkStatus();
+  const { isOnline } = useNetworkStatus(); // TODO - reanable
   const { isLoginModalOpen } = useUserContext();
 
   return (
     <div className="main-layout" role="main-layout">
-      <NetworkStatus isOnline={isOnline} />
+      <NetworkStatus isOnline={true} />
       <header>
         <img src={SpLogo} alt="logo" className="logo" />
         <LoginButton />

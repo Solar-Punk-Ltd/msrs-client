@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
-import { useWaku } from '@waku/react';
-import type { LightNode } from '@waku/sdk';
+import type { LightNode } from '@solarpunkltd/waku-sdk';
 import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
+import { useSerializedEffect } from '@/hooks/useSerializedEffect';
+import { useWakuContext } from '@/providers/Waku';
 import { MediaType } from '@/types/stream';
 
 import { ManifestStateManager } from './ManifestManagement/ManifestStateManager';
@@ -26,35 +27,64 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   controls = true,
   ...videoProps
 }) => {
-  const { node } = useWaku();
+  const { node } = useWakuContext();
   const [restartTrigger, setRestartTrigger] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    const topicObj = Topic.fromString(topic);
-    const hexTopic = topicObj.toString();
-    const stateManager = ManifestStateManager.getInstance();
+  useSerializedEffect(
+    `swarm-hls-player-${owner}-${topic}`,
+    async (isMounted) => {
+      const topicObj = Topic.fromString(topic);
+      const hexTopic = topicObj.toString();
+      const stateManager = ManifestStateManager.getInstance();
 
-    if (node) {
-      stateManager.setWakuNode(node as LightNode);
-
-      stateManager
-        .setupStreamSubscription(owner, topicObj)
-        .then(() => {
-          console.log('Stream subscription ready');
-          setIsReady(true);
-        })
-        .catch((error) => {
-          console.error('Failed to setup subscription:', error);
+      if (!node) {
+        console.log('⏸️ Waiting for Waku node to become available...');
+        if (isMounted()) {
           setIsReady(false);
-        });
-    }
+        }
+        return;
+      }
 
-    return () => {
-      stateManager.clear(hexTopic);
-    };
-  }, [owner, topic, node]);
+      try {
+        stateManager.setWakuNode(node as LightNode);
+
+        await stateManager.setupStreamSubscription(owner, topicObj);
+
+        // Check if still mounted after async operation
+        if (!isMounted()) {
+          console.log('⏭️ Component unmounted during subscription setup, cleaning up');
+          stateManager.clear(hexTopic);
+          return;
+        }
+
+        console.log('Stream subscription ready');
+        setIsReady(true);
+      } catch (error) {
+        if (!isMounted()) {
+          console.log('⏭️ Component unmounted, ignoring subscription error');
+          return;
+        }
+
+        console.error('Failed to setup subscription:', error);
+        setIsReady(false);
+      }
+    },
+    async () => {
+      const topicObj = Topic.fromString(topic);
+      const hexTopic = topicObj.toString();
+      const stateManager = ManifestStateManager.getInstance();
+
+      try {
+        await stateManager.clear(hexTopic);
+        console.log('✅ Stream subscription cleanup complete');
+      } catch (err) {
+        console.error('❌ Error during stream subscription cleanup:', err);
+      }
+    },
+    [owner, topic, node],
+  );
 
   useEffect(() => {
     if (!isReady) return;

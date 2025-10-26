@@ -1,40 +1,13 @@
-import type { LightNode } from '@waku/sdk';
+import type { LightNode } from '@solarpunkltd/waku-sdk';
 
-import type { StateEntry } from '@/types/stream';
+import type { StateArrayWithTimestamp, StateEntry } from '@/types/stream';
 import { config } from '@/utils/shared/config';
 import { WakuChannelManager } from '@/utils/waku/WakuChannelManager';
 
 import { decodeStreamList } from './StreamListDecoder';
 
-class MessageCache {
-  private cache = new Set<string>();
-  private static readonly MAX_SIZE = 100;
-
-  has(hash: string): boolean {
-    return this.cache.has(hash);
-  }
-
-  add(hash: string): void {
-    if (this.cache.size >= MessageCache.MAX_SIZE) {
-      const entriesToDelete = Math.floor(MessageCache.MAX_SIZE / 2);
-      const iterator = this.cache.values();
-      for (let i = 0; i < entriesToDelete; i++) {
-        const { value } = iterator.next();
-        if (value) {
-          this.cache.delete(value);
-        }
-      }
-    }
-    this.cache.add(hash);
-  }
-
-  clear(): void {
-    this.cache.clear();
-  }
-}
-
 interface WaitingPromise {
-  resolve: (entries: StateEntry[] | null) => void;
+  resolve: (stateArray: StateArrayWithTimestamp | null) => void;
   timeout: NodeJS.Timeout;
   currentStreamListSnapshot: string;
 }
@@ -44,28 +17,20 @@ export class WakuStreamManager {
   private unsubscribe?: () => Promise<void>;
   private onUpdate?: (entries: StateEntry[]) => void;
 
-  private readonly messageCache = new MessageCache();
-
-  private lastProcessedContentHash: string | null = null;
-  private lastProcessedTimestamp: number = 0;
+  private lastModified: number = 0;
 
   private waitingPromise?: WaitingPromise;
 
-  constructor(node: LightNode, initialEntries: StateEntry[] | null) {
+  constructor(node: LightNode, initialEntries: StateArrayWithTimestamp | null) {
     this.channelManager = new WakuChannelManager();
     this.channelManager.setNode(node);
 
-    if (initialEntries && Array.isArray(initialEntries) && initialEntries.length > 0) {
-      this.lastProcessedTimestamp = WakuStreamManager.getLatestTimestamp(initialEntries);
-      this.lastProcessedContentHash = this.createContentHash(initialEntries);
+    if (initialEntries && initialEntries.entries && initialEntries.entries.length > 0) {
+      this.lastModified = initialEntries.lastModified;
       console.log(
-        `[WakuStreamManager] Initialized with ${initialEntries.length} entries, timestamp: ${this.lastProcessedTimestamp}`,
+        `[WakuStreamManager] Initialized with ${initialEntries.entries.length} entries, lastModified: ${this.lastModified}`,
       );
     }
-  }
-
-  private static getLatestTimestamp(streams: StateEntry[]): number {
-    return Math.max(...streams.map((stream) => stream.updatedAt || stream.createdAt || 0));
   }
 
   private cancelCurrentWaitingPromise(): void {
@@ -84,7 +49,10 @@ export class WakuStreamManager {
 
     if (newSnapshot !== this.waitingPromise.currentStreamListSnapshot) {
       clearTimeout(this.waitingPromise.timeout);
-      this.waitingPromise.resolve(entries);
+      this.waitingPromise.resolve({
+        entries,
+        lastModified: this.lastModified,
+      });
       this.waitingPromise = undefined;
       console.log('[WakuStreamManager] Resolved waiting promise with new data');
     } else {
@@ -92,8 +60,13 @@ export class WakuStreamManager {
     }
   }
 
-  async subscribe(onUpdate: (entries: StateEntry[]) => void): Promise<void> {
-    this.onUpdate = onUpdate;
+  async subscribe(onUpdate: (stateArray: StateArrayWithTimestamp) => void): Promise<void> {
+    this.onUpdate = (entries: StateEntry[]) => {
+      onUpdate({
+        entries,
+        lastModified: this.lastModified,
+      });
+    };
 
     const topicName = `${config.streamStateOwner.toLowerCase()}-${config.streamStateTopic.toLocaleLowerCase()}`;
     const channelName = 'solarpunk-msrs-stream-channel';
@@ -112,87 +85,62 @@ export class WakuStreamManager {
     console.log('[WakuStreamManager] Received message on topic:', topicName);
 
     try {
-      const messageHash = this.createMessageHash(message.payload);
+      const decoded = decodeStreamList(message.payload);
+      console.log('Decoded data:', decoded);
 
-      const e = decodeStreamList(message.payload);
-      console.log('Decoded entries:', e);
-
-      if (this.messageCache.has(messageHash)) {
-        console.log(`[DEBUG] Duplicate message detected: ${messageHash}`);
+      if (decoded && typeof decoded === 'object' && 'entries' in decoded && 'lastModified' in decoded) {
+        const stateArray = decoded as unknown as StateArrayWithTimestamp;
+        if (!stateArray.entries || !Array.isArray(stateArray.entries)) {
+          console.warn('[WakuStreamManager] Decoded invalid state array');
+          return;
+        }
+        this.handleStateArrayUpdate(stateArray);
+      } else {
+        console.warn('[WakuStreamManager] Decoded invalid data format');
         return;
       }
-
-      this.messageCache.add(messageHash);
-
-      const entries = decodeStreamList(message.payload);
-
-      if (!Array.isArray(entries) || entries.length === 0) {
-        console.warn('[WakuStreamManager] Decoded invalid or empty stream list');
-        return;
-      }
-
-      this.handleStreamListUpdate(entries);
     } catch (error) {
       console.error('[WakuStreamManager] Failed to process message:', error);
     }
   }
 
-  private createMessageHash(payload: Uint8Array): string {
-    return Buffer.from(payload).toString('base64');
-  }
-
-  private createContentHash(entries: StateEntry[]): string {
-    const contentSignature = entries
-      .map((entry) => `${entry.topic}:${entry.owner}:${entry.updatedAt || entry.createdAt}:${entry.state}`)
-      .sort()
-      .join('|');
-    return Buffer.from(contentSignature).toString('base64');
-  }
-
-  private hasNewerContent(entries: StateEntry[]): boolean {
-    const maxTimestamp = WakuStreamManager.getLatestTimestamp(entries);
-
-    if (maxTimestamp < this.lastProcessedTimestamp) {
-      console.log('[WakuStreamManager] Received older timestamp data, ignoring...');
+  private hasNewerContent(stateArray: StateArrayWithTimestamp): boolean {
+    if (stateArray.lastModified <= this.lastModified) {
+      console.log(
+        `[WakuStreamManager] Received older or same lastModified (${stateArray.lastModified} <= ${this.lastModified}), ignoring...`,
+      );
       return false;
     }
-
-    const currentContentHash = this.createContentHash(entries);
-
-    if (maxTimestamp === this.lastProcessedTimestamp && this.lastProcessedContentHash === currentContentHash) {
-      console.log('[WakuStreamManager] Same timestamp and content hash, ignoring...');
-      return false;
-    }
-
     return true;
   }
 
-  private handleStreamListUpdate(entries: StateEntry[]): void {
-    if (!this.hasNewerContent(entries)) {
+  private handleStateArrayUpdate(stateArray: StateArrayWithTimestamp): void {
+    if (!this.hasNewerContent(stateArray)) {
       console.log('[WakuStreamManager] Skipping update - not newer than current state');
       return;
     }
 
-    this.lastProcessedTimestamp = WakuStreamManager.getLatestTimestamp(entries);
-    this.lastProcessedContentHash = this.createContentHash(entries);
+    this.lastModified = stateArray.lastModified;
 
-    console.log(`[WakuStreamManager] Processing update with ${entries.length} entries`);
+    console.log(
+      `[WakuStreamManager] Processing update with ${stateArray.entries.length} entries, lastModified: ${stateArray.lastModified}`,
+    );
 
     if (this.onUpdate) {
-      this.onUpdate(entries);
+      this.onUpdate(stateArray.entries);
     }
 
-    this.resolveWaitingPromiseIfNeeded(entries);
+    this.resolveWaitingPromiseIfNeeded(stateArray.entries);
   }
 
   async waitForStreamListChange(
-    currentStreamList: StateEntry[],
+    currentStreamList: StateArrayWithTimestamp,
     timeoutMs: number = 10000,
-  ): Promise<StateEntry[] | null> {
+  ): Promise<StateArrayWithTimestamp | null> {
     this.cancelCurrentWaitingPromise();
 
     return new Promise((resolve) => {
-      const currentSnapshot = JSON.stringify(currentStreamList);
+      const currentSnapshot = JSON.stringify(currentStreamList.entries);
 
       const timeout = setTimeout(() => {
         console.warn('[WakuStreamManager] Timeout waiting for stream list change');
@@ -226,10 +174,7 @@ export class WakuStreamManager {
 
     await this.channelManager.destroy();
 
-    this.messageCache.clear();
-
-    this.lastProcessedContentHash = null;
-    this.lastProcessedTimestamp = 0;
+    this.lastModified = 0;
     this.onUpdate = undefined;
   }
 }

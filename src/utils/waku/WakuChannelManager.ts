@@ -1,4 +1,4 @@
-import { type LightNode, ReliableChannel } from '@waku/sdk';
+import { type LightNode, ReliableChannel } from '@solarpunkltd/waku-sdk';
 import crypto from 'crypto';
 
 interface ChannelSubscription {
@@ -77,6 +77,7 @@ export class WakuChannelManager {
 
     reliableChannel.addEventListener('message-received', messageListener);
 
+    // TODO: Implement missing message handling if needed - WIP
     let missingListener: ((event: any) => void) | undefined;
     // if (reliableChannel.messageChannel) {
     //   missingListener = (event: any) => {
@@ -120,31 +121,11 @@ export class WakuChannelManager {
       //   );
       // }
 
-      subscription.channel.stop();
+      await subscription.channel.stop();
 
       this.channelSubscriptions.delete(channelName);
     } catch (error) {
       this.channelSubscriptions.delete(channelName);
-    }
-  }
-
-  private async recreateSubscriptions(): Promise<void> {
-    if (!this.currentNode) return;
-
-    const subscriptionConfigs = Array.from(this.channelSubscriptions.values()).map((sub) => ({
-      channelName: sub.channelName,
-      topicName: sub.topicName,
-      handler: sub.handler,
-    }));
-
-    await this.clearAllSubscriptions();
-
-    for (const config of subscriptionConfigs) {
-      try {
-        await this.createChannelSubscription(this.currentNode, config.channelName, config.topicName, config.handler);
-      } catch (error) {
-        // Handle error silently
-      }
     }
   }
 

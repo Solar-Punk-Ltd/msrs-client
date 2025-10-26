@@ -1,6 +1,6 @@
 import protobuf from 'protobufjs';
 
-import type { StateEntry } from '@/types/stream';
+import type { StateArrayWithTimestamp } from '@/types/stream';
 
 const StreamEntryProto = new protobuf.Type('StreamEntry')
   .add(new protobuf.Field('owner', 1, 'string'))
@@ -19,15 +19,21 @@ const StreamEntryProto = new protobuf.Type('StreamEntry')
 
 const StreamListProto = new protobuf.Type('StreamList')
   .add(StreamEntryProto)
-  .add(new protobuf.Field('entries', 1, 'StreamEntry', 'repeated'));
+  .add(new protobuf.Field('entries', 1, 'StreamEntry', 'repeated'))
+  .add(new protobuf.Field('lastModified', 2, 'uint64'));
 
-export function decodeStreamList(payload: Uint8Array): StateEntry[] {
+export function decodeStreamList(payload: Uint8Array): StateArrayWithTimestamp {
   const decoded = StreamListProto.decode(payload);
   const object = StreamListProto.toObject(decoded, {
     longs: String,
     enums: String,
     bytes: String,
-  });
+  }) as StateArrayWithTimestamp;
 
-  return object.entries || [];
+  return (
+    object || {
+      entries: [],
+      lastModified: 0,
+    }
+  );
 }

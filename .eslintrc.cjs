@@ -17,7 +17,7 @@ module.exports = {
     react: {
       version: 'detect',
     },
-    'import/core-modules': ['@waku/sdk', '@waku/core', '@waku/react', '@waku/utils'],
+    'import/core-modules': ['@solarpunkltd/waku-sdk', '@waku/sdk', '@waku/core', '@waku/react', '@waku/utils'],
     'import/resolver': {
       node: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],

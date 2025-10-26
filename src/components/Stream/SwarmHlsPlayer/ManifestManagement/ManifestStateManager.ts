@@ -1,8 +1,9 @@
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
-import type { LightNode } from '@waku/sdk';
+import type { LightNode } from '@solarpunkltd/waku-sdk';
 
 import { makeFeedIdentifier } from '@/utils/network/bee';
 import { config } from '@/utils/shared/config';
+import { WakuChannelManager } from '@/utils/waku/WakuChannelManager';
 
 import { ManifestParser } from './ManifestParser';
 import { SwarmFetcher } from './SwarmFetcher';
@@ -13,7 +14,7 @@ export class ManifestStateManager {
   private static instance: ManifestStateManager;
   private topics = new Map<string, TopicState>();
   private subscriptionPromises = new Map<string, Promise<void>>();
-  private wakuManager = new WakuManager();
+  private wakuManager = new WakuManager(new WakuChannelManager());
   private fetcher = new SwarmFetcher();
 
   private constructor() {}
@@ -50,12 +51,12 @@ export class ManifestStateManager {
     return state.manifest || fallback;
   }
 
-  public clear(topicId?: string): void {
+  public async clear(topicId?: string): Promise<void> {
     if (topicId) {
-      this.cleanupTopic(topicId);
+      await this.cleanupTopic(topicId);
     } else {
       for (const id of this.topics.keys()) {
-        this.cleanupTopic(id);
+        await this.cleanupTopic(id);
       }
       this.topics.clear();
     }
