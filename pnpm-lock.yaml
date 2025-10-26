@@ -36,8 +36,8 @@ importers:
         specifier: ^4.2.0
         version: 4.2.0
       emoji-picker-react:
-        specifier: ^4.13.1
-        version: 4.14.0(react@18.3.1)
+        specifier: 4.13.1
+        version: 4.13.1(react@18.3.1)
       ethers:
         specifier: ^6.13.5
         version: 6.15.0
@@ -1691,8 +1691,8 @@ packages:
   elliptic@6.6.1:
     resolution: {integrity: sha512-RaddvvMatK2LJHqFJ+YA4WysVN5Ita9E35botqIYspQ4TkRAlCicdzKOjlyv/1Za5RyTNn7di//eEV0uTAfe3g==}
 
-  emoji-picker-react@4.14.0:
-    resolution: {integrity: sha512-HYqNhvbhYWonp/ArIDcbElTlwPHC3g59CVPDVPt5DgfOOKIyabKIucVODBslul3+5r+rnmH22LrTk0SlWiqRfg==}
+  emoji-picker-react@4.13.1:
+    resolution: {integrity: sha512-0I+8stp8/l3H/DAa8axeO/ffb7NmqSs4zlh4fW+CgQ4BsEaNiDnXFv6Ll72iZiGzvIKR4GEVVAkj3B692Ey3Gg==}
     engines: {node: '>=10'}
     peerDependencies:
       react: '>=16'
@@ -5472,7 +5472,7 @@ snapshots:
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
 
-  emoji-picker-react@4.14.0(react@18.3.1):
+  emoji-picker-react@4.13.1(react@18.3.1):
     dependencies:
       flairup: 1.0.0
       react: 18.3.1
