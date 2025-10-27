@@ -38,7 +38,7 @@ function getColorForName(name: string): string {
 const privKeyPlaceholder = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
 export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
-  const { node } = useWakuContext();
+  const { node, channelManager } = useWakuContext();
   const { nickname, keys, setIsLoginModalOpen } = useUserContext();
 
   const [selectedMessage, setSelectedMessage] = useState<VisibleMessage | null>(null);
@@ -47,7 +47,7 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isSendingThreadMessage, setIsSendingThreadMessage] = useState(false);
 
-  const wakuNodeLoading = !node;
+  const wakuNodeLoading = !node || !channelManager;
 
   const {
     chatLoading,
@@ -74,7 +74,6 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
       chatAddress: config.streamStateOwner,
       chatTopic: `chat-${topic}`,
       enveloped: false,
-      wakuNode: node ?? undefined,
     },
   });
 

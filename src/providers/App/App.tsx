@@ -41,7 +41,7 @@ interface AppContextProviderProps {
 }
 
 export const AppContextProvider = ({ children }: AppContextProviderProps) => {
-  const { node } = useWakuContext();
+  const { node, channelManager } = useWakuContext();
   const queryClient = useQueryClient();
 
   const [streamList, setStreamList] = useState<StateArrayWithTimestamp>({
@@ -97,10 +97,10 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
   useSerializedEffect(
     'app-stream-manager',
     async (isMounted) => {
-      if (!node) {
+      if (!node || !channelManager) {
         // Clean up existing manager if it exists
         if (wakuManagerRef.current) {
-          console.log('🧹 Cleaning up existing stream manager due to missing node');
+          console.log('🧹 Cleaning up existing stream manager due to missing node or channel manager');
           await wakuManagerRef.current.cleanup();
           wakuManagerRef.current = null;
 
@@ -112,7 +112,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           }
         }
 
-        console.log('⏸️  Waiting for Waku node to become available...');
+        console.log('⏸️  Waiting for Waku node and channel manager to become available...');
         return;
       }
 
@@ -139,8 +139,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         });
 
         // Setup Waku stream manager if enabled
-        if (isWakuEnabled && node) {
-          const manager = new WakuStreamManager(node, data);
+        if (isWakuEnabled && node && channelManager) {
+          const manager = new WakuStreamManager(channelManager, data);
 
           // Check if still mounted after instantiation
           if (!isMounted()) {
@@ -207,7 +207,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         }
       }
     },
-    [node, isWakuEnabled],
+    [node, channelManager, isWakuEnabled],
   );
 
   const refreshStreamList = useCallback(async () => {

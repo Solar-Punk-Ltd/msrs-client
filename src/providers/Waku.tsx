@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { LightNode } from '@solarpunkltd/waku-sdk';
 
+import { useSerializedEffect } from '@/hooks/useSerializedEffect';
+import { WakuChannelManager } from '@/utils/waku/WakuChannelManager';
+
 import { WakuNodeManager } from '../utils/waku/WakuNodeManager';
 
 interface WakuContextState {
   isHealty: boolean;
   isRecovering: boolean;
   node: LightNode | null;
+  channelManager: WakuChannelManager | null;
 }
 
 const WakuContext = createContext<WakuContextState | null>(null);
@@ -27,6 +31,8 @@ export function WakuProvider({ children }: WakuProviderProps) {
     isRecovering: false,
     node: null,
   });
+
+  const [channelManager, setChannelManager] = useState<WakuChannelManager | null>(null);
 
   const nodeManagerRef = useRef<WakuNodeManager | null>(null);
 
@@ -83,7 +89,73 @@ export function WakuProvider({ children }: WakuProviderProps) {
     };
   }, []);
 
-  const contextValue: WakuContextState = nodeState;
+  useSerializedEffect(
+    'waku-channel-manager',
+    async (isMounted) => {
+      const node = nodeState.node;
+
+      if (!node) {
+        // Clean up existing channel manager if node is lost
+        if (channelManager) {
+          const managerToCleanup = channelManager;
+
+          if (isMounted()) {
+            setChannelManager(null);
+          }
+
+          try {
+            await managerToCleanup.destroy();
+          } catch (err) {
+            console.error('Error during channel manager cleanup:', err);
+          }
+        }
+
+        return;
+      }
+
+      // Skip if already initialized with current node
+      if (channelManager) {
+        return;
+      }
+
+      try {
+        const manager = new WakuChannelManager();
+        manager.setNode(node);
+
+        if (!isMounted()) {
+          await manager.destroy();
+          return;
+        }
+
+        setChannelManager(manager);
+      } catch (error) {
+        if (!isMounted()) {
+          console.log('⏭️ Component unmounted, ignoring channel manager setup error');
+          return;
+        }
+
+        console.error('❌ Failed to initialize channel manager:', error);
+      }
+    },
+    async () => {
+      if (channelManager) {
+        const managerToCleanup = channelManager;
+        setChannelManager(null);
+
+        try {
+          await managerToCleanup.destroy();
+        } catch (err) {
+          console.error('❌ Error during channel manager cleanup on unmount:', err);
+        }
+      }
+    },
+    [nodeState.node],
+  );
+
+  const contextValue: WakuContextState = {
+    ...nodeState,
+    channelManager,
+  };
 
   return <WakuContext.Provider value={contextValue}>{children}</WakuContext.Provider>;
 }

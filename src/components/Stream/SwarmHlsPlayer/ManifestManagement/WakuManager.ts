@@ -1,4 +1,4 @@
-import type { IDecodedMessage, LightNode } from '@solarpunkltd/waku-sdk';
+import type { IDecodedMessage } from '@solarpunkltd/waku-sdk';
 import protobuf from 'protobufjs';
 
 import { config } from '@/utils/shared/config';
@@ -14,10 +14,6 @@ const ManifestUpdateProtoBuf = new protobuf.Type('ManifestUpdate')
 
 export class WakuManager {
   constructor(private channelManager: WakuChannelManager) {}
-
-  setNode(wakuNode: LightNode | null): void {
-    this.channelManager.setNode(wakuNode);
-  }
 
   isAvailable(): boolean {
     return config.isWakuEnabled;

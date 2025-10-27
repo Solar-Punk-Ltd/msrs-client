@@ -1,5 +1,4 @@
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
-import type { LightNode } from '@solarpunkltd/waku-sdk';
 
 import { makeFeedIdentifier } from '@/utils/network/bee';
 import { config } from '@/utils/shared/config';
@@ -14,7 +13,7 @@ export class ManifestStateManager {
   private static instance: ManifestStateManager;
   private topics = new Map<string, TopicState>();
   private subscriptionPromises = new Map<string, Promise<void>>();
-  private wakuManager = new WakuManager(new WakuChannelManager());
+  private wakuManager: WakuManager | null = null;
   private fetcher = new SwarmFetcher();
 
   private constructor() {}
@@ -26,12 +25,16 @@ export class ManifestStateManager {
     return ManifestStateManager.instance;
   }
 
-  public setWakuNode(wakuNode: LightNode | null): void {
-    this.wakuManager.setNode(wakuNode);
+  public setChannelManager(channelManager: WakuChannelManager | null): void {
+    if (channelManager) {
+      this.wakuManager = new WakuManager(channelManager);
+    } else {
+      this.wakuManager = null;
+    }
   }
 
   public isWakuAvailable(): boolean {
-    return this.wakuManager.isAvailable();
+    return this.wakuManager?.isAvailable() ?? false;
   }
 
   public isUsingWaku(topicId: string): boolean {
@@ -163,12 +166,17 @@ export class ManifestStateManager {
   }
 
   private async subscribeToWaku(topicId: string, metadata: WakuMetadata): Promise<void> {
+    if (!this.wakuManager) {
+      throw new Error('Waku manager not available');
+    }
+
     const state = this.getOrCreateTopicState(topicId);
 
     state.wakuUnsubscribe = await this.wakuManager.subscribe(metadata, (message) => {
       if (!message.payload) return;
 
       try {
+        if (!this.wakuManager) return;
         const update = this.wakuManager.decodeManifestUpdate(message.payload);
         this.handleWakuUpdate(topicId, update);
       } catch (error) {

@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ChatSettings, EVENTS, MessageData, MessageType, SwarmChat } from '@solarpunkltd/swarm-chat-js';
 
+import { useWakuContext } from '@/providers/Waku';
 import { config } from '@/utils/shared/config';
+import { WakuTransport } from '@/utils/waku/WakuChatTransport';
 
 import { useSerializedEffect } from './useSerializedEffect';
 
@@ -66,6 +68,7 @@ const processReactions = (
 
 export const useSwarmChat = ({ user, infra }: ChatSettings) => {
   const chatRef = useRef<SwarmChat | null>(null);
+  const { channelManager } = useWakuContext();
 
   const [messages, setMessages] = useState<VisibleMessage[]>([]);
   const [chatLoading, setChatLoading] = useState<boolean>(true);
@@ -117,7 +120,9 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
     'swarm-chat',
     async (isMounted) => {
       // Check if Waku is required but not available
-      if (config.isWakuEnabled && !infra.wakuNode) {
+      if (config.isWakuEnabled && !channelManager) {
+        console.log('⏭️  Waku is enabled but channel manager not available yet');
+
         // Clean up existing chat if it exists
         if (chatRef.current) {
           await chatRef.current.stop();
@@ -137,12 +142,23 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
 
       // Skip if already initialized
       if (chatRef.current) {
-        console.log('✅ Chat already exists and Waku is available');
+        console.log('✅ Chat already exists');
         return;
       }
 
+      // Create transport based on config
+      let transport;
+      if (config.isWakuEnabled && channelManager) {
+        console.log('🚀 Creating Waku transport');
+        transport = new WakuTransport({
+          channelManager,
+          chatTopic: infra.chatTopic,
+        });
+      }
+      // If no transport is provided, SwarmChat will use default polling
+
       // Start fresh - either first time or after cleanup
-      const chat = new SwarmChat({ user, infra });
+      const chat = new SwarmChat({ user, infra }, transport);
 
       // Check if still mounted after instantiation
       if (!isMounted()) {
@@ -215,7 +231,7 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
         chatRef.current = null;
       }
     },
-    [user.privateKey, infra.wakuNode],
+    [user.privateKey, channelManager],
   );
 
   const sendMessage = useCallback(

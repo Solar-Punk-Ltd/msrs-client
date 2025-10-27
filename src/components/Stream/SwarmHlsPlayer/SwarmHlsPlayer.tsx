@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
-import type { LightNode } from '@solarpunkltd/waku-sdk';
 import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
@@ -27,7 +26,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   controls = true,
   ...videoProps
 }) => {
-  const { node } = useWakuContext();
+  const { channelManager } = useWakuContext();
   const [restartTrigger, setRestartTrigger] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -39,8 +38,8 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       const hexTopic = topicObj.toString();
       const stateManager = ManifestStateManager.getInstance();
 
-      if (!node) {
-        console.log('⏸️ Waiting for Waku node to become available...');
+      if (!channelManager) {
+        console.log('⏸️ Waiting for channel manager to become available...');
         if (isMounted()) {
           setIsReady(false);
         }
@@ -48,7 +47,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       }
 
       try {
-        stateManager.setWakuNode(node as LightNode);
+        stateManager.setChannelManager(channelManager);
 
         await stateManager.setupStreamSubscription(owner, topicObj);
 
@@ -83,7 +82,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
         console.error('❌ Error during stream subscription cleanup:', err);
       }
     },
-    [owner, topic, node],
+    [owner, topic, channelManager],
   );
 
   useEffect(() => {

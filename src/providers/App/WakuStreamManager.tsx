@@ -1,5 +1,3 @@
-import type { LightNode } from '@solarpunkltd/waku-sdk';
-
 import type { StateArrayWithTimestamp, StateEntry } from '@/types/stream';
 import { config } from '@/utils/shared/config';
 import { WakuChannelManager } from '@/utils/waku/WakuChannelManager';
@@ -21,9 +19,8 @@ export class WakuStreamManager {
 
   private waitingPromise?: WaitingPromise;
 
-  constructor(node: LightNode, initialEntries: StateArrayWithTimestamp | null) {
-    this.channelManager = new WakuChannelManager();
-    this.channelManager.setNode(node);
+  constructor(channelManager: WakuChannelManager, initialEntries: StateArrayWithTimestamp | null) {
+    this.channelManager = channelManager;
 
     if (initialEntries && initialEntries.entries && initialEntries.entries.length > 0) {
       this.lastModified = initialEntries.lastModified;
@@ -171,8 +168,6 @@ export class WakuStreamManager {
       await this.unsubscribe();
       this.unsubscribe = undefined;
     }
-
-    await this.channelManager.destroy();
 
     this.lastModified = 0;
     this.onUpdate = undefined;
