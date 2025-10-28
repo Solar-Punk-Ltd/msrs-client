@@ -86,10 +86,13 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     }
 
     setStreamList((current) => {
-      const clonedData = cloneDeep(data);
-      if (!isEqual(current, clonedData)) {
-        return clonedData;
+      const isInitialState = current.lastModified === 0 && current.entries.length === 0;
+      const isNewerData = data.lastModified > current.lastModified;
+
+      if (isInitialState || isNewerData) {
+        return cloneDeep(data);
       }
+
       return current;
     });
   }, []);
@@ -222,10 +225,20 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
     try {
       if (isWakuEnabled && wakuManagerRef.current) {
-        const freshData = await wakuManagerRef.current.waitForStreamListChange(streamList, 10000);
+        const wakuPromise = wakuManagerRef.current.waitForStreamListChange(streamList, 10000);
+
+        const fallbackPromise = new Promise<StateArrayWithTimestamp | null>((resolve) => {
+          setTimeout(async () => {
+            const data = await fetchAppState();
+            resolve(data);
+          }, 3500);
+        });
+
+        const freshData = await Promise.race([wakuPromise, fallbackPromise]);
 
         if (freshData) {
           setNewStreamList(freshData);
+          queryClient.setQueryData(['app-state'], cloneDeep(freshData));
         } else {
           console.warn('No stream list change detected within timeout');
         }

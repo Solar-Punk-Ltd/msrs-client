@@ -29,18 +29,18 @@ export function StreamManager() {
   const { data } = useQuery({
     queryKey: ['app-state'],
     queryFn: () => fetchAppState(),
-    refetchInterval: isWakuEnabled ? false : 2500,
+    refetchInterval: isWakuEnabled ? 8000 : 2500,
     retry: true,
-    enabled: isWakuEnabled ? false : !isLoading,
+    enabled: !isLoading,
     staleTime: 0,
     gcTime: Infinity,
   });
 
   useEffect(() => {
-    if (data && !isWakuEnabled) {
+    if (data) {
       setNewStreamList(data);
     }
-  }, [data, setNewStreamList, isWakuEnabled]);
+  }, [data, setNewStreamList]);
 
   const handleEdit = (stream: StateEntry) => {
     navigate(`/edit/${stream.owner}/${stream.topic}`);
