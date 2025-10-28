@@ -101,10 +101,16 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         // Clean up existing manager if it exists
         if (wakuManagerRef.current) {
           console.log('🧹 Cleaning up existing stream manager due to missing node or channel manager');
-          await wakuManagerRef.current.cleanup();
+          const managerToCleanup = wakuManagerRef.current;
           wakuManagerRef.current = null;
 
-          // Reset state
+          try {
+            await managerToCleanup.cleanup();
+          } catch (err) {
+            console.error('Error cleaning up manager:', err);
+          }
+
+          // Reset state only if still mounted
           if (isMounted()) {
             setStreamList({ entries: [], lastModified: 0 });
             setIsLoading(true);
@@ -138,51 +144,52 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           lastModified: data ? data.lastModified : 0,
         });
 
-        // Setup Waku stream manager if enabled
-        if (isWakuEnabled && node && channelManager) {
+        if (isWakuEnabled && node && channelManager && !wakuManagerRef.current) {
           const manager = new WakuStreamManager(channelManager, data);
 
           // Check if still mounted after instantiation
           if (!isMounted()) {
-            console.log('⏭️  Component unmounted during manager setup, cleaning up');
+            console.log('⏭️  Component unmounted during manager setup');
             await manager.cleanup();
             return;
           }
 
           wakuManagerRef.current = manager;
 
-          await manager.subscribe((stateArray) => {
-            // Only update if still mounted
-            if (isMounted()) {
-              console.log('📨 Received stream update via Waku');
-              setNewStreamList(stateArray);
+          try {
+            await manager.subscribe((stateArray) => {
+              // Only update if still mounted
+              if (isMounted() && wakuManagerRef.current === manager) {
+                console.log('📨 Received stream update via Waku');
+                setNewStreamList(stateArray);
+              }
+            });
+
+            // Check if still valid after subscription
+            if (!isMounted() || wakuManagerRef.current !== manager) {
+              console.log('⏭️  Invalid state after subscription, cleaning up');
+              await manager.cleanup();
+              if (wakuManagerRef.current === manager) {
+                wakuManagerRef.current = null;
+              }
+              return;
             }
-          });
 
-          // Check if still mounted after subscription
-          if (!isMounted()) {
-            console.log('⏭️  Component unmounted after subscription, cleaning up');
+            console.log('✅ Waku stream manager setup complete');
+          } catch (err) {
+            console.error('Failed to subscribe:', err);
+            if (wakuManagerRef.current === manager) {
+              wakuManagerRef.current = null;
+            }
             await manager.cleanup();
-            wakuManagerRef.current = null;
-            return;
+            throw err;
           }
-
-          console.log('✅ Waku stream manager setup complete');
         }
 
-        // Check if still mounted before final state update
-        if (!isMounted()) {
-          console.log('⏭️  Component unmounted, skipping final state update');
-          // Cleanup manager if we created one
-          if (wakuManagerRef.current) {
-            await wakuManagerRef.current.cleanup();
-            wakuManagerRef.current = null;
-          }
-          return;
+        if (isMounted()) {
+          setIsLoading(false);
+          console.log('✅ App initialization complete');
         }
-
-        setIsLoading(false);
-        console.log('✅ App initialization complete');
       } catch (error) {
         if (!isMounted()) {
           console.log('⏭️  Component unmounted, ignoring error');

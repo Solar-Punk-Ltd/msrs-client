@@ -40,6 +40,9 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
 
       if (!channelManager) {
         console.log('⏸️ Waiting for channel manager to become available...');
+
+        await stateManager.clear(hexTopic);
+
         if (isMounted()) {
           setIsReady(false);
         }
@@ -47,14 +50,19 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       }
 
       try {
-        stateManager.setChannelManager(channelManager);
+        await stateManager.setChannelManager(channelManager);
+
+        if (!isMounted()) {
+          console.log('⏭️ Component unmounted during channel manager setup');
+          return;
+        }
 
         await stateManager.setupStreamSubscription(owner, topicObj);
 
         // Check if still mounted after async operation
         if (!isMounted()) {
           console.log('⏭️ Component unmounted during subscription setup, cleaning up');
-          stateManager.clear(hexTopic);
+          await stateManager.clear(hexTopic);
           return;
         }
 

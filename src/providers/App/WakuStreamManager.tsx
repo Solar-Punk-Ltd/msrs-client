@@ -16,6 +16,7 @@ export class WakuStreamManager {
   private onUpdate?: (entries: StateEntry[]) => void;
 
   private lastModified: number = 0;
+  private isCleaningUp = false;
 
   private waitingPromise?: WaitingPromise;
 
@@ -58,11 +59,17 @@ export class WakuStreamManager {
   }
 
   async subscribe(onUpdate: (stateArray: StateArrayWithTimestamp) => void): Promise<void> {
+    if (this.isCleaningUp) {
+      throw new Error('Manager is cleaning up');
+    }
+
     this.onUpdate = (entries: StateEntry[]) => {
-      onUpdate({
-        entries,
-        lastModified: this.lastModified,
-      });
+      if (!this.isCleaningUp) {
+        onUpdate({
+          entries,
+          lastModified: this.lastModified,
+        });
+      }
     };
 
     const topicName = `${config.streamStateOwner.toLowerCase()}-${config.streamStateTopic.toLocaleLowerCase()}`;
@@ -158,14 +165,16 @@ export class WakuStreamManager {
   }
 
   async cleanup(): Promise<void> {
-    if (this.waitingPromise) {
-      clearTimeout(this.waitingPromise.timeout);
-      this.waitingPromise.resolve(null);
-      this.waitingPromise = undefined;
-    }
+    this.isCleaningUp = true;
+
+    this.cancelCurrentWaitingPromise();
 
     if (this.unsubscribe) {
-      await this.unsubscribe();
+      try {
+        await this.unsubscribe();
+      } catch (err) {
+        console.error('Error during unsubscribe:', err);
+      }
       this.unsubscribe = undefined;
     }
 

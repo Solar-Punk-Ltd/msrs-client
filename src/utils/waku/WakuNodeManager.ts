@@ -25,6 +25,9 @@ export class WakuNodeManager {
 
   private isRecovering = false;
   private recoveryInterval: NodeJS.Timeout | null = null;
+  private recoveryCheckInterval: NodeJS.Timeout | null = null;
+  private recoveryTimeouts: Set<NodeJS.Timeout> = new Set();
+
   private static readonly RECOVERY_DELAY_MINIMAL = 5000;
   private static readonly RECOVERY_DELAY_UNHEALTHY = 10000;
   private static readonly RECOVERY_CHECK_INTERVAL = 2000;
@@ -143,6 +146,11 @@ export class WakuNodeManager {
 
     await this.sleep(recoveryDelay);
 
+    if (!this.isRecovering) {
+      console.log('[WakuNodeManager] Recovery cancelled');
+      return;
+    }
+
     if (this.wakuNode && this.currentHealth === HealthStatus.SufficientlyHealthy) {
       this.isRecovering = false;
       return;
@@ -160,11 +168,18 @@ export class WakuNodeManager {
     let checkCount = 0;
     const maxChecks = 5;
 
-    const checkInterval = setInterval(async () => {
+    this.clearRecoveryCheckInterval();
+
+    this.recoveryCheckInterval = setInterval(async () => {
       checkCount++;
 
+      if (!this.isRecovering) {
+        this.clearRecoveryCheckInterval();
+        return;
+      }
+
       if (this.currentHealth === HealthStatus.SufficientlyHealthy) {
-        clearInterval(checkInterval);
+        this.clearRecoveryCheckInterval();
         this.isRecovering = false;
         if (this.wakuNode) {
           this.notifyNodeReady(this.wakuNode);
@@ -173,12 +188,24 @@ export class WakuNodeManager {
       }
 
       if (checkCount >= maxChecks) {
-        clearInterval(checkInterval);
+        this.clearRecoveryCheckInterval();
         await this.performNodeRecovery();
         this.isRecovering = false;
         return;
       }
     }, WakuNodeManager.RECOVERY_CHECK_INTERVAL);
+  }
+
+  private clearRecoveryCheckInterval(): void {
+    if (this.recoveryCheckInterval) {
+      clearInterval(this.recoveryCheckInterval);
+      this.recoveryCheckInterval = null;
+    }
+  }
+
+  private clearAllRecoveryTimeouts(): void {
+    this.recoveryTimeouts.forEach((timeout) => clearTimeout(timeout));
+    this.recoveryTimeouts.clear();
   }
 
   private notifyNodeReady(node: LightNode): void {
@@ -200,14 +227,24 @@ export class WakuNodeManager {
     const savedListeners = Array.from(this.listeners);
 
     await this.cleanupNode();
-    await this.setupWakuNode();
 
-    this.listeners.clear();
-    savedListeners.forEach((listener) => {
-      this.listeners.add(listener);
-    });
+    try {
+      await this.setupWakuNode();
 
-    console.log(`[WakuNodeManager] Restored ${savedListeners.length} listeners after recovery`);
+      if (this.wakuNode && this.currentHealth === HealthStatus.SufficientlyHealthy) {
+        savedListeners.forEach((listener) => {
+          listener.onNodeReady(this.wakuNode!);
+        });
+      }
+
+      console.log(`[WakuNodeManager] Restored ${savedListeners.length} listeners after recovery`);
+    } catch (error) {
+      console.error('[WakuNodeManager] Failed to recover node:', error);
+
+      savedListeners.forEach((listener) => {
+        listener.onNodeLost();
+      });
+    }
   }
 
   private async cleanupNode(): Promise<void> {
@@ -236,6 +273,8 @@ export class WakuNodeManager {
 
   public async destroy(): Promise<void> {
     this.clearRecoveryInterval();
+    this.clearRecoveryCheckInterval();
+    this.clearAllRecoveryTimeouts();
     this.isRecovering = false;
 
     await this.cleanupNode();

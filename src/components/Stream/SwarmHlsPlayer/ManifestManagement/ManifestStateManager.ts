@@ -14,6 +14,7 @@ export class ManifestStateManager {
   private topics = new Map<string, TopicState>();
   private subscriptionPromises = new Map<string, Promise<void>>();
   private wakuManager: WakuManager | null = null;
+  private currentChannelManager: WakuChannelManager | null = null;
   private fetcher = new SwarmFetcher();
 
   private constructor() {}
@@ -25,7 +26,18 @@ export class ManifestStateManager {
     return ManifestStateManager.instance;
   }
 
-  public setChannelManager(channelManager: WakuChannelManager | null): void {
+  public async setChannelManager(channelManager: WakuChannelManager | null): Promise<void> {
+    if (this.currentChannelManager === channelManager) {
+      return;
+    }
+
+    if (this.currentChannelManager !== null && channelManager !== this.currentChannelManager) {
+      console.log('[ManifestStateManager] Channel manager changed, cleaning up all subscriptions');
+      await this.clear();
+    }
+
+    this.currentChannelManager = channelManager;
+
     if (channelManager) {
       this.wakuManager = new WakuManager(channelManager);
     } else {

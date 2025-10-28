@@ -119,14 +119,18 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
   useSerializedEffect(
     'swarm-chat',
     async (isMounted) => {
-      // Check if Waku is required but not available
       if (config.isWakuEnabled && !channelManager) {
         console.log('⏭️  Waku is enabled but channel manager not available yet');
 
-        // Clean up existing chat if it exists
         if (chatRef.current) {
-          await chatRef.current.stop();
+          const chatToCleanup = chatRef.current;
           chatRef.current = null;
+
+          try {
+            await chatToCleanup.stop();
+          } catch (err) {
+            console.error('Error stopping chat:', err);
+          }
 
           // Reset state
           if (isMounted()) {
@@ -140,13 +144,11 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
         return;
       }
 
-      // Skip if already initialized
       if (chatRef.current) {
         console.log('✅ Chat already exists');
         return;
       }
 
-      // Create transport based on config
       let transport;
       if (config.isWakuEnabled && channelManager) {
         console.log('🚀 Creating Waku transport');
@@ -155,14 +157,11 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
           chatTopic: infra.chatTopic,
         });
       }
-      // If no transport is provided, SwarmChat will use default polling
 
-      // Start fresh - either first time or after cleanup
       const chat = new SwarmChat({ user, infra }, transport);
 
-      // Check if still mounted after instantiation
       if (!isMounted()) {
-        console.log('⏭️  Unmounted during instantiation, aborting');
+        console.log('⏭️  Unmounted during instantiation');
         await chat.stop();
         return;
       }
@@ -171,9 +170,8 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
 
       const { on } = chat.getEmitter();
 
-      // Create safe handlers with mounted check
       const createSafeHandler = (updates: Partial<VisibleMessage>) => (data: MessageData | string) => {
-        if (!isMounted()) {
+        if (!isMounted() || chatRef.current !== chat) {
           return;
         }
 
@@ -191,19 +189,24 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
             updatedMessages = [...prevMessages, { ...messageData, ...updates }];
           }
 
-          return chatRef.current?.orderMessages?.(updatedMessages) ?? updatedMessages;
+          return chat.orderMessages?.(updatedMessages) ?? updatedMessages;
         });
       };
 
-      // Event-based loading handlers
       const safeChatLoading = (loading: boolean) => {
-        if (isMounted()) setChatLoading(loading);
+        if (isMounted() && chatRef.current === chat) {
+          setChatLoading(loading);
+        }
       };
       const safeMessagesLoading = (loading: boolean) => {
-        if (isMounted()) setMessagesLoading(loading);
+        if (isMounted() && chatRef.current === chat) {
+          setMessagesLoading(loading);
+        }
       };
       const safeError = (err: any) => {
-        if (isMounted()) setError(err);
+        if (isMounted() && chatRef.current === chat) {
+          setError(err);
+        }
       };
 
       // Register event handlers
@@ -215,20 +218,38 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
       on(EVENTS.LOADING_PREVIOUS_MESSAGES, safeMessagesLoading);
       on(EVENTS.CRITICAL_ERROR, safeError);
 
-      await chat.start();
+      try {
+        await chat.start();
 
-      // Check if still mounted after start
-      if (!isMounted()) {
-        console.log('⏭️  Unmounted after start, stopping');
-        await chat.stop();
-        chatRef.current = null;
-        return;
+        if (!isMounted() || chatRef.current !== chat) {
+          console.log('⏭️  Invalid state after start, stopping');
+          await chat.stop();
+
+          if (chatRef.current === chat) {
+            chatRef.current = null;
+          }
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to start chat:', err);
+
+        if (chatRef.current === chat) {
+          chatRef.current = null;
+        }
+
+        throw err;
       }
     },
     async () => {
       if (chatRef.current) {
-        await chatRef.current.stop();
+        const chatToStop = chatRef.current;
         chatRef.current = null;
+
+        try {
+          await chatToStop.stop();
+        } catch (err) {
+          console.error('Error stopping chat:', err);
+        }
       }
     },
     [user.privateKey, channelManager],

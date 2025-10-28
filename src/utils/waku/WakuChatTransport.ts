@@ -12,6 +12,8 @@ export class WakuTransport implements MessageTransport {
   private messagePayloadType: protobuf.Type | null = null;
   private messageCallback: ((message: MessageData) => void) | null = null;
   private unsubscribe: (() => Promise<void>) | null = null;
+  private isStarted = false;
+  private isStopping = false;
 
   constructor(private config: WakuTransportConfig) {}
 
@@ -20,17 +22,46 @@ export class WakuTransport implements MessageTransport {
   }
 
   async start(): Promise<void> {
-    this.createProtobufSchema();
-    await this.subscribeToChannel();
+    if (this.isStarted) {
+      console.warn('[WakuTransport] Already started');
+      return;
+    }
 
-    console.log('[WakuTransport] Waku transport started');
+    if (this.isStopping) {
+      throw new Error('Transport is stopping');
+    }
+
+    this.isStarted = true;
+    this.createProtobufSchema();
+
+    try {
+      await this.subscribeToChannel();
+      console.log('[WakuTransport] Waku transport started');
+    } catch (error) {
+      this.isStarted = false;
+      throw error;
+    }
   }
 
   async stop(): Promise<void> {
+    if (!this.isStarted || this.isStopping) {
+      return;
+    }
+
+    this.isStopping = true;
+    this.isStarted = false;
+    this.messageCallback = null;
+
     if (this.unsubscribe) {
-      await this.unsubscribe();
+      try {
+        await this.unsubscribe();
+      } catch (err) {
+        console.error('[WakuTransport] Error during unsubscribe:', err);
+      }
       this.unsubscribe = null;
     }
+
+    this.isStopping = false;
     console.log('[WakuTransport] Waku transport stopped');
   }
 
@@ -63,16 +94,27 @@ export class WakuTransport implements MessageTransport {
   }
 
   private async subscribeToChannel(): Promise<void> {
-    const { channelManager, chatTopic } = this.config;
+    if (this.isStopping) {
+      throw new Error('Transport is stopping');
+    }
 
+    const { channelManager, chatTopic } = this.config;
     const channelName = `chat-channel-${chatTopic}`;
 
-    this.unsubscribe = await channelManager.subscribe(channelName, chatTopic, (message) => this.handleMessage(message));
+    this.unsubscribe = await channelManager.subscribe(channelName, chatTopic, (message) => {
+      if (!this.isStopping && this.isStarted) {
+        this.handleMessage(message);
+      }
+    });
 
     console.log(`[WakuTransport] Subscribed to Waku channel for topic: ${chatTopic}`);
   }
 
   private handleMessage = (message: { payload: Uint8Array; timestamp: number; contentTopic: string }): void => {
+    if (!this.isStarted || this.isStopping || !this.messageCallback) {
+      return;
+    }
+
     try {
       if (!message.payload) {
         console.warn('[WakuTransport] Received Waku message without payload');
@@ -116,7 +158,7 @@ export class WakuTransport implements MessageTransport {
         return;
       }
 
-      if (this.messageCallback) {
+      if (this.messageCallback && this.isStarted && !this.isStopping) {
         this.messageCallback(messageData);
       }
     } catch (error) {

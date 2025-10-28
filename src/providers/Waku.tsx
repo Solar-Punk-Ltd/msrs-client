@@ -35,9 +35,11 @@ export function WakuProvider({ children }: WakuProviderProps) {
   const [channelManager, setChannelManager] = useState<WakuChannelManager | null>(null);
 
   const nodeManagerRef = useRef<WakuNodeManager | null>(null);
+  const listenerCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+    let setupAborted = false;
 
     const nodeManager = WakuNodeManager.getInstance();
     nodeManagerRef.current = nodeManager;
@@ -46,9 +48,12 @@ export function WakuProvider({ children }: WakuProviderProps) {
       try {
         await nodeManager.setupWakuNode();
 
-        if (!isMounted) return;
+        if (!isMounted || setupAborted) {
+          console.log('[WakuProvider] Setup aborted, component unmounted');
+          return;
+        }
 
-        nodeManager.addListener({
+        listenerCleanupRef.current = nodeManager.addListener({
           onNodeReady: () => {
             if (!isMounted) return;
 
@@ -72,8 +77,13 @@ export function WakuProvider({ children }: WakuProviderProps) {
           },
         });
       } catch (error) {
-        if (isMounted) {
+        if (isMounted && !setupAborted) {
           console.error('[WakuProvider] Failed to set Waku node:', error);
+          setNodeState({
+            isHealty: false,
+            isRecovering: false,
+            node: null,
+          });
         }
       }
     };
@@ -82,9 +92,11 @@ export function WakuProvider({ children }: WakuProviderProps) {
 
     return () => {
       isMounted = false;
+      setupAborted = true;
 
-      if (nodeManagerRef.current) {
-        nodeManagerRef.current.cleanListeners();
+      if (listenerCleanupRef.current) {
+        listenerCleanupRef.current();
+        listenerCleanupRef.current = null;
       }
     };
   }, []);
