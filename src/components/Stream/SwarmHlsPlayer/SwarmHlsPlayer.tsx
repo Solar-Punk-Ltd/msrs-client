@@ -5,7 +5,9 @@ import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { useSerializedEffect } from '@/hooks/useSerializedEffect';
 import { useWakuContext } from '@/providers/Waku';
+import { MessageReceiveMode } from '@/types/messaging';
 import { MediaType } from '@/types/stream';
+import { config } from '@/utils/shared/config';
 
 import { ManifestStateManager } from './ManifestManagement/ManifestStateManager';
 import { CustomManifestLoader } from './CustomManifestLoader';
@@ -37,8 +39,12 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       const topicObj = Topic.fromString(topic);
       const hexTopic = topicObj.toString();
       const stateManager = ManifestStateManager.getInstance();
+      const messageReceiveMode = config.messageReceiveMode;
 
-      if (!channelManager) {
+      const shouldUseWaku =
+        messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
+
+      if (shouldUseWaku && !channelManager) {
         console.log('⏸️ Waiting for channel manager to become available...');
 
         await stateManager.clear(hexTopic);
@@ -50,7 +56,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       }
 
       try {
-        await stateManager.setChannelManager(channelManager);
+        await stateManager.setChannelManager(shouldUseWaku ? channelManager : null);
 
         if (!isMounted()) {
           console.log('⏭️ Component unmounted during channel manager setup');
@@ -59,14 +65,13 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
 
         await stateManager.setupStreamSubscription(owner, topicObj);
 
-        // Check if still mounted after async operation
         if (!isMounted()) {
           console.log('⏭️ Component unmounted during subscription setup, cleaning up');
           await stateManager.clear(hexTopic);
           return;
         }
 
-        console.log('Stream subscription ready');
+        console.log(`Stream subscription ready (mode: ${messageReceiveMode})`);
         setIsReady(true);
       } catch (error) {
         if (!isMounted()) {
@@ -143,7 +148,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
               break;
             case ErrorTypes.MEDIA_ERROR:
               console.warn('Fatal media error');
-              hls?.recoverMediaError(); // recover media decode errors
+              hls?.recoverMediaError();
               break;
             default:
               console.error('Unrecoverable fatal error. Destroying and restarting.');
@@ -156,7 +161,6 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       hls.attachMedia(video);
       hls.loadSource(`${owner}/${topic}`);
 
-      // If autoPlay, play the video once the manifest is parsed (for user-initiated playback readiness)
       if (autoPlay) {
         hls.on(Events.MANIFEST_PARSED, () => {
           video.play().catch((err) => {

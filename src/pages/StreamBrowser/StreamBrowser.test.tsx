@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { MessageReceiveMode } from '@/types/messaging';
+
 import { StreamBrowser } from './StreamBrowser';
 
 vi.mock('@/components/Stream', () => ({
@@ -17,7 +19,7 @@ vi.mock('@/providers/App/App', () => ({
     isLoading,
     streamList: [],
     error: null,
-    isWakuEnabled: false,
+    messageReceiveMode: MessageReceiveMode.SWARM,
     refreshStreamList: vi.fn(),
   }),
 }));

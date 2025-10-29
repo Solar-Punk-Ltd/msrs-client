@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { ChatSettings, EVENTS, MessageData, MessageType, SwarmChat } from '@solarpunkltd/swarm-chat-js';
 
 import { useWakuContext } from '@/providers/Waku';
+import { MessageReceiveMode } from '@/types/messaging';
 import { config } from '@/utils/shared/config';
 import { WakuTransport } from '@/utils/waku/WakuChatTransport';
 
@@ -119,8 +120,14 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
   useSerializedEffect(
     'swarm-chat',
     async (isMounted) => {
-      if (config.isWakuEnabled && !channelManager) {
-        console.log('⏭️  Waku is enabled but channel manager not available yet');
+      const messageReceiveMode = config.messageReceiveMode;
+      const shouldUseWaku =
+        messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
+      const shouldUsePolling =
+        messageReceiveMode === MessageReceiveMode.SWARM || messageReceiveMode === MessageReceiveMode.BOTH;
+
+      if (shouldUseWaku && !channelManager) {
+        console.log('⏭️  Waku is required but channel manager not available yet');
 
         if (chatRef.current) {
           const chatToCleanup = chatRef.current;
@@ -145,20 +152,24 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
       }
 
       if (chatRef.current) {
-        console.log('✅ Chat already exists');
         return;
       }
 
       let transport;
-      if (config.isWakuEnabled && channelManager) {
-        console.log('🚀 Creating Waku transport');
+      if (shouldUseWaku && channelManager) {
         transport = new WakuTransport({
           channelManager,
           chatTopic: infra.chatTopic,
         });
       }
 
-      const chat = new SwarmChat({ user, infra }, transport);
+      const updatedInfra = {
+        ...infra,
+        enableFallbackPolling: shouldUsePolling,
+        fallbackPollingInterval: 4000,
+      };
+
+      const chat = new SwarmChat({ user, infra: updatedInfra }, transport);
 
       if (!isMounted()) {
         console.log('⏭️  Unmounted during instantiation');

@@ -8,6 +8,7 @@ import { StreamInfo } from '@/components/Stream/StreamInfo/StreamInfo';
 import { SwarmHlsPlayer } from '@/components/Stream/SwarmHlsPlayer/SwarmHlsPlayer';
 import { useAppContext } from '@/providers/App/App';
 import { ROUTES } from '@/routes';
+import { MessageReceiveMode } from '@/types/messaging';
 import { MediaType, StateType } from '@/types/stream';
 
 import './StreamWatcher.scss';
@@ -21,7 +22,7 @@ export function StreamWatcher() {
     topic: string;
   }>();
   const navigate = useNavigate();
-  const { streamList, isLoading, refreshStreamList, isWakuEnabled } = useAppContext();
+  const { streamList, isLoading, refreshStreamList, messageReceiveMode } = useAppContext();
 
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
@@ -41,7 +42,7 @@ export function StreamWatcher() {
   }, [isLoading]);
 
   useEffect(() => {
-    if (!isScheduled || isWakuEnabled) {
+    if (!isScheduled || messageReceiveMode !== MessageReceiveMode.SWARM) {
       return;
     }
 
@@ -66,7 +67,7 @@ export function StreamWatcher() {
         clearTimeout(timeoutId);
       }
     };
-  }, [isScheduled, refreshStreamList, isWakuEnabled]);
+  }, [isScheduled, refreshStreamList, messageReceiveMode]);
 
   const shouldShowLoading = isLoading && streamList.length === 0;
   const shouldShowError = !isLoading && hasFetchedOnce && !foundStream;

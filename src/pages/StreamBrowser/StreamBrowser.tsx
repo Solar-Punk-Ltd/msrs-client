@@ -3,16 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 
 import { StreamList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App/App';
+import { MessageReceiveMode } from '@/types/messaging';
 
 import './StreamBrowser.scss';
 
 export function StreamBrowser() {
-  const { fetchAppState, setNewStreamList, isLoading, isWakuEnabled } = useAppContext();
+  const { fetchAppState, setNewStreamList, isLoading, messageReceiveMode } = useAppContext();
 
   const { data } = useQuery({
     queryKey: ['app-state'],
     queryFn: () => fetchAppState(),
-    refetchInterval: isWakuEnabled ? 8000 : 2500,
+    refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 8000 : 2500,
     retry: true,
     enabled: !isLoading,
     staleTime: 0,

@@ -125,7 +125,6 @@ export function WakuProvider({ children }: WakuProviderProps) {
         return;
       }
 
-      // Skip if already initialized with current node
       if (channelManager) {
         return;
       }

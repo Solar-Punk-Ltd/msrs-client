@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
+import { MessageReceiveMode } from '@/types/messaging';
 import { createMsrsIngestionToken } from '@/utils/auth/login';
 import { deleteStream } from '@/utils/stream/stream';
 
@@ -22,7 +23,7 @@ vi.mock('@/utils/shared/config', () => ({
     streamStateTopic: 'mock-topic',
     streamStateOwner: 'mock-owner',
     readerBeeUrl: 'http://mock-bee.com',
-    isWakuEnabled: false,
+    messageReceiveMode: MessageReceiveMode.SWARM,
   },
 }));
 
@@ -104,7 +105,7 @@ vi.mock('@/providers/App/App', () => ({
     isLoading: mockIsLoading,
     streamList: [],
     error: null,
-    isWakuEnabled: false,
+    messageReceiveMode: MessageReceiveMode.SWARM,
   })),
 }));
 

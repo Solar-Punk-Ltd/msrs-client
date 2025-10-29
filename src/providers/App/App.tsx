@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { cloneDeep, isEqual } from 'lodash';
 
 import { useSerializedEffect } from '@/hooks/useSerializedEffect';
+import { MessageReceiveMode } from '@/types/messaging';
 import { StateArrayWithTimestamp, StateEntry } from '@/types/stream';
 import { config } from '@/utils/shared/config';
 
@@ -15,7 +16,7 @@ interface AppContextState {
   streamList: StateEntry[];
   isLoading: boolean;
   error: Error | null;
-  isWakuEnabled: boolean;
+  messageReceiveMode: MessageReceiveMode;
   setNewStreamList: (data: StateArrayWithTimestamp) => void;
   fetchAppState: () => Promise<StateArrayWithTimestamp | null>;
   refreshStreamList: () => Promise<void>;
@@ -53,7 +54,9 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
   const wakuManagerRef = useRef<WakuStreamManager | null>(null);
 
-  const isWakuEnabled = config.isWakuEnabled;
+  const messageReceiveMode = config.messageReceiveMode;
+  const shouldUseWaku =
+    messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
 
   const fetchAppState = useCallback(async (): Promise<StateArrayWithTimestamp | null> => {
     try {
@@ -100,8 +103,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
   useSerializedEffect(
     'app-stream-manager',
     async (isMounted) => {
-      if (!node || !channelManager) {
-        // Clean up existing manager if it exists
+      if (shouldUseWaku && (!node || !channelManager)) {
         if (wakuManagerRef.current) {
           console.log('🧹 Cleaning up existing stream manager due to missing node or channel manager');
           const managerToCleanup = wakuManagerRef.current;
@@ -125,9 +127,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         return;
       }
 
-      // Skip if already initialized with current node
       if (wakuManagerRef.current) {
-        console.log('✅ Stream manager already exists and node is available');
+        console.log('✅ Stream manager already initialized');
         return;
       }
 
@@ -147,7 +148,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           lastModified: data ? data.lastModified : 0,
         });
 
-        if (isWakuEnabled && node && channelManager && !wakuManagerRef.current) {
+        // Setup Waku if needed (WAKU or BOTH mode)
+        if (shouldUseWaku && node && channelManager && !wakuManagerRef.current) {
           const manager = new WakuStreamManager(channelManager, data);
 
           // Check if still mounted after instantiation
@@ -180,7 +182,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
             console.log('✅ Waku stream manager setup complete');
           } catch (err) {
-            console.error('Failed to subscribe:', err);
+            console.error('Failed to subscribe to Waku:', err);
             if (wakuManagerRef.current === manager) {
               wakuManagerRef.current = null;
             }
@@ -191,7 +193,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
         if (isMounted()) {
           setIsLoading(false);
-          console.log('✅ App initialization complete');
+          console.log(`✅ App initialization complete (mode: ${messageReceiveMode})`);
         }
       } catch (error) {
         if (!isMounted()) {
@@ -211,20 +213,20 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
         try {
           await managerToCleanup.cleanup();
-          console.log('✅ Stream manager cleanup complete');
+          console.log('✅ Waku stream manager cleanup complete');
         } catch (err) {
-          console.error('❌ Error during cleanup:', err);
+          console.error('❌ Error during Waku cleanup:', err);
         }
       }
     },
-    [node, channelManager, isWakuEnabled],
+    [node, channelManager, messageReceiveMode, shouldUseWaku],
   );
 
   const refreshStreamList = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      if (isWakuEnabled && wakuManagerRef.current) {
+      if (shouldUseWaku && wakuManagerRef.current) {
         const wakuPromise = wakuManagerRef.current.waitForStreamListChange(streamList, 10000);
 
         const fallbackPromise = new Promise<StateArrayWithTimestamp | null>((resolve) => {
@@ -243,7 +245,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           console.warn('No stream list change detected within timeout');
         }
       } else {
-        // Polling mode
+        // Polling mode (SWARM only or fallback)
         let changeDetected = false;
         const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
 
@@ -275,13 +277,13 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchAppState, setNewStreamList, streamList, queryClient, isWakuEnabled]);
+  }, [fetchAppState, setNewStreamList, streamList, queryClient, shouldUseWaku]);
 
   const contextValue: AppContextState = {
     streamList: streamList.entries,
     isLoading,
     error,
-    isWakuEnabled,
+    messageReceiveMode,
     setNewStreamList,
     fetchAppState,
     refreshStreamList,

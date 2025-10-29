@@ -1,3 +1,5 @@
+import { MessageReceiveMode } from '@/types/messaging';
+
 type RuntimeConfig = {
   VITE_READER_BEE_URL: string;
   VITE_WRITER_BEE_URL: string;
@@ -8,7 +10,7 @@ type RuntimeConfig = {
   VITE_CHAT_GSOC_TOPIC: string;
   VITE_STREAMER_GSOC_RESOURCE_ID: string;
   VITE_STREAMER_GSOC_TOPIC: string;
-  VITE_IS_WAKU_ENABLED: string;
+  VITE_MESSAGE_RECEIVE_MODE: string;
   VITE_WAKU_STATIC_PEER: string;
 };
 
@@ -28,14 +30,13 @@ function getEnv(name: string): string {
   return value;
 }
 
-function getBooleanEnv(name: string, defaultValue: boolean = false): boolean {
+function getMessageReceiveModeEnv(name: string, defaultValue: MessageReceiveMode): MessageReceiveMode {
   try {
-    const value = getEnv(name);
-    if (typeof value === 'string') {
-      const normalized = value.toLowerCase().trim();
-      if (normalized === 'true' || normalized === '1') return true;
-      if (normalized === 'false' || normalized === '0') return false;
-    }
+    const value = getEnv(name).toLowerCase().trim();
+    if (value === MessageReceiveMode.SWARM) return MessageReceiveMode.SWARM;
+    if (value === MessageReceiveMode.WAKU) return MessageReceiveMode.WAKU;
+    if (value === MessageReceiveMode.BOTH) return MessageReceiveMode.BOTH;
+    console.warn(`Invalid MESSAGE_RECEIVE_MODE value: ${value}, using default: ${defaultValue}`);
     return defaultValue;
   } catch {
     return defaultValue;
@@ -52,6 +53,6 @@ export const config = {
   chatGsocTopic: getEnv('VITE_CHAT_GSOC_TOPIC'),
   streamerGsocResourceId: getEnv('VITE_STREAMER_GSOC_RESOURCE_ID'),
   streamerGsocTopic: getEnv('VITE_STREAMER_GSOC_TOPIC'),
-  isWakuEnabled: getBooleanEnv('VITE_IS_WAKU_ENABLED', true),
+  messageReceiveMode: getMessageReceiveModeEnv('VITE_MESSAGE_RECEIVE_MODE', MessageReceiveMode.WAKU),
   wakuStaticPeer: getEnv('VITE_WAKU_STATIC_PEER'),
 };

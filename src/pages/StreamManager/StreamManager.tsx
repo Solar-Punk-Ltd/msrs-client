@@ -7,6 +7,7 @@ import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StreamManagerList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App/App';
 import { useUserContext } from '@/providers/User';
+import { MessageReceiveMode } from '@/types/messaging';
 import { StateEntry } from '@/types/stream';
 import { createMsrsIngestionToken } from '@/utils/auth/login';
 import { config } from '@/utils/shared/config';
@@ -17,7 +18,7 @@ import './StreamManager.scss';
 export function StreamManager() {
   const navigate = useNavigate();
   const { session } = useUserContext();
-  const { fetchAppState, setNewStreamList, refreshStreamList, isLoading, isWakuEnabled } = useAppContext();
+  const { fetchAppState, setNewStreamList, refreshStreamList, isLoading, messageReceiveMode } = useAppContext();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [streamToDelete, setStreamToDelete] = useState<StateEntry | null>(null);
@@ -29,7 +30,7 @@ export function StreamManager() {
   const { data } = useQuery({
     queryKey: ['app-state'],
     queryFn: () => fetchAppState(),
-    refetchInterval: isWakuEnabled ? 8000 : 2500,
+    refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 8000 : 2500,
     retry: true,
     enabled: !isLoading,
     staleTime: 0,

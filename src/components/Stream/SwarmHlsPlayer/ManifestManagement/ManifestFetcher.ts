@@ -1,6 +1,7 @@
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
 import Pqueue from 'p-queue';
 
+import { MessageReceiveMode } from '@/types/messaging';
 import { makeFeedIdentifier } from '@/utils/network/bee';
 import { config } from '@/utils/shared/config';
 
@@ -17,7 +18,10 @@ export class ManifestFetcher {
     const topic = Topic.fromString(topicPart);
     const hexTopic = topic.toString();
 
-    if (config.isWakuEnabled) {
+    const shouldUseWaku =
+      config.messageReceiveMode === MessageReceiveMode.WAKU || config.messageReceiveMode === MessageReceiveMode.BOTH;
+
+    if (shouldUseWaku) {
       await this.stateManager.isSubscriptionReady(hexTopic);
       return this.fetchWithWaku(hexTopic);
     } else {

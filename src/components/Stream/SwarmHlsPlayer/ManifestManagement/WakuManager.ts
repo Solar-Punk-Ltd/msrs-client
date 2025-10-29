@@ -1,6 +1,7 @@
 import type { IDecodedMessage } from '@solarpunkltd/waku-sdk';
 import protobuf from 'protobufjs';
 
+import { MessageReceiveMode } from '@/types/messaging';
 import { config } from '@/utils/shared/config';
 import { WakuChannelManager } from '@/utils/waku/WakuChannelManager';
 
@@ -16,7 +17,9 @@ export class WakuManager {
   constructor(private channelManager: WakuChannelManager) {}
 
   isAvailable(): boolean {
-    return config.isWakuEnabled;
+    return (
+      config.messageReceiveMode === MessageReceiveMode.WAKU || config.messageReceiveMode === MessageReceiveMode.BOTH
+    );
   }
 
   async subscribe(metadata: WakuMetadata, onMessage: (message: IDecodedMessage) => void): Promise<() => Promise<void>> {

@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
 import { WakuProvider } from '@/providers/Waku';
+import { MessageReceiveMode } from '@/types/messaging';
 import { MediaType } from '@/types/stream';
 import { createStream } from '@/utils/stream/stream';
 
@@ -145,7 +146,7 @@ vi.mock('@/providers/App/App', async () => {
       refreshStreamList: mockRefreshStreamList,
       isLoading: false,
       error: null,
-      isWakuEnabled: false,
+      messageReceiveMode: MessageReceiveMode.SWARM,
       setNewStreamList: vi.fn(),
       fetchAppState: vi.fn(),
     }),

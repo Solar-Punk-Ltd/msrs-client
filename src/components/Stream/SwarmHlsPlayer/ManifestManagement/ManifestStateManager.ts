@@ -1,5 +1,6 @@
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
 
+import { MessageReceiveMode } from '@/types/messaging';
 import { makeFeedIdentifier } from '@/utils/network/bee';
 import { config } from '@/utils/shared/config';
 import { WakuChannelManager } from '@/utils/waku/WakuChannelManager';
@@ -53,6 +54,10 @@ export class ManifestStateManager {
     return !!this.topics.get(topicId)?.wakuUnsubscribe;
   }
 
+  public isUsingPolling(topicId: string): boolean {
+    return !!this.topics.get(topicId)?.pollingInterval;
+  }
+
   public getTopicState(topicId: string): TopicState | undefined {
     return this.topics.get(topicId);
   }
@@ -79,15 +84,28 @@ export class ManifestStateManager {
 
   public async setupStreamSubscription(owner: string, topic: Topic): Promise<void> {
     const hexTopic = topic.toString();
+    const messageReceiveMode = config.messageReceiveMode;
 
     const existingPromise = this.subscriptionPromises.get(hexTopic);
     if (existingPromise) return existingPromise;
 
-    if (this.topics.get(hexTopic)?.wakuUnsubscribe) return;
+    const state = this.topics.get(hexTopic);
+    const wakuAlreadySetup = !!state?.wakuUnsubscribe;
+    const pollingAlreadySetup = !!state?.pollingInterval || !!state?.isPollingSetup;
 
-    if (!config.isWakuEnabled) return;
+    const shouldUseWaku =
+      messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
+    const shouldUsePolling =
+      messageReceiveMode === MessageReceiveMode.SWARM || messageReceiveMode === MessageReceiveMode.BOTH;
 
-    const promise = this.setupWakuStream(owner, topic, hexTopic);
+    const needsWakuSetup = shouldUseWaku && !wakuAlreadySetup;
+    const needsPollingSetup = shouldUsePolling && !pollingAlreadySetup;
+
+    if (!needsWakuSetup && !needsPollingSetup) {
+      return;
+    }
+
+    const promise = this.setupStream(owner, topic, hexTopic, shouldUseWaku, shouldUsePolling);
     this.subscriptionPromises.set(hexTopic, promise);
 
     try {
@@ -129,18 +147,38 @@ export class ManifestStateManager {
     return false;
   }
 
-  private async setupWakuStream(owner: string, topic: Topic, hexTopic: string): Promise<void> {
+  private async setupStream(
+    owner: string,
+    topic: Topic,
+    hexTopic: string,
+    shouldUseWaku: boolean,
+    shouldUsePolling: boolean,
+  ): Promise<void> {
     try {
-      const metadata = await this.fetchWakuMetadata(owner, topic);
-      if (!metadata) return;
-
       const isVod = await this.checkIfVod(owner, topic);
-      if (isVod) return;
 
-      await this.subscribeToWaku(hexTopic, metadata);
-      await this.waitForFirstManifest(hexTopic, 5000);
+      if (isVod) {
+        return;
+      }
+
+      if (shouldUseWaku) {
+        const metadata = await this.fetchWakuMetadata(owner, topic);
+        if (metadata) {
+          await this.subscribeToWaku(hexTopic, metadata);
+          await this.waitForFirstManifest(hexTopic, 5000);
+          console.log('✅ Waku subscription setup for manifest updates');
+        } else {
+          console.warn('⚠️  Waku metadata not found, skipping Waku setup');
+        }
+      }
+
+      if (shouldUsePolling) {
+        await this.setupPolling(owner, topic, hexTopic);
+        const mode = shouldUseWaku ? 'fallback' : 'primary';
+        console.log(`✅ Polling setup for manifest updates (${mode} mode)`);
+      }
     } catch (error) {
-      console.error('Failed to setup Waku:', error);
+      console.error('Failed to setup stream:', error);
     }
   }
 
@@ -166,13 +204,23 @@ export class ManifestStateManager {
 
       if (response.ok) {
         const manifest = await response.text();
+        const isVod = ManifestParser.isVOD(manifest);
         const state = this.getOrCreateTopicState(topic.toString());
+
+        if (isVod) {
+          state.manifest = manifest;
+          state.index = FeedIndex.fromBigInt(BigInt(1));
+          console.log('VOD stream detected (manifest has ENDLIST)');
+          return true;
+        }
+
         state.manifest = manifest;
-        state.index = FeedIndex.fromBigInt(BigInt(1));
-        return true;
+        state.index = FeedIndex.fromBigInt(BigInt(2));
+        console.log('Live stream detected (index 1 exists without ENDLIST), ready to poll from index 2');
+        return false;
       }
     } catch {
-      // Index 1 not found - live stream
+      console.log('⏳ Index 1 not found yet, assuming live stream starting');
     }
     return false;
   }
@@ -201,14 +249,22 @@ export class ManifestStateManager {
     const state = this.topics.get(topicId);
     if (!state) return;
 
-    if (update.sequence <= state.lastSequence) return;
+    if (update.sequence <= state.lastSequence) {
+      console.log(`⏭️  Skipping Waku update with old sequence ${update.sequence} (current: ${state.lastSequence})`);
+      return;
+    }
 
-    state.lastSequence = update.sequence;
-    state.manifest = update.manifest;
+    const hasChanged = this.updateManifest(topicId, update.manifest);
 
-    if (update.isVod && state.wakuUnsubscribe) {
-      await state.wakuUnsubscribe();
-      delete state.wakuUnsubscribe;
+    if (hasChanged) {
+      console.log(`📨 Waku delivered manifest update (sequence: ${update.sequence})`);
+      state.lastSequence = update.sequence;
+
+      if (update.isVod && state.wakuUnsubscribe) {
+        console.log('🎬 Waku signaled VOD completion');
+        await state.wakuUnsubscribe();
+        delete state.wakuUnsubscribe;
+      }
     }
   }
 
@@ -232,6 +288,65 @@ export class ManifestStateManager {
     });
   }
 
+  private async setupPolling(owner: string, topic: Topic, hexTopic: string): Promise<void> {
+    const state = this.getOrCreateTopicState(hexTopic);
+
+    if (!state.index) {
+      state.index = FeedIndex.fromBigInt(BigInt(1));
+    }
+
+    if (state.pollingInterval) {
+      clearTimeout(state.pollingInterval);
+      delete state.pollingInterval;
+    }
+
+    state.isPollingSetup = true;
+
+    const pollManifest = async () => {
+      const currentState = this.topics.get(hexTopic);
+      if (!currentState || !currentState.isPollingSetup) return;
+
+      const currentIndex = currentState.index ?? FeedIndex.fromBigInt(BigInt(1));
+      const id = makeFeedIdentifier(topic, currentIndex);
+
+      try {
+        const response = await this.fetcher.fetchSOC(owner, id.toString());
+
+        if (response.ok) {
+          const newManifest = await response.text();
+
+          if (ManifestParser.isVOD(newManifest)) {
+            console.log('🎬 Stream completed - VOD reached (ENDLIST detected)');
+            this.updateManifest(hexTopic, newManifest);
+            delete currentState.isPollingSetup;
+            return;
+          }
+
+          const hasChanged = this.updateManifest(hexTopic, newManifest);
+
+          if (hasChanged) {
+            console.log(`📨 Polling fetched manifest at index ${currentIndex}`);
+
+            if (!currentState.wakuUnsubscribe) {
+              currentState.lastSequence++;
+            }
+          }
+
+          currentState.index = currentIndex.next();
+        }
+      } catch (error) {
+        // Index not found yet, will retry
+      }
+
+      const state = this.topics.get(hexTopic);
+      if (state && state.isPollingSetup && !ManifestParser.isVOD(state.manifest)) {
+        state.pollingInterval = setTimeout(pollManifest, 1000);
+      }
+    };
+
+    await pollManifest();
+  }
+
   private getOrCreateTopicState(topicId: string): TopicState {
     if (!this.topics.has(topicId)) {
       this.topics.set(topicId, {
@@ -245,9 +360,18 @@ export class ManifestStateManager {
 
   private async cleanupTopic(topicId: string): Promise<void> {
     const state = this.topics.get(topicId);
-    if (state?.wakuUnsubscribe) {
+    if (!state) return;
+
+    if (state.wakuUnsubscribe) {
       await state.wakuUnsubscribe();
     }
+
+    if (state.pollingInterval) {
+      clearTimeout(state.pollingInterval);
+    }
+
+    delete state.isPollingSetup;
+
     this.topics.delete(topicId);
   }
 }
