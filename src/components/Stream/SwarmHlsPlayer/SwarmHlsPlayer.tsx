@@ -109,12 +109,11 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
     if (Hls.isSupported()) {
       hls = new Hls({
         pLoader: CustomManifestLoader,
-        liveSyncDuration: 10,
-        liveMaxLatencyDuration: 30,
         maxBufferLength: 60,
         maxMaxBufferLength: 120,
         maxBufferSize: 60 * 1024 * 1024, // 60MB
         maxBufferHole: 1,
+        backBufferLength: 30,
       });
 
       const restartStream = () => {
@@ -128,7 +127,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       });
 
       video.addEventListener('play', () => {
-        hls?.startLoad();
+        hls?.startLoad(-1);
       });
 
       hls.on(Events.ERROR, (_event, data) => {

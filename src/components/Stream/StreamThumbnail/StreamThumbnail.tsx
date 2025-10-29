@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Hls, { Events } from 'hls.js';
+import { FeedIndex, Topic } from '@ethersphere/bee-js';
 import PQueue from 'p-queue';
 
 import PlayIcon from '@/assets/icons/playIcon.png';
 import DefaultPreviewImage from '@/assets/images/defaultPreviewImage.png';
 import { MediaType, StateType } from '@/types/stream';
+import { makeFeedIdentifier } from '@/utils/network/bee';
+import { config } from '@/utils/shared/config';
 import { fetchThumbnail } from '@/utils/stream/stream';
 import { formatDuration } from '@/utils/ui/format';
 
 import './StreamThumbnail.scss';
 
 const THUMBNAIL_CONFIG = {
-  MAX_RETRY_COUNT: 10,
+  MAX_RETRY_COUNT: 2,
   RETRY_TIMEOUT_MS: 2500,
   LOAD_QUEUE_CONCURRENCY: 1,
 } as const;
@@ -37,66 +39,92 @@ interface ThumbnailState {
 
 const loadQueue = new PQueue({ concurrency: THUMBNAIL_CONFIG.LOAD_QUEUE_CONCURRENCY });
 
-const useHlsThumbnailCapture = (videoRef: React.RefObject<HTMLVideoElement>, manifestUrl: string) => {
-  const hlsRef = useRef<Hls | null>(null);
+const useDirectSegmentCapture = (videoRef: React.RefObject<HTMLVideoElement>, owner: string, topic: string) => {
   const retryCountRef = useRef(0);
 
-  const captureFromHls = useCallback(async (): Promise<boolean> => {
+  const captureFromSegment = useCallback(async (): Promise<boolean> => {
     if (!videoRef.current) return false;
 
     const result = await loadQueue.add(async () => {
       return new Promise<boolean>((resolve) => {
-        const hls = new Hls();
-        hlsRef.current = hls;
+        const attemptLoad = async () => {
+          try {
+            // Fetch the first segment directly from feed index 1
+            const topicObj = Topic.fromString(topic);
+            const feedIndex = FeedIndex.fromBigInt(BigInt(1));
+            const identifier = makeFeedIdentifier(topicObj, feedIndex);
+            const segmentUrl = `${config.readerBeeUrl}/soc/${owner}/${identifier.toHex()}`;
 
-        const cleanup = () => {
-          hls.off(Events.FRAG_CHANGED, onFragChanged);
-          hls.off(Events.ERROR, onError);
-        };
+            const response = await fetch(segmentUrl);
 
-        const onFragChanged = () => {
-          cleanup();
+            if (!response.ok) {
+              throw new Error(`Failed to fetch segment: ${response.status}`);
+            }
 
-          if (videoRef.current) {
-            videoRef.current.currentTime = 0;
-            videoRef.current.pause();
-            hls.stopLoad();
+            const blob = await response.blob();
+
+            const objectUrl = URL.createObjectURL(blob);
+
+            if (!videoRef.current) {
+              URL.revokeObjectURL(objectUrl);
+              resolve(false);
+              return;
+            }
+
+            const video = videoRef.current;
+
+            const onLoadedData = () => {
+              video.removeEventListener('loadeddata', onLoadedData);
+              video.removeEventListener('error', onError);
+              video.currentTime = 0;
+              video.pause();
+              // Don't revoke the objectUrl here - it's still needed for display
+              // It will be revoked when component unmounts or new thumbnail loads
+              resolve(true);
+            };
+
+            const onError = () => {
+              video.removeEventListener('loadeddata', onLoadedData);
+              video.removeEventListener('error', onError);
+              URL.revokeObjectURL(objectUrl);
+
+              if (retryCountRef.current < THUMBNAIL_CONFIG.MAX_RETRY_COUNT) {
+                retryCountRef.current++;
+                console.log(
+                  `Retrying thumbnail capture (${retryCountRef.current}/${THUMBNAIL_CONFIG.MAX_RETRY_COUNT})`,
+                );
+                setTimeout(() => attemptLoad(), THUMBNAIL_CONFIG.RETRY_TIMEOUT_MS);
+              } else {
+                console.warn('Max retries reached for thumbnail capture');
+                resolve(false);
+              }
+            };
+
+            video.addEventListener('loadeddata', onLoadedData);
+            video.addEventListener('error', onError);
+            video.src = objectUrl;
+            video.load();
+          } catch (error) {
+            console.error('Error loading segment:', error);
+
+            if (retryCountRef.current < THUMBNAIL_CONFIG.MAX_RETRY_COUNT) {
+              retryCountRef.current++;
+              console.log(`Retrying thumbnail capture (${retryCountRef.current}/${THUMBNAIL_CONFIG.MAX_RETRY_COUNT})`);
+              setTimeout(() => attemptLoad(), THUMBNAIL_CONFIG.RETRY_TIMEOUT_MS);
+            } else {
+              resolve(false);
+            }
           }
-
-          resolve(true);
         };
 
-        const onError = (_event: any, data: any) => {
-          console.error('HLS loading error:', data);
-          cleanup();
-
-          if (retryCountRef.current < THUMBNAIL_CONFIG.MAX_RETRY_COUNT) {
-            retryCountRef.current++;
-            setTimeout(() => captureFromHls(), THUMBNAIL_CONFIG.RETRY_TIMEOUT_MS);
-            resolve(false);
-          } else {
-            hls.stopLoad();
-            resolve(false);
-          }
-        };
-
-        hls.on(Events.FRAG_CHANGED, onFragChanged);
-        hls.on(Events.ERROR, onError);
-
-        hls.attachMedia(videoRef.current!);
-        hls.loadSource(manifestUrl);
+        attemptLoad();
       });
     });
 
     return result ?? false;
-  }, [manifestUrl, videoRef]);
+  }, [owner, topic, videoRef]);
 
-  const cleanup = useCallback(() => {
-    hlsRef.current?.destroy();
-    hlsRef.current = null;
-  }, []);
-
-  return { captureFromHls, cleanup };
+  return { captureFromSegment };
 };
 
 const LoadingSpinner: React.FC = () => (
@@ -112,7 +140,7 @@ const DurationBadge: React.FC<{ duration: number }> = ({ duration }) => (
 );
 
 export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
-  manifestUrl,
+  manifestUrl: _manifestUrl,
   thumbnailRef,
   owner,
   topic,
@@ -131,7 +159,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
     hasData: false,
   });
 
-  const { captureFromHls, cleanup: _cleanupHls } = useHlsThumbnailCapture(videoRef, manifestUrl);
+  const { captureFromSegment } = useDirectSegmentCapture(videoRef, owner, topic);
 
   const handleClick = useCallback(() => {
     navigate(`/watch/${mediaType}/${owner}/${topic}`);
@@ -159,7 +187,7 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
       return;
     }
 
-    // For non-scheduled: try fetch first, then HLS capture
+    // For non-scheduled: try fetch first, then direct segment capture
     if (thumbnailRef) {
       const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
       if (url) {
@@ -172,24 +200,38 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
       }
     }
 
-    // Fallback to HLS capture
-    const success = await captureFromHls();
+    // Fallback to direct segment capture
+    const success = await captureFromSegment();
     setThumbnailState({
       isLoading: false,
       thumbnailUrl: null,
       hasData: success,
     });
-  }, [state, thumbnailRef, captureFromHls]);
+  }, [state, thumbnailRef, captureFromSegment]);
 
   useEffect(() => {
     loadThumbnail();
+  }, [loadThumbnail]);
 
+  // Cleanup for image thumbnails
+  useEffect(() => {
+    const currentThumbnailUrl = thumbnailState.thumbnailUrl;
     return () => {
-      if (thumbnailState.thumbnailUrl) {
-        URL.revokeObjectURL(thumbnailState.thumbnailUrl);
+      if (currentThumbnailUrl) {
+        URL.revokeObjectURL(currentThumbnailUrl);
       }
     };
-  }, [loadThumbnail]);
+  }, [thumbnailState.thumbnailUrl]);
+
+  // Cleanup for video element blob URLs
+  useEffect(() => {
+    return () => {
+      if (videoRef.current?.src && videoRef.current.src.startsWith('blob:')) {
+        URL.revokeObjectURL(videoRef.current.src);
+        videoRef.current.src = '';
+      }
+    };
+  }, [thumbnailState.hasData]);
 
   const { isLoading, thumbnailUrl, hasData } = thumbnailState;
   const shouldShowVideo = !thumbnailUrl && hasData;

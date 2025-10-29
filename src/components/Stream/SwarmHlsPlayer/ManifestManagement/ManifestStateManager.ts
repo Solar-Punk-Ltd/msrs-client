@@ -198,29 +198,28 @@ export class ManifestStateManager {
   }
 
   private async checkIfVod(owner: string, topic: Topic): Promise<boolean> {
+    const hexTopic = topic.toString();
+
     try {
-      const id = makeFeedIdentifier(topic, FeedIndex.fromBigInt(BigInt(1)));
-      const response = await this.fetcher.fetchSOC(owner, id.toString());
+      const response = await this.fetcher.fetchFeed(owner, hexTopic);
+      const manifest = await response.text();
+      const latestIndex = this.fetcher.extractIndex(response);
+      const isVod = ManifestParser.isVOD(manifest);
+      const state = this.getOrCreateTopicState(hexTopic);
 
-      if (response.ok) {
-        const manifest = await response.text();
-        const isVod = ManifestParser.isVOD(manifest);
-        const state = this.getOrCreateTopicState(topic.toString());
-
-        if (isVod) {
-          state.manifest = manifest;
-          state.index = FeedIndex.fromBigInt(BigInt(1));
-          console.log('VOD stream detected (manifest has ENDLIST)');
-          return true;
-        }
-
+      if (isVod) {
         state.manifest = manifest;
-        state.index = FeedIndex.fromBigInt(BigInt(2));
-        console.log('Live stream detected (index 1 exists without ENDLIST), ready to poll from index 2');
-        return false;
+        state.index = latestIndex;
+        console.log(`🎬 VOD stream detected at index ${latestIndex} (manifest has ENDLIST)`);
+        return true;
       }
+
+      state.manifest = manifest;
+      state.index = latestIndex.next();
+      console.log(`📡 Live stream detected at index ${latestIndex}, ready to poll from index ${latestIndex.next()}`);
+      return false;
     } catch {
-      console.log('⏳ Index 1 not found yet, assuming live stream starting');
+      console.log('⏳ Stream not found yet, assuming live stream starting');
     }
     return false;
   }
