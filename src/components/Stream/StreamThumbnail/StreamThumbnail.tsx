@@ -73,19 +73,26 @@ const useDirectSegmentCapture = (videoRef: React.RefObject<HTMLVideoElement>, ow
 
             const video = videoRef.current;
 
-            const onLoadedData = () => {
-              video.removeEventListener('loadeddata', onLoadedData);
+            const cleanup = () => {
+              video.removeEventListener('loadedmetadata', onLoadedMetadata);
+              video.removeEventListener('seeked', onSeeked);
               video.removeEventListener('error', onError);
-              video.currentTime = 0;
-              video.pause();
-              // Don't revoke the objectUrl here - it's still needed for display
-              // It will be revoked when component unmounts or new thumbnail loads
+            };
+
+            const onSeeked = () => {
+              cleanup();
+              // Frame is now rendered and ready to display
               resolve(true);
             };
 
+            const onLoadedMetadata = () => {
+              // Seek to a small time offset (e.g., 0.1s) to ensure we get a valid frame
+              // Time 0 might be black in some video codecs
+              video.currentTime = 0.1;
+            };
+
             const onError = () => {
-              video.removeEventListener('loadeddata', onLoadedData);
-              video.removeEventListener('error', onError);
+              cleanup();
               URL.revokeObjectURL(objectUrl);
 
               if (retryCountRef.current < THUMBNAIL_CONFIG.MAX_RETRY_COUNT) {
@@ -100,7 +107,8 @@ const useDirectSegmentCapture = (videoRef: React.RefObject<HTMLVideoElement>, ow
               }
             };
 
-            video.addEventListener('loadeddata', onLoadedData);
+            video.addEventListener('loadedmetadata', onLoadedMetadata);
+            video.addEventListener('seeked', onSeeked);
             video.addEventListener('error', onError);
             video.src = objectUrl;
             video.load();
