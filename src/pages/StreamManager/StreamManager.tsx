@@ -30,7 +30,7 @@ export function StreamManager() {
   const { data } = useQuery({
     queryKey: ['app-state'],
     queryFn: () => fetchAppState(),
-    refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 8000 : 2500,
+    refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 2500,
     retry: true,
     enabled: !isLoading,
     staleTime: 0,

@@ -198,31 +198,31 @@ export class ManifestStateManager {
   }
 
   private async checkIfVod(owner: string, topic: Topic): Promise<boolean> {
+    const hexTopic = topic.toString();
+    const state = this.getOrCreateTopicState(hexTopic);
+
     try {
-      const id = makeFeedIdentifier(topic, FeedIndex.fromBigInt(BigInt(1)));
-      const response = await this.fetcher.fetchSOC(owner, id.toString());
+      const response = await this.fetcher.fetchFeed(owner, hexTopic);
+      const manifest = await response.text();
+      const index = this.fetcher.extractIndex(response);
 
-      if (response.ok) {
-        const manifest = await response.text();
-        const isVod = ManifestParser.isVOD(manifest);
-        const state = this.getOrCreateTopicState(topic.toString());
+      const isVod = ManifestParser.isVOD(manifest);
 
-        if (isVod) {
-          state.manifest = manifest;
-          state.index = FeedIndex.fromBigInt(BigInt(1));
-          console.log('VOD stream detected (manifest has ENDLIST)');
-          return true;
-        }
+      state.manifest = manifest;
+      state.index = index;
 
-        state.manifest = manifest;
-        state.index = FeedIndex.fromBigInt(BigInt(2));
-        console.log('Live stream detected (index 1 exists without ENDLIST), ready to poll from index 2');
-        return false;
+      if (isVod) {
+        console.log(`VOD stream detected, loaded complete manifest from index ${index}`);
+        return true;
       }
-    } catch {
-      console.log('⏳ Index 1 not found yet, assuming live stream starting');
+
+      state.index = index.next();
+      console.log(`Live stream detected, loaded manifest from index ${index}, ready to poll from ${index.next()}`);
+      return false;
+    } catch (error) {
+      console.log('⏳ Feed not found yet, assuming live stream starting');
+      return false;
     }
-    return false;
   }
 
   private async subscribeToWaku(topicId: string, metadata: WakuMetadata): Promise<void> {
