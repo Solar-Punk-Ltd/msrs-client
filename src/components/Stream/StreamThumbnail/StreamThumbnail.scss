@@ -81,11 +81,27 @@
     opacity: 0;
     transition: opacity 0.2s ease;
     pointer-events: none;
+    z-index: 3;
 
     img {
       width: 48px;
       height: 48px;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    }
+  }
+
+  &-audio-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2;
+
+    svg {
+      color: #ff8a50;
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
     }
   }
 

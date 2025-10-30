@@ -35,7 +35,7 @@ export function BaseStreamList({
 
     streamList.forEach((stream) => {
       const topic = Topic.fromString(stream.topic);
-      const feedIndex = FeedIndex.fromBigInt(BigInt(0));
+      const feedIndex = FeedIndex.fromBigInt(BigInt(1));
       const identifier = makeFeedIdentifier(topic, feedIndex);
       const manifestUrl = `${config.readerBeeUrl}/soc/${stream.owner}/${identifier.toHex()}`;
       map.set(stream.topic, manifestUrl);

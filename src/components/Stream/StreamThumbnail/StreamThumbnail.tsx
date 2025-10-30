@@ -4,6 +4,7 @@ import Hls, { Events } from 'hls.js';
 import PQueue from 'p-queue';
 
 import PlayIcon from '@/assets/icons/playIcon.png';
+import AudioStreamImage from '@/assets/images/audioStream.png';
 import DefaultPreviewImage from '@/assets/images/defaultPreviewImage.png';
 import { MediaType, StateType } from '@/types/stream';
 import { fetchThumbnail } from '@/utils/stream/stream';
@@ -12,9 +13,9 @@ import { formatDuration } from '@/utils/ui/format';
 import './StreamThumbnail.scss';
 
 const THUMBNAIL_CONFIG = {
-  MAX_RETRY_COUNT: 10,
-  RETRY_TIMEOUT_MS: 2500,
-  LOAD_QUEUE_CONCURRENCY: 1,
+  MAX_RETRY_COUNT: 2,
+  RETRY_TIMEOUT_MS: 3500,
+  LOAD_QUEUE_CONCURRENCY: 2,
 } as const;
 
 interface StreamThumbnailProps {
@@ -58,7 +59,7 @@ const useHlsThumbnailCapture = (videoRef: React.RefObject<HTMLVideoElement>, man
           cleanup();
 
           if (videoRef.current) {
-            videoRef.current.currentTime = 0;
+            videoRef.current.currentTime = 0.1;
             videoRef.current.pause();
             hls.stopLoad();
           }
@@ -111,6 +112,20 @@ const DurationBadge: React.FC<{ duration: number }> = ({ duration }) => (
   <span className="stream-thumbnail-duration-badge">{formatDuration(duration)}</span>
 );
 
+const AudioIcon: React.FC = () => (
+  <div className="stream-thumbnail-audio-icon">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M9 18V5l12-2v13M9 18c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3zm12-2c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3zM9 10l12-2"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </div>
+);
+
 export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   manifestUrl,
   thumbnailRef,
@@ -140,8 +155,8 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   const loadThumbnail = useCallback(async () => {
     setThumbnailState((prev) => ({ ...prev, isLoading: true }));
 
-    // For scheduled streams, only use fetched thumbnail
-    if (state === StateType.SCHEDULED) {
+    // For scheduled and audio streams, only try to use fetched thumbnail
+    if (state === StateType.SCHEDULED || mediaType === MediaType.AUDIO) {
       if (thumbnailRef) {
         const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
         setThumbnailState({
@@ -194,6 +209,8 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   const { isLoading, thumbnailUrl, hasData } = thumbnailState;
   const shouldShowVideo = !thumbnailUrl && hasData;
   const shouldShowDefault = !isLoading && !hasData;
+  const defaultImage = mediaType === MediaType.AUDIO ? AudioStreamImage : DefaultPreviewImage;
+  const defaultImageAlt = mediaType === MediaType.AUDIO ? 'Audio stream' : 'Default thumbnail';
 
   return (
     <div className={`stream-thumbnail ${pinned ? 'stream-thumbnail--pinned' : ''}`}>
@@ -212,9 +229,9 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
           style={{ display: shouldShowVideo ? 'block' : 'none' }}
         />
 
-        {shouldShowDefault && (
-          <img src={DefaultPreviewImage} alt="Default thumbnail" className="stream-thumbnail-image" />
-        )}
+        {shouldShowDefault && <img src={defaultImage} alt={defaultImageAlt} className="stream-thumbnail-image" />}
+
+        {shouldShowDefault && mediaType === MediaType.AUDIO && <AudioIcon />}
 
         {!isLoading && (
           <>
