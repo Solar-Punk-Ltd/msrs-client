@@ -113,13 +113,22 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         Promise.allSettled(nodes.nodes.public_writers.map(loadStampInfo)),
       ]);
 
-      // Extract successful results
       const privateStampsWithInfo = privateResults
-        .filter((result): result is PromiseFulfilledResult<StampWithInfo> => result.status === 'fulfilled')
+        .filter((result): result is PromiseFulfilledResult<StampWithInfo> => {
+          if (result.status === 'rejected') {
+            console.error('Unexpected promise rejection loading private stamp:', result.reason);
+          }
+          return result.status === 'fulfilled';
+        })
         .map((result) => result.value);
 
       const publicStampsWithInfo = publicResults
-        .filter((result): result is PromiseFulfilledResult<StampWithInfo> => result.status === 'fulfilled')
+        .filter((result): result is PromiseFulfilledResult<StampWithInfo> => {
+          if (result.status === 'rejected') {
+            console.error('Unexpected promise rejection loading public stamp:', result.reason);
+          }
+          return result.status === 'fulfilled';
+        })
         .map((result) => result.value);
 
       const pinnedStamps = privateStampsWithInfo.filter((stamp) => stamp.nodeInfo.lock_info?.pinned);
