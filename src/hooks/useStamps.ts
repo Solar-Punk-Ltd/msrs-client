@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
-import { loadStampInfo as loadStampInfoFromContract, StampInfo } from '@/utils/network/stampInfo';
-import { fetchGatewayNodes, NodeInfo } from '@/utils/stream/node';
+import { loadStampInfo as loadStampInfoFromContract, StampInfo as ContractStampInfo } from '@/utils/network/stampInfo';
+import { fetchGatewayNodes, PrivateWriterNode, PublicWriterNode, StampInfo } from '@/utils/stream/node';
 
 export interface StampWithInfo {
   stampId: string;
-  stampInfo?: StampInfo;
+  stampInfo?: ContractStampInfo;
   error?: string;
-  nodeInfo: NodeInfo;
+  nodeInfo: StampInfo;
+  port: string;
   isLoading?: boolean;
 }
 
@@ -89,28 +90,41 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const nodes = await fetchGatewayNodes({ adminSecret });
+      const response = await fetchGatewayNodes({ adminSecret });
 
-      const loadStampInfo = async (node: NodeInfo): Promise<StampWithInfo> => {
+      const loadStampInfo = async (stampId: string, stampInfo: StampInfo, port: string): Promise<StampWithInfo> => {
         try {
-          const stampInfo = await loadStampInfoFromContract(node.hash);
+          const contractStampInfo = await loadStampInfoFromContract(stampId);
           return {
-            stampId: node.hash,
-            stampInfo,
-            nodeInfo: node,
+            stampId,
+            stampInfo: contractStampInfo,
+            nodeInfo: stampInfo,
+            port,
           };
         } catch (error) {
           return {
-            stampId: node.hash,
-            nodeInfo: node,
+            stampId,
+            nodeInfo: stampInfo,
+            port,
             error: error instanceof Error ? error.message : 'Failed to load stamp info',
           };
         }
       };
 
+      // Flatten all private writer stamps (each port can have multiple stamps)
+      const privateStampPromises = response.nodes.private_writers.flatMap((node: PrivateWriterNode) =>
+        node.stamps.map((stampInfo) => loadStampInfo(stampInfo.stamp, stampInfo, node.port)),
+      );
+
+      // Public writers have one stamp per port
+      const publicStampPromises = response.nodes.public_writers.map((node: PublicWriterNode) => {
+        const stampInfo: StampInfo = { stamp: node.stamp, locked: false };
+        return loadStampInfo(node.stamp, stampInfo, node.port);
+      });
+
       const [privateResults, publicResults] = await Promise.all([
-        Promise.allSettled(nodes.nodes.private_writers.map(loadStampInfo)),
-        Promise.allSettled(nodes.nodes.public_writers.map(loadStampInfo)),
+        Promise.allSettled(privateStampPromises),
+        Promise.allSettled(publicStampPromises),
       ]);
 
       const privateStampsWithInfo = privateResults

@@ -5,9 +5,8 @@ export enum NodeType {
   CHAT = 'chat',
 }
 
-export interface NodeInfo {
-  port: string;
-  hash: string;
+export interface StampInfo {
+  stamp: string;
   locked: boolean;
   lock_info?: {
     locked_at: number;
@@ -19,17 +18,46 @@ export interface NodeInfo {
   };
 }
 
+export interface PrivateWriterNode {
+  port: string;
+  total_stamps: number;
+  stamps: StampInfo[];
+}
+
+export interface PublicWriterNode {
+  port: string;
+  stamp: string;
+}
+
+export interface ReaderNode {
+  port: number;
+  status: string;
+}
+
 export interface StatusResponse {
+  instance: string;
   nodes: {
-    private_writers: NodeInfo[];
-    public_writers: NodeInfo[];
-    readers: any[];
+    private_writers: PrivateWriterNode[];
+    public_writers: PublicWriterNode[];
+    readers: ReaderNode[];
   };
   summary: {
+    total_readers: number;
+    available_private_writer_stamps: number;
+    pinned_private_writer_stamps: number;
+    total_public_writers: number;
+    total_private_writer_stamps: number;
+    locked_private_writer_stamps: number;
     total_private_writers: number;
     locked_private_writers: number;
     pinned_private_writers: number;
     available_private_writers: number;
+  };
+  persistence: {
+    file: string;
+    file_info: {
+      exists: boolean;
+    };
   };
 }
 
