@@ -31,7 +31,10 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   const { channelManager } = useWakuContext();
   const [restartTrigger, setRestartTrigger] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const [hasFatalError, setHasFatalError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 3;
 
   useSerializedEffect(
     `swarm-hls-player-${owner}-${topic}`,
@@ -99,6 +102,11 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   );
 
   useEffect(() => {
+    retryCountRef.current = 0;
+    setHasFatalError(false);
+  }, [owner, topic]);
+
+  useEffect(() => {
     if (!isReady) return;
 
     const video = videoRef.current;
@@ -118,7 +126,16 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       });
 
       const restartStream = () => {
-        console.warn('Restarting stream due to manifest parsing error.');
+        retryCountRef.current += 1;
+        console.warn(`Restarting stream (attempt ${retryCountRef.current}/${MAX_RETRIES})`);
+
+        if (retryCountRef.current >= MAX_RETRIES) {
+          console.error('Max retries exceeded. Stream cannot be recovered.');
+          setHasFatalError(true);
+          hls?.destroy();
+          return;
+        }
+
         hls?.destroy();
         setRestartTrigger((prev) => prev + 1);
       };
@@ -161,13 +178,16 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       hls.attachMedia(video);
       hls.loadSource(`${owner}/${topic}`);
 
-      if (autoPlay) {
-        hls.on(Events.MANIFEST_PARSED, () => {
+      hls.on(Events.MANIFEST_PARSED, () => {
+        retryCountRef.current = 0;
+        setHasFatalError(false);
+
+        if (autoPlay) {
           video.play().catch((err) => {
             console.warn('Auto-play failed:', err);
           });
-        });
-      }
+        }
+      });
     } else {
       console.error('HLS is not supported in this browser.');
     }
@@ -185,6 +205,15 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       <div className="swarm-hls-player-loading">
         <InputLoading />
         <h2>Initializing stream...</h2>
+      </div>
+    );
+  }
+
+  if (hasFatalError) {
+    return (
+      <div className="swarm-hls-player-error">
+        <h2>Something went wrong!</h2>
+        <p>The stream could not be loaded. Please try again later.</p>
       </div>
     );
   }
