@@ -38,12 +38,17 @@ export function PinnedStreamGrid({ streams, signer, onStampRefresh }: PinnedStre
       const [owner, ...topicParts] = stream.streamId.split('/');
       const topic = topicParts.join('/'); // Handle topics that might contain '/'
 
-      const matchedStream = streamList.find((s) => s.owner === owner && s.topic === topic);
+      const normalizedOwner = owner.toLowerCase();
+      const normalizedTopic = topic.toLowerCase();
+
+      const matchedStream = streamList.find(
+        (s) => s.owner.toLowerCase() === normalizedOwner && s.topic.toLowerCase() === normalizedTopic,
+      );
 
       map.set(stream.streamId, {
         streamId: stream.streamId,
-        owner,
-        topic,
+        owner: normalizedOwner,
+        topic: normalizedTopic,
         matchedStream,
       });
     });

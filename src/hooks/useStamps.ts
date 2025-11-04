@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
 import { loadStampInfo as loadStampInfoFromContract, StampInfo as ContractStampInfo } from '@/utils/network/stampInfo';
-import { fetchGatewayNodes, PrivateWriterNode, PublicWriterNode, StampInfo } from '@/utils/stream/node';
+import { fetchGatewayNodes, NodeType, PrivateWriterNode, PublicWriterNode, StampInfo } from '@/utils/stream/node';
 
 export interface StampWithInfo {
   stampId: string;
@@ -118,7 +118,7 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
 
       // Public writers have one stamp per port
       const publicStampPromises = response.nodes.public_writers.map((node: PublicWriterNode) => {
-        const stampInfo: StampInfo = { stamp: node.stamp, locked: false };
+        const stampInfo: StampInfo = { stamp: node.stamp, state: 'free' };
         return loadStampInfo(node.stamp, stampInfo, node.port);
       });
 
@@ -145,12 +145,12 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         })
         .map((result) => result.value);
 
-      const pinnedStamps = privateStampsWithInfo.filter((stamp) => stamp.nodeInfo.lock_info?.pinned);
-      const unpinnedPrivateStamps = privateStampsWithInfo.filter((stamp) => !stamp.nodeInfo.lock_info?.pinned);
+      const pinnedStamps = privateStampsWithInfo.filter((stamp) => stamp.nodeInfo.history?.pinned);
+      const unpinnedPrivateStamps = privateStampsWithInfo.filter((stamp) => !stamp.nodeInfo.history?.pinned);
 
       const streamGroups = new Map<string, StampWithInfo[]>();
       pinnedStamps.forEach((stamp) => {
-        const streamId = stamp.nodeInfo.lock_info?.stream_id;
+        const streamId = stamp.nodeInfo.history?.stream_id;
         if (streamId) {
           if (!streamGroups.has(streamId)) {
             streamGroups.set(streamId, []);
@@ -162,10 +162,10 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
       const pinnedStreams: StreamGroup[] = Array.from(streamGroups.entries()).map(([streamId, stamps]) => ({
         streamId,
         stamps: stamps.sort((a, b) => {
-          const typeA = a.nodeInfo.lock_info?.type || '';
-          const typeB = b.nodeInfo.lock_info?.type || '';
-          if (typeA === 'media' && typeB === 'chat') return -1;
-          if (typeA === 'chat' && typeB === 'media') return 1;
+          const typeA = a.nodeInfo.history?.type || '';
+          const typeB = b.nodeInfo.history?.type || '';
+          if (typeA === NodeType.MEDIA && typeB === NodeType.CHAT) return -1;
+          if (typeA === NodeType.CHAT && typeB === NodeType.MEDIA) return 1;
           return 0;
         }),
       }));

@@ -7,57 +7,75 @@ export enum NodeType {
 
 export interface StampInfo {
   stamp: string;
-  locked: boolean;
+  state: string;
   lock_info?: {
     locked_at: number;
     locked_by: string;
-    instance: string;
     stream_id: string;
     type: NodeType;
     pinned: boolean;
   };
+  history?: {
+    stream_id: string;
+    type: NodeType;
+    unlocked_at: number;
+    locked_at: number;
+    locked_by: string;
+    pinned: boolean;
+  };
+  tags?: string[];
 }
 
 export interface PrivateWriterNode {
   port: string;
-  total_stamps: number;
+  type: 'private';
+  stamps: StampInfo[];
+}
+
+export interface CustomPrivateWriterNode {
+  port: string;
+  type: 'custom_private';
   stamps: StampInfo[];
 }
 
 export interface PublicWriterNode {
   port: string;
+  type: 'public';
   stamp: string;
 }
 
 export interface ReaderNode {
   port: number;
-  status: string;
+  type: 'reader';
 }
 
 export interface StatusResponse {
   instance: string;
+  timestamp: number;
+  persistence: {
+    exists: boolean;
+    modified: number;
+    path: string;
+  };
   nodes: {
     private_writers: PrivateWriterNode[];
+    custom_private_writers: CustomPrivateWriterNode[];
     public_writers: PublicWriterNode[];
     readers: ReaderNode[];
   };
   summary: {
-    total_readers: number;
-    available_private_writer_stamps: number;
-    pinned_private_writer_stamps: number;
-    total_public_writers: number;
-    total_private_writer_stamps: number;
-    locked_private_writer_stamps: number;
-    total_private_writers: number;
-    locked_private_writers: number;
-    pinned_private_writers: number;
-    available_private_writers: number;
-  };
-  persistence: {
-    file: string;
-    file_info: {
-      exists: boolean;
+    stamps: {
+      total: number;
+      locked: number;
+      locked_pinned: number;
+      history_unpinned: number;
+      history_pinned: number;
+      free: number;
     };
+    total_public_writers: number;
+    total_private_writers: number;
+    total_custom_private_writers: number;
+    total_readers: number;
   };
 }
 

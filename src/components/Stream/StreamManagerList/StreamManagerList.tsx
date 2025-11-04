@@ -33,7 +33,7 @@ export function StreamManagerList({ onEdit, onDelete, onShowToken, onPin }: Stre
           }
         />
       )}
-      {(stream.state === StateType.LIVE || stream.state === StateType.VOD) && (
+      {stream.state === StateType.VOD && (
         <StreamActionButton
           onClick={() => onPin(stream)}
           variant={stream.pinned ? 'unpin' : 'pin'}
@@ -57,7 +57,7 @@ export function StreamManagerList({ onEdit, onDelete, onShowToken, onPin }: Stre
           }
         />
       )}
-      {
+      {(stream.state === StateType.VOD || stream.state === StateType.SCHEDULED) && (
         <StreamActionButton
           onClick={() => onDelete(stream)}
           variant="delete"
@@ -68,7 +68,7 @@ export function StreamManagerList({ onEdit, onDelete, onShowToken, onPin }: Stre
             </svg>
           }
         />
-      }
+      )}
     </>
   );
 

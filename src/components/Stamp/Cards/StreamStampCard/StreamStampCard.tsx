@@ -30,7 +30,7 @@ export function StreamStampCard({
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { stampInfo, error, nodeInfo } = stamp;
-  const stampType = nodeInfo.lock_info?.type || 'unknown';
+  const stampType = nodeInfo.history?.type || 'unknown';
 
   const handleTopUp = async (days: number) => {
     if (!signer) {
