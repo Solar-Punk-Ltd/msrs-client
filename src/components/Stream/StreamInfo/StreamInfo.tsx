@@ -37,11 +37,12 @@ const InfoIcon = () => (
 interface StreamInfoProps {
   title: string;
   description: string;
+  tags?: string[];
   scheduledStartTime?: string;
   isScheduled: boolean;
 }
 
-export function StreamInfo({ title, description, scheduledStartTime, isScheduled }: StreamInfoProps) {
+export function StreamInfo({ title, description, tags, scheduledStartTime, isScheduled }: StreamInfoProps) {
   const [isExpanded, setIsExpanded] = useState(isScheduled);
 
   return (
@@ -66,6 +67,19 @@ export function StreamInfo({ title, description, scheduledStartTime, isScheduled
               <div className="info-section">
                 <h3>Description</h3>
                 <p>{description}</p>
+              </div>
+            )}
+
+            {tags && tags.length > 0 && (
+              <div className="info-section">
+                <h3>Tags</h3>
+                <div className="stream-tags">
+                  {tags.map((tag, index) => (
+                    <span key={index} className="stream-tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
 

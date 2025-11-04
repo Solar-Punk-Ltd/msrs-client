@@ -55,11 +55,6 @@ vi.mock('../BaseStreamList/BaseStreamList', () => ({
 }));
 
 describe('StreamList', () => {
-  it('renders the stream list title', () => {
-    render(<StreamList />);
-    expect(screen.getByText(/Watch streams on Swarm!/i)).toBeInTheDocument();
-  });
-
   it('renders all StreamThumbnail components for streams', () => {
     render(<StreamList />);
     const thumbnails = screen.getAllByTestId('stream-thumbnail');

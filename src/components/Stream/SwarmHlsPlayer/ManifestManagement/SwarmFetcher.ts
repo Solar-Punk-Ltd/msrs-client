@@ -10,7 +10,7 @@ export class SwarmFetcher {
   }
 
   async fetchFeed(owner: string, topic: string): Promise<Response> {
-    return this.fetch(`feeds/${owner}/${topic}`);
+    return this.fetch(`feeds/${owner}/${topic}?after=1`);
   }
 
   async fetchSOC(owner: string, id: string): Promise<Response> {

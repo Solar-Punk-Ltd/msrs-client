@@ -91,8 +91,8 @@ export function StreamManagerList({ onEdit, onDelete, onShowToken, onPin }: Stre
       renderActions={renderActions}
       className="stream-manager-list"
       itemClassName="stream-manager-item"
-      title="Stream Manager"
       renderFooter={renderFooter}
+      enableSearch
     />
   );
 }

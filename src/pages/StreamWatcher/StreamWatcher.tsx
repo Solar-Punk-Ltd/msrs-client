@@ -100,6 +100,7 @@ export function StreamWatcher() {
         <StreamInfo
           title={foundStream.title}
           description={foundStream.description || 'No description available'}
+          tags={foundStream.tags}
           scheduledStartTime={foundStream.scheduledStartTime}
           isScheduled={isScheduled}
         />

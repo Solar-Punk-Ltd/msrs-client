@@ -32,7 +32,9 @@ export type StateEntry = {
   duration?: number;
   thumbnail?: string | File;
   description?: string;
+  tags?: string[];
   scheduledStartTime?: string;
+  isExternal?: boolean;
   pinned?: boolean;
 };
 
