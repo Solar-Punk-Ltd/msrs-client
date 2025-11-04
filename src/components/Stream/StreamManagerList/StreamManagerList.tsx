@@ -33,7 +33,7 @@ export function StreamManagerList({ onEdit, onDelete, onShowToken, onPin }: Stre
           }
         />
       )}
-      {stream.state === StateType.VOD && (
+      {stream.state === StateType.VOD && !stream.isExternal && (
         <StreamActionButton
           onClick={() => onPin(stream)}
           variant={stream.pinned ? 'unpin' : 'pin'}
