@@ -1,6 +1,6 @@
 .stream-search {
-  padding: 20px;
-  padding-bottom: 12px;
+  padding: 12px 20px;
+  padding-bottom: 8px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -15,21 +15,21 @@
 
 .stream-search-icon {
   position: absolute;
-  left: 16px;
-  width: 20px;
-  height: 20px;
+  left: 12px;
+  width: 18px;
+  height: 18px;
   color: rgba(255, 255, 255, 0.6);
   pointer-events: none;
 }
 
 .stream-search-input {
   width: 100%;
-  padding: 12px 48px 12px 48px;
+  padding: 8px 40px 8px 40px;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  font-size: 16px;
+  font-size: 14px;
   font-family: 'Open Sans', sans-serif;
   box-sizing: border-box;
   transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
@@ -48,9 +48,9 @@
 
 .stream-search-clear {
   position: absolute;
-  right: 12px;
-  width: 24px;
-  height: 24px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
   padding: 0;
   border: none;
   background: transparent;
@@ -62,8 +62,8 @@
   transition: color 0.2s ease, transform 0.2s ease;
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
   }
 
   &:hover {

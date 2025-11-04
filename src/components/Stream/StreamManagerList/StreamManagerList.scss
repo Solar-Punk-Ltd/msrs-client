@@ -26,7 +26,7 @@
 }
 
 .stream-manager-footer {
-  padding: 16px;
+  padding: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: center;
@@ -36,22 +36,22 @@
 .create-stream-button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
+  gap: 6px;
+  padding: 8px 16px;
   background: linear-gradient(135deg, #8841e4 0%, #ff8a50 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-family: 'Open Sans', sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(136, 65, 228, 0.3);
 
   .create-icon {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
   }
 
   &:hover {
