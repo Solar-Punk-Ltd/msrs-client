@@ -5,7 +5,6 @@ import PQueue from 'p-queue';
 
 import PlayIcon from '@/assets/icons/playIcon.png';
 import AudioStreamImage from '@/assets/images/audioStream.png';
-import DefaultPreviewImage from '@/assets/images/defaultPreviewImage.png';
 import { MediaType, StateType } from '@/types/stream';
 import { fetchThumbnail } from '@/utils/stream/stream';
 import { formatDuration } from '@/utils/ui/format';
@@ -126,6 +125,26 @@ const AudioIcon: React.FC = () => (
   </div>
 );
 
+const VideoIcon: React.FC = () => (
+  <div className="stream-thumbnail-video-icon">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M23 7l-7 5 7 5V7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <rect
+        x="1"
+        y="5"
+        width="15"
+        height="14"
+        rx="2"
+        ry="2"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </div>
+);
+
 export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   manifestUrl,
   thumbnailRef,
@@ -209,8 +228,6 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
   const { isLoading, thumbnailUrl, hasData } = thumbnailState;
   const shouldShowVideo = !thumbnailUrl && hasData;
   const shouldShowDefault = !isLoading && !hasData;
-  const defaultImage = mediaType === MediaType.AUDIO ? AudioStreamImage : DefaultPreviewImage;
-  const defaultImageAlt = mediaType === MediaType.AUDIO ? 'Audio stream' : 'Default thumbnail';
 
   return (
     <div className={`stream-thumbnail ${pinned ? 'stream-thumbnail--pinned' : ''}`}>
@@ -229,9 +246,11 @@ export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
           style={{ display: shouldShowVideo ? 'block' : 'none' }}
         />
 
-        {shouldShowDefault && <img src={defaultImage} alt={defaultImageAlt} className="stream-thumbnail-image" />}
+        {shouldShowDefault && <img src={AudioStreamImage} alt="Stream thumbnail" className="stream-thumbnail-image" />}
 
         {shouldShowDefault && mediaType === MediaType.AUDIO && <AudioIcon />}
+
+        {shouldShowDefault && mediaType === MediaType.VIDEO && <VideoIcon />}
 
         {!isLoading && (
           <>

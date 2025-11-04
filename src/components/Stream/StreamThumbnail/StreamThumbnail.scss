@@ -90,7 +90,8 @@
     }
   }
 
-  &-audio-icon {
+  &-audio-icon,
+  &-video-icon {
     position: absolute;
     inset: 0;
     display: flex;
