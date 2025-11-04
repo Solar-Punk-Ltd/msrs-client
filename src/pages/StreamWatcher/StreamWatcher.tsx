@@ -121,7 +121,7 @@ export function StreamWatcher() {
       )}
 
       <div className="stream-item-chat">
-        <Chat owner={owner} topic={topic} />
+        <Chat owner={owner} topic={topic} isExternal={foundStream?.isExternal} />
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ import './Chat.scss';
 interface ChatProps {
   owner: string;
   topic: string;
+  isExternal?: boolean;
 }
 
 const profileColors = [
@@ -37,7 +38,7 @@ function getColorForName(name: string): string {
 
 const privKeyPlaceholder = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
+export const Chat: React.FC<ChatProps> = ({ owner, topic, isExternal = false }) => {
   const { node, channelManager } = useWakuContext();
   const { nickname, keys, setIsLoginModalOpen } = useUserContext();
 
@@ -82,6 +83,7 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
       setIsSendingMessage(true);
       await sendMessage(text, {
         streamId: `${owner}/${topic}`,
+        isExternal,
       });
     } finally {
       setIsSendingMessage(false);
@@ -97,6 +99,7 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
       setReactionLoadingState((prev) => ({ ...prev, [loadingKey]: emoji }));
       await sendReaction(messageId, emoji, {
         streamId: `${owner}/${topic}`,
+        isExternal,
       });
     } finally {
       // Clear loading state after a short delay to prevent rapid clicking
@@ -125,6 +128,7 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic }) => {
         setIsSendingThreadMessage(true);
         await sendReply(selectedMessage.id, text, {
           streamId: `${owner}/${topic}`,
+          isExternal,
         });
       } finally {
         setIsSendingThreadMessage(false);
