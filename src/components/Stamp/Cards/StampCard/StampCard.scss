@@ -5,7 +5,8 @@
   background: var(--gradient-secondary);
   border-radius: var(--border-radius-md);
   padding: var(--spacing-lg);
-  box-shadow: var(--shadow-lg);
+  border: var(--accent-border, none);
+  box-shadow: var(--accent-glow, var(--shadow-lg));
   backdrop-filter: blur(var(--blur-xl));
   transition: all var(--duration-base) var(--easing-ease-out);
   position: relative;

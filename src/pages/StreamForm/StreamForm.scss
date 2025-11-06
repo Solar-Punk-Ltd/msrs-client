@@ -19,6 +19,8 @@
     @include mixins.flex-column;
     @include mixins.flex-center;
     background-color: var(--color-background-glass);
+    border: var(--accent-border, none);
+    box-shadow: var(--accent-glow, var(--shadow-2xl));
     border-radius: var(--border-radius-md);
     font-family: var(--font-family-base);
     padding: var(--spacing-base);

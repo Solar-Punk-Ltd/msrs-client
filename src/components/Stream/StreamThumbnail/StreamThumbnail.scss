@@ -9,8 +9,8 @@
 
   &--pinned {
     .stream-thumbnail-media {
-      border: 2px solid var(--color-accent);
-      box-shadow: 0 0 8px var(--color-accent);
+      border: var(--pinned-border, 2px solid var(--color-accent));
+      box-shadow: var(--pinned-glow, 0 0 8px var(--color-accent));
     }
   }
 
@@ -32,6 +32,8 @@
     position: relative;
     width: 210px;
     height: 180px;
+    border: var(--accent-border, none);
+    box-shadow: var(--accent-glow, var(--shadow-base));
     border-radius: var(--border-radius-base);
     overflow: hidden;
     background: var(--color-background-dark);

@@ -58,9 +58,10 @@
   gap: var(--spacing-lg);
   padding: 2rem;
   text-align: center;
-  background: var(--color-background-message);
+  background: var(--color-background-glass);
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-border-secondary);
+  border: var(--accent-border, none);
+  box-shadow: var(--accent-glow, var(--shadow-2xl));
   width: 100%;
 
   h2 {

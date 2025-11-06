@@ -1,3 +1,5 @@
+@use '@/styles/mixins' as mixins;
+
 .swarm-hls-player-audio {
   width: 100%;
 }
@@ -11,46 +13,44 @@
 }
 
 .swarm-hls-player-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
+  @include mixins.flex-column;
+  @include mixins.flex-center;
+  gap: var(--spacing-lg);
   padding: 2rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-background-glass);
+  border-radius: var(--border-radius-md);
+  border: var(--accent-border, none);
+  box-shadow: var(--accent-glow, var(--shadow-2xl));
   width: 100%;
 
   h2 {
-    color: white;
+    color: var(--color-text-inverse);
     margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
+    font-size: var(--font-size-xl);
   }
 }
 
 .swarm-hls-player-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include mixins.flex-column;
+  @include mixins.flex-center;
   padding: 2rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-background-glass);
+  border-radius: var(--border-radius-md);
+  border: var(--accent-border, none);
+  box-shadow: var(--accent-glow, var(--shadow-2xl));
   margin: 1rem 0;
   width: 100%;
 
   h2 {
-    color: white;
+    color: var(--color-text-inverse);
     margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
+    font-size: var(--font-size-xl);
   }
 
   p {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-text-secondary);
     margin: 0;
   }
 }

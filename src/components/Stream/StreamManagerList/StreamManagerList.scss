@@ -5,6 +5,8 @@
 .stream-manager-list {
   @include mixins.flex-column;
   background-color: var(--color-background-glass);
+  border: var(--accent-border, none);
+  box-shadow: var(--accent-glow, var(--shadow-2xl));
   border-radius: var(--border-radius-md);
   font-family: var(--font-family-base);
   color: var(--color-text-primary);
