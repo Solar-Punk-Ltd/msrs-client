@@ -18,14 +18,14 @@ vi.mock('./ReactionToolbar/ReactionToolbar', () => ({
 describe('MessageSender', () => {
   it('renders input and send button', () => {
     render(<MessageSender />);
-    expect(screen.getByPlaceholderText(/please type here/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/type a message/i)).toBeInTheDocument();
     expect(document.querySelector('.message-sender-send-button')).toBeInTheDocument();
   });
 
   it('calls onSend with trimmed input when send button is clicked', async () => {
     const onSend = vi.fn();
     render(<MessageSender onSend={onSend} />);
-    const input = screen.getByPlaceholderText(/please type here/i);
+    const input = screen.getByPlaceholderText(/type a message/i);
     const button = document.querySelector('.message-sender-send-button') as HTMLButtonElement;
 
     fireEvent.change(input, { target: { value: '   hello world   ' } });
@@ -37,7 +37,7 @@ describe('MessageSender', () => {
   it('calls onSend when Enter is pressed', async () => {
     const onSend = vi.fn();
     render(<MessageSender onSend={onSend} />);
-    const input = screen.getByPlaceholderText(/please type here/i);
+    const input = screen.getByPlaceholderText(/type a message/i);
 
     fireEvent.change(input, { target: { value: 'test message' } });
     fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
@@ -48,7 +48,7 @@ describe('MessageSender', () => {
   it('does not call onSend if input is empty or only whitespace', async () => {
     const onSend = vi.fn();
     render(<MessageSender onSend={onSend} />);
-    const input = screen.getByPlaceholderText(/please type here/i);
+    const input = screen.getByPlaceholderText(/type a message/i);
     const button = document.querySelector('.message-sender-send-button') as HTMLButtonElement;
 
     fireEvent.change(input, { target: { value: '    ' } });
@@ -59,7 +59,7 @@ describe('MessageSender', () => {
 
   it('adds emoji to input when emoji is selected', async () => {
     render(<MessageSender />);
-    const input = screen.getByPlaceholderText(/please type here/i);
+    const input = screen.getByPlaceholderText(/type a message/i);
     const emojiButton = screen.getByTestId('emoji-button');
 
     fireEvent.change(input, { target: { value: 'Hello ' } });

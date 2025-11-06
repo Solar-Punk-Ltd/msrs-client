@@ -71,7 +71,7 @@ export function MessageSender({ onSend, disabled = false }: MessageSenderProps) 
                 name="message"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Please type here"
+                placeholder="Type a message"
                 onKeyDown={handleKeyDown}
                 className="message-sender-input"
               />

@@ -27,11 +27,19 @@
       caret-color: var(--color-text-primary);
       box-sizing: border-box;
       padding: var(--spacing-xs);
+      line-height: 1;
+      display: flex;
+      align-items: center;
 
       &::placeholder {
         color: var(--color-text-placeholder);
         text-align: right;
         margin-right: var(--spacing-sm);
+        line-height: 1;
+
+        @include theme.mobile-only {
+          font-size: var(--font-size-xs);
+        }
       }
     }
 
