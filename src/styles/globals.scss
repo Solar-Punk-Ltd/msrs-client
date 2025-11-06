@@ -1,7 +1,4 @@
-@use 'theme-config' as config;
-@use 'themes' as theme with (
-  $active-theme: config.$active-theme
-);
+@use 'themes' as theme;
 @use 'mixins' as mixins;
 @use 'fonts' as fonts;
 
