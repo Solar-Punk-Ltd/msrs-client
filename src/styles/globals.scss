@@ -1,4 +1,8 @@
-@use 'themes' as theme;
+// NOTE: To change themes, modify this value directly or set VITE_THEME in .env
+// The vite.config.js will replace this with the env var value
+@use 'themes' as theme with (
+  $active-theme: 'cryptomondays'
+);
 @use 'mixins' as mixins;
 @use 'fonts' as fonts;
 
@@ -25,6 +29,7 @@ body {
   font-family: var(--font-family-base);
   color: var(--color-text-primary);
   background-color: var(--color-background-primary);
+  letter-spacing: var(--letter-spacing-normal);
 
   // Prevent bounce scrolling on iOS while allowing internal scrolling
   @media (max-width: 768px) {
@@ -38,6 +43,7 @@ body {
 *::before,
 *::after {
   box-sizing: inherit;
+  letter-spacing: inherit;
 }
 
 #root {

@@ -15,6 +15,7 @@
   &.primary {
     @include mixins.button-primary;
     font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
   }
 
   &.secondary {
