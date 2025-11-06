@@ -1,11 +1,14 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+
 .login-button-container {
   position: relative;
   display: inline-block;
 }
 
 .login-button {
-  font-size: 16px;
-  padding: 12px;
+  font-size: var(--font-size-base) !important;
+  padding: var(--spacing-md) !important;
   background-color: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
@@ -20,31 +23,31 @@
   top: 100%;
   right: 0;
   min-width: 150px;
-  background: linear-gradient(180deg, #8841e4 0%, #ff8a50 100%);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: var(--gradient-primary);
+  border-radius: var(--border-radius-base);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: var(--spacing-xs);
 }
 
 .login-dropdown-item {
   width: 100%;
-  padding: 12px 16px;
+  padding: var(--spacing-md) var(--spacing-base);
   border: none;
   background: transparent;
-  color: #efefef;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--duration-fast) var(--easing-ease-out);
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--color-background-glass-light);
   }
 
   &:not(:first-child) {
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid var(--color-border-primary);
   }
 }
