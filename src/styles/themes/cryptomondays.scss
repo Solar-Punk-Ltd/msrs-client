@@ -60,10 +60,10 @@ $cryptomondays-colors: (
   'success-light': #48f286,
   'success-background': rgba(34, 197, 94, 0.2),
   'success-border': rgba(73, 246, 137, 0.3),
-  'error': #ff6b6b,
-  'error-dark': #ee5a52,
-  'error-background': rgba(255, 107, 107, 0.2),
-  'error-border': rgba(238, 90, 82, 0.3),
+  'error': #dc2626,
+  'error-dark': #b91c1c,
+  'error-background': rgba(220, 38, 38, 0.2),
+  'error-border': rgba(185, 28, 28, 0.3),
   'warning': #ffad69,
   'info': #377dff,
 
@@ -96,16 +96,16 @@ $cryptomondays-gradients: (
   'header-overlay': transparent,
   'status-error': linear-gradient(135deg, #ff6b6b, #ee5a52),
   // Action button gradients
-  'action-pin': linear-gradient(135deg, #fbbf24, #f59e0b),
-  'action-pin-hover': linear-gradient(135deg, #fcd34d, #fbbf24),
+  'action-pin': linear-gradient(135deg, #8841e4, #c084fc),
+  'action-pin-hover': linear-gradient(135deg, #7c3adb, #a855f7),
   'action-delete': linear-gradient(135deg, #ff8a50, #e53e3e),
   'action-delete-hover': linear-gradient(135deg, #ff7a40, #dc2626),
   'action-unpin': linear-gradient(135deg, #6b7280, #9ca3af),
   'action-unpin-hover': linear-gradient(135deg, #4b5563, #6b7280),
-  'action-edit': linear-gradient(135deg, #377dff, #5b94ff),
-  'action-edit-hover': linear-gradient(135deg, #2968ff, #4d8fff),
-  'action-token': linear-gradient(135deg, #a855f7, #9333ea),
-  'action-token-hover': linear-gradient(135deg, #c084fc, #a855f7),
+  'action-edit': linear-gradient(135deg, #8841e4, #ff8a50),
+  'action-edit-hover': linear-gradient(135deg, #7c3adb, #ff7a40),
+  'action-token': linear-gradient(135deg, #4f46e5, #06b6d4),
+  'action-token-hover': linear-gradient(135deg, #4338ca, #0891b2),
   // Modal confirm button gradients
   'modal-confirm': linear-gradient(135deg, #0ea5e9, #7dd3fc),
   'modal-confirm-hover': linear-gradient(135deg, #38bdf8, #bae6fd),
@@ -177,4 +177,8 @@ $cryptomondays-theme: (
 
   // Back button styling
   --back-button-font-size-mobile: var(--font-size-sm);
+
+  // Create stream button styling
+  --gradient-create-stream: linear-gradient(135deg, #377dff, #5b94ff);
+  --gradient-create-stream-hover: linear-gradient(135deg, #2968ff, #4d8fff);
 }

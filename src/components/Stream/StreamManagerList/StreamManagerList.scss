@@ -39,7 +39,7 @@
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-base);
-  background: var(--gradient-action-edit);
+  background: var(--gradient-create-stream, var(--gradient-action-edit));
   color: var(--color-text-inverse);
   border: none;
   border-radius: var(--border-radius-sm);
@@ -56,7 +56,7 @@
   }
 
   &:hover {
-    background: var(--gradient-action-edit-hover);
+    background: var(--gradient-create-stream-hover, var(--gradient-action-edit-hover));
     box-shadow: var(--shadow-action-button-hover);
   }
 

@@ -59,10 +59,10 @@ $solarpunk-colors: (
   'success-light': #48f286,
   'success-background': rgba(34, 197, 94, 0.2),
   'success-border': rgba(73, 246, 137, 0.3),
-  'error': #ff6b6b,
-  'error-dark': #ee5a52,
-  'error-background': rgba(255, 107, 107, 0.2),
-  'error-border': rgba(238, 90, 82, 0.3),
+  'error': #dc2626,
+  'error-dark': #b91c1c,
+  'error-background': rgba(220, 38, 38, 0.2),
+  'error-border': rgba(185, 28, 28, 0.3),
   'warning': #ffad69,
   'info': #377dff,
 
@@ -183,4 +183,8 @@ $solarpunk-theme: (
 
   // Back button styling
   --back-button-font-size-mobile: var(--font-size-sm);
+
+  // Create stream button styling
+  --gradient-create-stream: linear-gradient(135deg, #8841e4, #ff8a50);
+  --gradient-create-stream-hover: linear-gradient(135deg, #7c3adb, #ff7a40);
 }
