@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import Hls, { Events } from 'hls.js';
 import PQueue from 'p-queue';
 
-import PlayIcon from '@/assets/icons/playIcon.png';
-import AudioStreamImage from '@/assets/images/audioStream.png';
 import { MediaType, StateType } from '@/types/stream';
 import { fetchThumbnail } from '@/utils/stream/stream';
 import { formatDuration } from '@/utils/ui/format';
 
 import './StreamThumbnail.scss';
+
+const PlayIcon = '/assets/icons/playIcon.png';
+const AudioStreamImage = '/assets/images/audioStream.png';
 
 const THUMBNAIL_CONFIG = {
   MAX_RETRY_COUNT: 2,
