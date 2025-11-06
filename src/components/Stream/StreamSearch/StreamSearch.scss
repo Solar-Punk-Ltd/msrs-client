@@ -1,6 +1,9 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+
 .stream-search {
-  padding: 12px 20px;
-  padding-bottom: 8px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
   width: 100%;
   box-sizing: border-box;
 }
@@ -15,34 +18,36 @@
 
 .stream-search-icon {
   position: absolute;
-  left: 12px;
+  left: var(--spacing-md);
   width: 18px;
   height: 18px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-placeholder);
   pointer-events: none;
 }
 
 .stream-search-input {
   width: 100%;
-  padding: 8px 40px 8px 40px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  font-size: 14px;
-  font-family: 'Open Sans', sans-serif;
+  padding: var(--spacing-sm) 40px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--border-radius-input);
+  background: var(--color-background-input);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
   box-sizing: border-box;
-  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color var(--duration-base) var(--easing-ease),
+              background-color var(--duration-base) var(--easing-ease),
+              box-shadow var(--duration-base) var(--easing-ease);
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--color-text-placeholder);
   }
 
   &:focus {
     outline: none;
-    border-color: rgba(255, 255, 255, 0.6);
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: var(--color-border-input-focus);
+    background: var(--color-background-input-focus);
+    box-shadow: var(--shadow-input-focus);
   }
 }
 
@@ -54,12 +59,11 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-placeholder);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease, transform 0.2s ease;
+  @include mixins.flex-center;
+  transition: color var(--duration-fast) var(--easing-ease-out),
+              transform var(--duration-fast) var(--easing-ease-out);
 
   svg {
     width: 16px;
@@ -67,7 +71,7 @@
   }
 
   &:hover {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--color-text-primary);
     transform: scale(1.1);
   }
 

@@ -1,3 +1,6 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+
 .stream-list-item {
   position: relative;
   width: fit-content;
@@ -5,9 +8,9 @@
 
   &-actions {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-sm);
   }
 }

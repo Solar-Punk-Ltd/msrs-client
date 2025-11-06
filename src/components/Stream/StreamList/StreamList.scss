@@ -1,21 +1,21 @@
 @use '../BaseStreamList/BaseStreamList.scss';
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .stream-list {
-  display: flex;
-  flex-direction: column;
-  background-color: #00000040;
-  border-radius: 12px;
-  font-family: 'Open Sans', sans-serif;
-  color: #efefef;
-  font-size: 18px;
-  font-weight: bold;
+  @include mixins.flex-column;
+  background-color: var(--color-background-glass);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-family-base);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
   width: 100%;
   flex: 1;
   min-height: 0;
   overflow: hidden;
 
-  @media (max-width: $breakpoint-mobile) {
-    border-radius: 12px;
+  @include theme.mobile-only {
+    border-radius: var(--border-radius-md);
   }
 }
