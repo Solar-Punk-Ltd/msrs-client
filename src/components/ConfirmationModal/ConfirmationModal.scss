@@ -26,7 +26,8 @@
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
   border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-2xl);
+  box-shadow: var(--modal-glow, var(--shadow-2xl));
+  border: var(--modal-border, none);
 }
 
 .confirmation-modal-header {
@@ -59,10 +60,10 @@
   width: auto !important;
 
   &.primary {
-    background-color: var(--color-primary) !important;
+    background-color: var(--modal-cancel-background, var(--color-primary)) !important;
 
     &:hover {
-      background-color: var(--color-primary-hover) !important;
+      background-color: var(--modal-cancel-hover, var(--color-primary-hover)) !important;
     }
   }
 

@@ -26,7 +26,8 @@
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
   border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-2xl);
+  border: var(--modal-border, none);
+  box-shadow: var(--modal-glow, var(--shadow-2xl));
   overflow-y: auto;
 }
 
