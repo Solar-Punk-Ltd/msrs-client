@@ -1,7 +1,14 @@
-.flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@use 'theme-config' as config;
+@use 'themes' as theme with (
+  $active-theme: config.$active-theme
+);
+@use 'mixins' as mixins;
+@use 'fonts' as fonts;
+
+@include fonts.load-fonts();
+
+:root {
+  @include theme.apply();
 }
 
 html {
@@ -18,6 +25,9 @@ body {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
+  font-family: var(--font-family-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-background-primary);
 
   // Prevent bounce scrolling on iOS while allowing internal scrolling
   @media (max-width: 768px) {
@@ -41,7 +51,19 @@ body {
   flex-direction: column;
 }
 
-// Ensure form inputs don't zoom on iOS
+.flex-center {
+  @include mixins.flex-center;
+}
+
+.upper-side {
+  width: 100%;
+  height: 120px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--gradient-overlay-top);
+}
+
 @media (max-width: 768px) {
   input[type='text'],
   input[type='email'],
@@ -54,13 +76,4 @@ body {
   textarea {
     font-size: 16px !important;
   }
-}
-
-.upper-side {
-  width: 100%;
-  height: 120px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: linear-gradient(180deg, #000000 0%, rgba(0, 0, 0, 0) 100%);
 }
