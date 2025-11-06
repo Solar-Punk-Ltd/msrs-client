@@ -1,38 +1,39 @@
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .stamp-info-dropdown {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(88, 28, 135, 0.95) 100%);
-  border-radius: 12px;
-  padding: 24px;
-  margin: 16px 24px;
-  box-shadow: 0 4px 16px rgba(30, 58, 138, 0.3);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--gradient-stamp-info);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-xl);
+  margin: var(--spacing-base) var(--spacing-xl);
+  box-shadow: var(--shadow-stamp-info);
+  backdrop-filter: blur(var(--blur-xl));
+  border: 1px solid var(--color-border-primary);
   max-height: 300px;
   overflow-y: auto;
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown var(--duration-base) var(--easing-ease-out);
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: 16px;
-    margin: 12px 16px;
+  @include theme.mobile-only {
+    padding: var(--spacing-base);
+    margin: var(--spacing-md) var(--spacing-base);
     max-height: 250px;
   }
 
   .stamp-info-content {
     h3 {
-      margin: 0 0 16px 0;
-      font-size: 18px;
-      font-weight: 700;
-      color: white;
-      font-family: 'Open Sans', sans-serif;
+      margin: 0 0 var(--spacing-base) 0;
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-inverse);
+      font-family: var(--font-family-base);
     }
 
     p {
-      margin: 0 0 12px 0;
-      font-size: 14px;
-      line-height: 1.6;
-      color: rgba(255, 255, 255, 0.9);
-      font-family: 'Open Sans', sans-serif;
+      margin: 0 0 var(--spacing-md) 0;
+      font-size: var(--font-size-sm);
+      line-height: var(--line-height-relaxed);
+      color: var(--color-text-primary);
+      font-family: var(--font-family-base);
 
       &:last-child {
         margin-bottom: 0;

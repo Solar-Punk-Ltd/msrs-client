@@ -1,19 +1,20 @@
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .stamp-category {
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-2xl);
 
   &:last-child {
     margin-bottom: 0;
   }
 
   &-title {
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: white;
-    padding-left: 4px;
-    font-family: 'Open Sans', sans-serif;
+    margin: 0 0 var(--spacing-lg) 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-inverse);
+    padding-left: var(--spacing-xs);
+    font-family: var(--font-family-base);
     display: flex;
     align-items: center;
   }
@@ -22,10 +23,10 @@
 .stamp-manager-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 20px;
+  gap: var(--spacing-lg);
   width: 100%;
 
-  @media (max-width: $breakpoint-mobile) {
+  @include theme.mobile-only {
     grid-template-columns: 1fr;
   }
 }

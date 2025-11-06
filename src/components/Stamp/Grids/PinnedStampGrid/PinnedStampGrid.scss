@@ -1,7 +1,8 @@
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .pinned-streams-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--spacing-3xl);
 
   &:last-child {
     margin-bottom: 0;
@@ -9,12 +10,12 @@
 }
 
 .pinned-streams-title {
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-  padding-left: 4px;
-  font-family: 'Open Sans', sans-serif;
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-inverse);
+  padding-left: var(--spacing-xs);
+  font-family: var(--font-family-base);
   display: flex;
   align-items: center;
 }
@@ -22,26 +23,25 @@
 .pinned-streams-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-  gap: 24px;
+  gap: var(--spacing-xl);
 
   @media (max-width: 1250px) {
-    display: flex;
-    flex-direction: column;
+    @include mixins.flex-column;
   }
 }
 
 .stream-group {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(204, 153, 255, 0.1) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
+  background: var(--gradient-overlay-subtle);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  backdrop-filter: blur(var(--blur-base));
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: 16px;
+  @include theme.mobile-only {
+    padding: var(--spacing-base);
   }
 }
 
@@ -49,25 +49,24 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: var(--spacing-base);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-base);
+  border-bottom: 1px solid var(--color-border-secondary);
   width: 100%;
   min-width: 0;
 
-  @media (max-width: $breakpoint-mobile) {
+  @include theme.mobile-only {
     flex-direction: column;
-    gap: 12px;
+    gap: var(--spacing-md);
   }
 }
 
 .stream-info {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  @include mixins.flex-column;
+  gap: var(--spacing-md);
   width: 100%;
   overflow: hidden;
 }
@@ -76,29 +75,29 @@
 .stream-title-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-md);
   width: 100%;
   min-width: 0;
 
-  @media (max-width: $breakpoint-mobile) {
+  @include theme.mobile-only {
     flex-direction: column;
     align-items: stretch;
-    gap: 6px;
+    gap: var(--spacing-xs);
   }
 }
 
 .stream-id-label,
 .stream-title-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
-  font-family: 'Open Sans', sans-serif;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-placeholder);
+  font-family: var(--font-family-base);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
   min-width: 80px;
 
-  @media (max-width: $breakpoint-mobile) {
+  @include theme.mobile-only {
     min-width: unset;
     width: 100%;
   }
@@ -114,13 +113,13 @@
 .stream-id-value,
 .stream-title-value {
   display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: white;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 6px 12px;
-  border-radius: 6px;
-  transition: background 0.2s ease;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-inverse);
+  background: var(--color-background-message);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  transition: background var(--duration-fast) var(--easing-ease-out);
 
   width: 100%;
   max-width: 100%;
@@ -128,41 +127,41 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   box-sizing: border-box;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.08);
-  }
 }
 
 .stream-id-value {
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: var(--font-family-mono);
 }
 
 .stream-title-value {
-  font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+
+  &:hover {
+    background: var(--color-background-message-hover);
+  }
 }
 
 .stream-watch-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-base);
+  background: var(--gradient-accent);
   border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'Open Sans', sans-serif;
+  border-radius: var(--border-radius-base);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-base);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--duration-fast) var(--easing-ease-out);
   white-space: nowrap;
   flex-shrink: 0;
 
   &:hover {
-    background: linear-gradient(135deg, #7a8ff0 0%, #8655b2 100%);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    background: var(--gradient-accent-hover);
+    box-shadow: var(--shadow-lg);
   }
 
   &:active {
@@ -174,7 +173,7 @@
     height: 16px;
   }
 
-  @media (max-width: $breakpoint-mobile) {
+  @include theme.mobile-only {
     align-self: flex-start;
     width: 100%;
     justify-content: center;
@@ -184,9 +183,9 @@
 .stream-stamps {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  gap: var(--spacing-base);
 
-  @media (max-width: $breakpoint-tablet) {
+  @include theme.tablet-only {
     grid-template-columns: 1fr;
   }
 }

@@ -1,70 +1,69 @@
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .stamp-manager {
   &-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #581c87 100%);
-    color: white;
-    box-shadow: 0 4px 16px rgba(30, 58, 138, 0.25);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: var(--gradient-stamp-header);
+    color: var(--color-text-inverse);
+    box-shadow: var(--shadow-stamp-header);
 
-    @media (max-width: $breakpoint-mobile) {
+    @include theme.mobile-only {
       flex-direction: column;
-      gap: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
+      gap: var(--spacing-base);
+      padding: var(--spacing-base);
+      margin-bottom: var(--spacing-md);
     }
   }
 
   &-title-section {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-right: 8px;
+    gap: var(--spacing-md);
+    margin-right: var(--spacing-sm);
   }
 
   &-title {
     margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    color: white;
-    font-family: 'Open Sans', sans-serif;
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-inverse);
+    font-family: var(--font-family-base);
 
-    @media (max-width: $breakpoint-mobile) {
-      font-size: 18px;
+    @include theme.mobile-only {
+      font-size: var(--font-size-lg);
     }
   }
 }
 
 .info-button {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--color-background-badge);
+  border: 1px solid var(--color-border-badge);
   border-radius: 50%;
   width: 32px;
   height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include mixins.flex-center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 16px;
-  color: white;
+  transition: all var(--duration-base) var(--easing-ease-out);
+  font-size: var(--font-size-base);
+  color: var(--color-text-inverse);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-background-badge);
     transform: scale(1.05);
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: var(--color-border-input);
   }
 
   &:focus {
-    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline: 2px solid var(--color-border-focus);
     outline-offset: 2px;
   }
 
   &[aria-expanded='true'] {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-background-badge);
     transform: rotate(180deg);
   }
 }

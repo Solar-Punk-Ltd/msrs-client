@@ -1,40 +1,38 @@
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .stamp-manager {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  @include mixins.flex-column;
   overflow: hidden;
 
   &-container {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
-    padding: 24px;
+    padding: var(--spacing-xl);
 
-    @media (max-width: $breakpoint-mobile) {
-      padding: 4px;
+    @include theme.mobile-only {
+      padding: var(--spacing-xs);
     }
   }
 }
 
 .loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include mixins.flex-column;
+  @include mixins.flex-center;
   min-height: 200px;
-  gap: 16px;
-  animation: fadeIn 0.3s ease-out;
+  gap: var(--spacing-base);
+  animation: fadeIn var(--duration-base) var(--easing-ease-out);
 
   p {
-    color: white;
-    font-size: 16px;
+    color: var(--color-text-inverse);
+    font-size: var(--font-size-base);
     margin: 0;
-    font-family: 'Open Sans', sans-serif;
+    font-family: var(--font-family-base);
     opacity: 0.9;
-    animation: pulse 1.5s ease-in-out infinite;
+    animation: pulse var(--duration-slow) ease-in-out infinite;
   }
 }
 
@@ -60,45 +58,43 @@
 }
 
 .error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include mixins.flex-column;
+  @include mixins.flex-center;
   min-height: 200px;
-  gap: 16px;
-  padding: 24px;
-  animation: shake 0.3s ease-out;
+  gap: var(--spacing-base);
+  padding: var(--spacing-xl);
+  animation: shake var(--duration-base) var(--easing-ease-out);
 
   .error-message {
-    color: #ffcdd2;
-    font-size: 16px;
+    color: var(--color-error-light);
+    font-size: var(--font-size-base);
     margin: 0;
-    font-family: 'Open Sans', sans-serif;
+    font-family: var(--font-family-base);
     text-align: center;
-    padding: 12px 24px;
-    background: rgba(239, 68, 68, 0.4);
-    border-radius: 8px;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--color-error-background);
+    border-radius: var(--border-radius-base);
+    border: 1px solid var(--color-error-border);
   }
 
   .btn-retry {
-    padding: 10px 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    padding: var(--spacing-sm) var(--spacing-xl);
+    background: var(--gradient-accent);
+    color: var(--color-text-inverse);
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: var(--border-radius-base);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Open Sans', sans-serif;
+    transition: all var(--duration-fast) var(--easing-ease-out);
+    font-family: var(--font-family-base);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: var(--shadow-md);
 
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      box-shadow: var(--shadow-lg);
     }
 
     &:active {
@@ -106,7 +102,7 @@
     }
 
     &:focus {
-      outline: 2px solid rgba(102, 126, 234, 0.5);
+      outline: 2px solid var(--color-border-focus);
       outline-offset: 2px;
     }
   }
@@ -133,31 +129,29 @@
 }
 
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include mixins.flex-column;
+  @include mixins.flex-center;
   min-height: 200px;
-  gap: 16px;
-  padding: 24px;
+  gap: var(--spacing-base);
+  padding: var(--spacing-xl);
 
   p {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 16px;
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-base);
     margin: 0;
-    font-family: 'Open Sans', sans-serif;
+    font-family: var(--font-family-base);
     text-align: center;
-    padding: 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    border: 1px dashed rgba(255, 255, 255, 0.2);
+    padding: var(--spacing-base);
+    background: var(--color-background-message);
+    border-radius: var(--border-radius-base);
+    border: 1px dashed var(--color-border-badge);
   }
 
   &::before {
     content: '📭';
     font-size: 48px;
     opacity: 0.5;
-    animation: bounce 2s ease-in-out infinite;
+    animation: bounce var(--duration-slower) ease-in-out infinite;
   }
 }
 

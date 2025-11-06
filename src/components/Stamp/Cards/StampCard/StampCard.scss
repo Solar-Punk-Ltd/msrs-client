@@ -1,12 +1,13 @@
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .stamp-card {
-  background: linear-gradient(135deg, #667eea 0%, #cc99ff 100%);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-  backdrop-filter: blur(20px);
-  transition: all 0.3s ease;
+  background: var(--gradient-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(var(--blur-xl));
+  transition: all var(--duration-base) var(--easing-ease-out);
   position: relative;
   overflow: hidden;
 
@@ -23,7 +24,7 @@
   }
 
   &:hover {
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: var(--shadow-xl);
 
     &::before {
       transform: translateX(100%);
@@ -32,18 +33,16 @@
 
   &.stamp-error {
     min-height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include mixins.flex-center;
     flex-direction: column;
   }
 
   &.stamp-expired {
-    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+    background: linear-gradient(135deg, var(--color-disabled) 0%, var(--color-disabled-light) 100%);
 
     .stamp-status {
       background: rgba(239, 68, 68, 0.2);
-      color: #fca5a5;
+      color: var(--color-error);
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
   }
@@ -51,143 +50,138 @@
   &.stamp-active {
     .stamp-status {
       background: rgba(34, 197, 94, 0.2);
-      color: #48f286;
+      color: var(--color-success-light);
       border: 1px solid rgba(73, 246, 137, 0.3);
     }
   }
 }
 
 .stamp-error-message {
-  color: #990000;
-  font-size: 14px;
-  margin: 8px 0;
+  color: var(--color-error-dark);
+  font-size: var(--font-size-sm);
+  margin: var(--spacing-sm) 0;
   text-align: center;
-  font-family: 'Open Sans', sans-serif;
+  font-family: var(--font-family-base);
 }
 
 .stamp-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-base);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
 .stamp-id {
   margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #efefef;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
   letter-spacing: 0.5px;
 
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 12px;
+  @include theme.mobile-only {
+    font-size: var(--font-size-xs);
   }
 }
 
 .stamp-title {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  font-weight: bold;
-  color: #efefef;
-  font-family: 'Open Sans', sans-serif;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
 }
 
 .stamp-status {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  font-family: 'Open Sans', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
+  @include mixins.badge-base;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-full);
+  transition: all var(--duration-base) var(--easing-ease-out);
 }
 
 .stamp-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  @include mixins.flex-column;
+  gap: var(--spacing-md);
 }
 
 .stamp-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 8px 0;
+  padding: var(--spacing-sm) 0;
 }
 
 .stamp-label {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
-  font-weight: 400;
-  font-family: 'Open Sans', sans-serif;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  font-family: var(--font-family-base);
 }
 
 .stamp-value {
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   text-align: right;
-  font-family: 'Open Sans', sans-serif;
+  font-family: var(--font-family-base);
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  gap: var(--spacing-xs);
 }
 
 .stamp-subtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
-  font-weight: 400;
-  font-family: 'Open Sans', sans-serif;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  font-family: var(--font-family-base);
 }
 
 .stamp-actions {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-base);
+  border-top: 1px solid var(--color-border-primary);
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .stamp-button {
   flex: 1;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 50%, #ffb366 100%);
-  color: #efefef;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--gradient-accent);
+  color: var(--color-text-primary);
   border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 16px;
-  font-family: 'Open Sans', sans-serif;
+  border-radius: var(--border-radius-base);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(254, 137, 80, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+  transition: all var(--duration-base) var(--easing-ease-out);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   width: 100%;
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #ff7a47 0%, #ffa066 50%, #ffc278 100%);
-    box-shadow: 0 6px 16px rgba(254, 137, 80, 0.4);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
   }
 
   &:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(254, 137, 80, 0.3);
+    box-shadow: var(--shadow-sm);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background: #d1d5db;
+    background: var(--color-disabled-light);
   }
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: 10px 20px;
-    font-size: 14px;
+  @include theme.mobile-only {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-sm);
   }
 }
 
@@ -203,26 +197,25 @@
 
 .stamp-loading {
   .stamp-loading-indicator {
-    display: flex;
-    flex-direction: column;
+    @include mixins.flex-column;
     align-items: center;
-    gap: 12px;
-    padding: 20px;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
 
     .spinner {
       width: 32px;
       height: 32px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top: 3px solid #ff8a50;
-      border-radius: 50%;
+      border: 3px solid var(--color-border-secondary);
+      border-top: 3px solid var(--color-primary);
+      border-radius: var(--border-radius-full);
       animation: spin 1s linear infinite;
     }
 
     p {
       margin: 0;
-      color: white;
-      font-size: 14px;
-      font-family: 'Open Sans', sans-serif;
+      color: var(--color-text-inverse);
+      font-size: var(--font-size-sm);
+      font-family: var(--font-family-base);
     }
   }
 }
