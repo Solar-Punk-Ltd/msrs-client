@@ -1,4 +1,4 @@
-# MSRS Client
+# MSRS Client - deprecated
 
 A decentralized streaming platform client built with React and TypeScript, enabling peer-to-peer video/audio streaming through the Swarm network with integrated real-time chat functionality.
 
