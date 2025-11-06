@@ -52,6 +52,14 @@ vi.mock('@/providers/User', () => ({
   useUserContext: () => mockUserContext,
 }));
 
+const mockSetTheme = vi.fn();
+vi.mock('@/providers/Theme', () => ({
+  useTheme: () => ({
+    theme: 'solarpunk',
+    setTheme: mockSetTheme,
+  }),
+}));
+
 describe('LoginButton', () => {
   beforeEach(() => {
     setIsLoginModalOpen.mockClear();

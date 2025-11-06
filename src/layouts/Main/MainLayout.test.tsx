@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { AppContextProvider } from '@/providers/App/App';
+import { ThemeProvider } from '@/providers/Theme';
 import { Provider as UserProvider } from '@/providers/User';
 import { WakuProvider } from '@/providers/Waku';
 
@@ -48,7 +49,9 @@ describe('MainLayout', () => {
           <WakuProvider>
             <AppContextProvider>
               <UserProvider>
-                <MainLayout>{children}</MainLayout>
+                <ThemeProvider>
+                  <MainLayout>{children}</MainLayout>
+                </ThemeProvider>
               </UserProvider>
             </AppContextProvider>
           </WakuProvider>
@@ -64,7 +67,7 @@ describe('MainLayout', () => {
   it('renders the logo', () => {
     renderMainLayout(<div>Test</div>);
 
-    const logo = screen.getByAltText('CryptoMondays Logo');
+    const logo = screen.getByAltText('SolarPunk Logo');
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveClass('logo');
   });

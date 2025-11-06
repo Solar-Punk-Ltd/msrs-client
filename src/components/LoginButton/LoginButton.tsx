@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/Button/Button';
 import { useClickOutside } from '@/hooks/useClickOutside';
+import { useTheme } from '@/providers/Theme';
 import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
+import { THEME_NAMES } from '@/utils/theme/themeConfig';
 
 import { ConfirmationModal } from '../ConfirmationModal/ConfirmationModal';
 
@@ -15,6 +17,7 @@ export const LoginButton = () => {
   const navigate = useNavigate();
 
   const { isUserLoggedIn, setIsLoginModalOpen, nickname, logout, isAdmin } = useUserContext();
+  const { theme, setTheme } = useTheme();
 
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -66,6 +69,11 @@ export const LoginButton = () => {
     setIsDropdownOpen(false);
   };
 
+  const handleThemeToggle = () => {
+    const newTheme = theme === THEME_NAMES.SOLARPUNK ? THEME_NAMES.CRYPTOMONDAYS : THEME_NAMES.SOLARPUNK;
+    setTheme(newTheme);
+  };
+
   if (isUserLoggedIn) {
     return (
       <div className="login-button-container" ref={dropdownRef}>
@@ -98,6 +106,10 @@ export const LoginButton = () => {
                 My Stamps
               </button>
             )}
+            <div className="login-dropdown-divider" />
+            <button className="login-dropdown-item" onClick={handleThemeToggle}>
+              Theme: {theme === THEME_NAMES.SOLARPUNK ? 'SolarPunk' : 'CryptoMondays'}
+            </button>
             <button className="login-dropdown-item" onClick={handleLogout}>
               Logout
             </button>

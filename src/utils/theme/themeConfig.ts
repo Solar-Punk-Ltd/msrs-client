@@ -1,5 +1,3 @@
-export type ThemeName = 'solarpunk' | 'cryptomondays';
-
 export interface ThemeConfig {
   name: ThemeName;
   displayName: string;
@@ -10,16 +8,25 @@ export interface ThemeConfig {
   logoOnDarkPath?: string;
 }
 
+export const THEME_NAMES = {
+  SOLARPUNK: 'solarpunk',
+  CRYPTOMONDAYS: 'cryptomondays',
+} as const;
+
+export type ThemeName = (typeof THEME_NAMES)[keyof typeof THEME_NAMES];
+
+export const THEME_STORAGE_KEY = 'msrs-theme';
+
 export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
-  solarpunk: {
-    name: 'solarpunk',
+  [THEME_NAMES.SOLARPUNK]: {
+    name: THEME_NAMES.SOLARPUNK,
     displayName: 'SolarPunk',
     description: 'Original purple-to-orange gradient theme',
     primaryColor: '#fe8950',
     logoPath: '/assets/themes/solarpunk/logo.png',
   },
-  cryptomondays: {
-    name: 'cryptomondays',
+  [THEME_NAMES.CRYPTOMONDAYS]: {
+    name: THEME_NAMES.CRYPTOMONDAYS,
     displayName: 'CryptoMondays',
     description: 'Modern blue theme for CryptoMondays partnership',
     primaryColor: '#377dff',
@@ -28,18 +35,3 @@ export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
     logoOnDarkPath: '/assets/themes/cryptomondays/logo-on-black.svg',
   },
 };
-
-export function getActiveTheme(): ThemeName {
-  const envTheme = import.meta.env.VITE_THEME as string | undefined;
-
-  if (envTheme && envTheme in AVAILABLE_THEMES) {
-    return envTheme as ThemeName;
-  }
-
-  return 'solarpunk';
-}
-
-export function getActiveThemeConfig(): ThemeConfig {
-  const themeName = getActiveTheme();
-  return AVAILABLE_THEMES[themeName];
-}
