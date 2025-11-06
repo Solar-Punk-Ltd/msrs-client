@@ -47,6 +47,10 @@
   padding: var(--spacing-xs) 0 !important;
   font-weight: 200 !important;
 
+  @include theme.mobile-only {
+    font-size: var(--back-button-font-size-mobile, var(--font-size-sm)) !important;
+  }
+
   &:hover {
     text-decoration: underline;
   }
@@ -58,16 +62,17 @@
   gap: var(--spacing-lg);
   padding: 2rem;
   text-align: center;
-  background: var(--color-background-glass);
+  background: var(--stream-info-background, var(--color-background-glass));
   border-radius: var(--border-radius-md);
-  border: var(--accent-border, none);
-  box-shadow: var(--accent-glow, var(--shadow-2xl));
+  border: var(--stream-info-border, var(--accent-border, none));
+  box-shadow: var(--stream-info-glow, var(--accent-glow, var(--shadow-2xl)));
   width: 100%;
+  font-family: var(--font-family-serif);
 
   h2 {
     color: var(--color-text-inverse);
     margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
+    font-size: var(--font-size-lg);
   }
 }
 
