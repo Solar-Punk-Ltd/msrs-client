@@ -43,6 +43,9 @@ $solarpunk-colors: (
   // Spinner colors
   'spinner-track': rgba(136, 65, 228, 0.3),
   'spinner-active': #ff8a50,
+  // Chat colors
+  'chat-loading': #ff8a50,
+  'send-button': #EC7B48,
 
   // Text colors
   'text-primary': #efefef,
@@ -116,4 +119,7 @@ $solarpunk-theme: (
 /// Apply the SolarPunk theme to the current selector
 @mixin apply-solarpunk-theme() {
   @include theme-base.apply-theme($solarpunk-theme);
+
+  // No background image for SolarPunk theme
+  --background-image: none;
 }

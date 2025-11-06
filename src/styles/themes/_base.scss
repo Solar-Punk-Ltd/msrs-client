@@ -100,6 +100,7 @@
   --color-background-input-focus: #{map.get($colors, 'background-input-focus')};
   --color-background-pagination: #{map.get($colors, 'background-pagination')};
   --color-background-badge: #{map.get($colors, 'background-badge')};
+  --color-background-badge-hover: #{map.get($colors, 'background-badge-hover')};
   --color-background-loading: #{map.get($colors, 'background-loading')};
   --color-background-dark: #{map.get($colors, 'background-dark')};
   --color-background-dark-strong: #{map.get($colors, 'background-dark-strong')};
@@ -111,6 +112,10 @@
   // Spinner colors
   --color-spinner-track: #{map.get($colors, 'spinner-track')};
   --color-spinner-active: #{map.get($colors, 'spinner-active')};
+
+  // Chat colors
+  --color-chat-loading: #{map.get($colors, 'chat-loading')};
+  --color-send-button: #{map.get($colors, 'send-button')};
 
   // Text colors
   --color-text-primary: #{map.get($colors, 'text-primary')};
@@ -141,6 +146,7 @@
   --color-border-tooltip: #{map.get($colors, 'border-tooltip')};
   --color-border-badge: #{map.get($colors, 'border-badge')};
   --color-border-stamp-topup: #{map.get($colors, 'border-stamp-topup')};
+  --color-border-stream-list: #{map.get($colors, 'border-stream-list')};
 
   // Disabled states
   --color-disabled: #{map.get($colors, 'disabled')};
@@ -167,6 +173,11 @@
   // Line heights
   @each $name, $value in tokens.$line-height-tokens {
     --line-height-#{$name}: #{$value};
+  }
+
+  // Letter spacing
+  @each $name, $value in tokens.$letter-spacing-tokens {
+    --letter-spacing-#{$name}: #{$value};
   }
 }
 

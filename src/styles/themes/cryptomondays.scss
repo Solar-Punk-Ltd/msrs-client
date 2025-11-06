@@ -20,14 +20,15 @@ $cryptomondays-colors: (
   'background-primary': #08041b,
   'background-secondary': #0943ba,
   'background-overlay': rgba(8, 4, 27, 0.8),
-  'background-glass': rgba(55, 125, 255, 0.1),
+  'background-glass': rgb(0 0 0 / 34%),
   'background-badge': rgba(55, 125, 255, 0.15),
+  'background-badge-hover': rgba(55, 125, 255, 0.3),
   'background-glass-light': rgba(55, 125, 255, 0.05),
   'background-message': rgba(55, 125, 255, 0.05),
   'background-message-hover': rgba(55, 125, 255, 0.1),
   'background-button-secondary': rgba(55, 125, 255, 0.15),
-  'background-input': rgba(55, 125, 255, 0.08),
-  'background-input-focus': rgba(55, 125, 255, 0.12),
+  'background-input': rgba(55, 125, 255, 0.12),
+  'background-input-focus': rgba(55, 125, 255, 0.2),
   'background-pagination': rgba(55, 125, 255, 0.1),
   'background-loading': #08041b,
   'background-dark': #08041b,
@@ -41,14 +42,17 @@ $cryptomondays-colors: (
   'shadow-strong': rgba(0, 0, 0, 0.5),
   'glow-primary': rgba(55, 125, 255, 0.6),
   // Spinner colors
-  'spinner-track': rgba(55, 125, 255, 0.3),
-  'spinner-active': #377dff,
+  'spinner-track': rgba(200, 220, 255, 0.4),
+  'spinner-active': #e0ecff,
+  // Chat colors
+  'chat-loading': #B19CD9,
+  'send-button': #B19CD9,
 
   // Text colors
   'text-primary': #ffffff,
   'text-secondary': rgba(255, 255, 255, 0.8),
   'text-tertiary': rgba(255, 255, 255, 0.6),
-  'text-inverse': #08041b,
+  'text-inverse': #ffffff,
   'text-placeholder': rgba(255, 255, 255, 0.6),
   'text-badge': rgba(255, 255, 255, 0.9),
   // Status colors
@@ -64,14 +68,15 @@ $cryptomondays-colors: (
   'info': #377dff,
 
   // Border colors
-  'border-primary': rgba(55, 125, 255, 0.2),
-  'border-secondary': rgba(55, 125, 255, 0.1),
-  'border-input': rgba(55, 125, 255, 0.3),
-  'border-input-focus': rgba(55, 125, 255, 0.6),
+  'border-primary': rgba(55, 125, 255, 0.3),
+  'border-secondary': rgba(55, 125, 255, 0.2),
+  'border-input': rgba(55, 125, 255, 0.6),
+  'border-input-focus': rgba(55, 125, 255, 0.8),
   'border-pagination': rgba(55, 125, 255, 0.3),
   'border-tooltip': rgba(55, 125, 255, 0.3),
   'border-badge': rgba(55, 125, 255, 0.2),
   'border-stamp-topup': rgba(55, 125, 255, 0.15),
+  'border-stream-list': rgba(255, 255, 255, 0.3),
   // Disabled states
   'disabled': #6b7280,
   'disabled-light': #9ca3af
@@ -82,28 +87,28 @@ $cryptomondays-colors: (
 // ============================================================================
 
 $cryptomondays-gradients: (
-  'primary': linear-gradient(180deg, #377dff 0%, #0943ba 100%),
+  'primary': linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(8, 4, 27, 0.95) 100%),
   'secondary': linear-gradient(135deg, #4e3fec 0%, #aca3f3 100%),
   'accent': linear-gradient(135deg, #377dff 0%, #5b94ff 50%, #7eaaff 100%),
   'accent-hover': linear-gradient(135deg, #4d8fff 0%, #7eaaff 50%, #9ec4ff 100%),
   'overlay-top': linear-gradient(180deg, #08041b 0%, rgba(8, 4, 27, 0) 100%),
   'overlay-light': linear-gradient(to bottom, rgba(8, 4, 27, 0.5) 0%, transparent),
-  'header-overlay': linear-gradient(180deg, #0943ba, rgba(9, 67, 186, 0)),
+  'header-overlay': transparent,
   'status-error': linear-gradient(135deg, #ff6b6b, #ee5a52),
   // Action button gradients
-  'action-pin': linear-gradient(135deg, #377dff, #7eaaff),
-  'action-pin-hover': linear-gradient(135deg, #2968ff, #5b94ff),
+  'action-pin': linear-gradient(135deg, #fbbf24, #f59e0b),
+  'action-pin-hover': linear-gradient(135deg, #fcd34d, #fbbf24),
   'action-delete': linear-gradient(135deg, #ff8a50, #e53e3e),
   'action-delete-hover': linear-gradient(135deg, #ff7a40, #dc2626),
   'action-unpin': linear-gradient(135deg, #6b7280, #9ca3af),
   'action-unpin-hover': linear-gradient(135deg, #4b5563, #6b7280),
   'action-edit': linear-gradient(135deg, #377dff, #5b94ff),
   'action-edit-hover': linear-gradient(135deg, #2968ff, #4d8fff),
-  'action-token': linear-gradient(135deg, #4e3fec, #06b6d4),
-  'action-token-hover': linear-gradient(135deg, #4338ca, #0891b2),
+  'action-token': linear-gradient(135deg, #a855f7, #9333ea),
+  'action-token-hover': linear-gradient(135deg, #c084fc, #a855f7),
   // Modal confirm button gradients
-  'modal-confirm': linear-gradient(135deg, #2968ff, #4d8fff),
-  'modal-confirm-hover': linear-gradient(135deg, #377dff, #5b94ff),
+  'modal-confirm': linear-gradient(135deg, #0EA5E9, #7DD3FC),
+  'modal-confirm-hover': linear-gradient(135deg, #38BDF8, #BAE6FD),
   // Stamp manager gradients
   'stamp-header': linear-gradient(135deg, #0943ba, #4e3fec),
   'stamp-info': linear-gradient(135deg, rgba(9, 67, 186, 0.95), rgba(78, 63, 236, 0.95)),
@@ -134,4 +139,29 @@ $cryptomondays-theme: (
   // Override font families with CryptoMondays fonts
   --font-family-base: #{$cryptomondays-font-family-base};
   --font-family-heading: #{$cryptomondays-font-family-heading};
+
+  // Background image
+  --background-image: url('/assets/themes/cryptomondays/cryptomonday_bg.avif');
+
+  // Reusable border and glow styles
+  --accent-border: 1px solid rgba(55, 125, 255, 0.3);
+  --accent-glow: 0 0 2px rgba(55, 125, 255, 0.3);
+  --pinned-border: 2px solid #{map.get($cryptomondays-colors, 'primary')};
+  --pinned-glow: 0 0 12px #{map.get($cryptomondays-colors, 'primary')};
+
+  // Login dropdown styling
+  --login-dropdown-background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(8, 4, 27, 0.95) 100%);
+  --login-dropdown-border: 1px solid rgba(55, 125, 255, 0.3);
+  --login-dropdown-glow: 0 0 2px rgba(55, 125, 255, 0.3);
+  --login-dropdown-divider: 1px solid rgba(55, 125, 255, 0.3);
+  --login-dropdown-text: #cccccc;
+
+  // Modal styling
+  --modal-border: 1px solid rgba(55, 125, 255, 0.3);
+  --modal-glow: 0 0 2px rgba(55, 125, 255, 0.3);
+  --modal-cancel-background: #6B46C1;
+  --modal-cancel-hover: #7C3AED;
+
+  // Chat message styling
+  --chat-message-background: rgba(55, 125, 255, 0.15);
 }
