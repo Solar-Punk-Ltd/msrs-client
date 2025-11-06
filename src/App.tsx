@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { useThemeAssets } from './hooks/useThemeAssets';
 import { AppContextProvider as AppProvider } from './providers/App/App';
+import { ThemeProvider, useTheme } from './providers/Theme';
 import { Provider as UserProvider } from './providers/User';
 import { WakuProvider } from './providers/Waku';
 import { WalletProvider } from './providers/Wallet';
@@ -19,7 +21,11 @@ const queryClient = new QueryClient({
   },
 });
 
-function AppWithLoading() {
+function AppContent() {
+  const { theme } = useTheme();
+
+  useThemeAssets(theme);
+
   useEffect(() => {
     // Add class to body to hide initial loading screen
     document.body.classList.add('react-loaded');
@@ -39,6 +45,14 @@ function AppWithLoading() {
         </WakuProvider>
       </WalletProvider>
     </QueryClientProvider>
+  );
+}
+
+function AppWithLoading() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

@@ -10,24 +10,22 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(({ mode }) => {
   // eslint-disable-next-line no-undef
   const env = loadEnv(mode, process.cwd(), '');
-  const activeTheme = env.VITE_THEME || 'solarpunk';
+
+  const htmlPlugin = () => {
+    return {
+      name: 'html-transform',
+      transformIndexHtml(html) {
+        return html.replace('%VITE_THEME%', env.VITE_THEME || 'cryptomondays');
+      },
+    };
+  };
 
   return {
-    plugins: [nodePolyfills(), react()],
+    plugins: [nodePolyfills(), react(), htmlPlugin()],
     css: {
       preprocessorOptions: {
         scss: {
           api: 'modern-compiler',
-          additionalData: (content, filePath) => {
-            // Replace theme value in globals.scss with env var
-            if (filePath && filePath.endsWith('globals.scss')) {
-              return content.replace(
-                /\$active-theme:\s*'(solarpunk|cryptomondays)'/,
-                `$active-theme: '${activeTheme}'`,
-              );
-            }
-            return content;
-          },
         },
       },
     },

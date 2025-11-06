@@ -1,4 +1,5 @@
-import { getActiveThemeConfig } from '@/utils/theme/themeConfig';
+import { useTheme } from '@/providers/Theme';
+import { AVAILABLE_THEMES } from '@/utils/theme/themeConfig';
 
 import './Logo.scss';
 
@@ -16,7 +17,8 @@ interface LogoProps {
 }
 
 export function Logo({ variant = LogoVariant.FULL, className = '', alt, height = 50 }: LogoProps) {
-  const theme = getActiveThemeConfig();
+  const { theme: themeName } = useTheme();
+  const theme = AVAILABLE_THEMES[themeName];
 
   let logoPath: string;
   switch (variant) {
