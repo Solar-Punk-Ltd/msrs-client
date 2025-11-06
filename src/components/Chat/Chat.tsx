@@ -19,16 +19,22 @@ interface ChatProps {
 }
 
 const profileColors = [
-  '#FF6B6B', // Coral Red
-  '#FFD93D', // Golden Yellow
-  '#6BCB77', // Soft Green
-  '#4D96FF', // Bright Blue
-  '#FFAD69', // Soft Orange
-  '#C084FC', // Pastel Purple
-  '#F87171', // Warm Salmon
-  '#34D399', // Emerald
-  '#FBBF24', // Amber
-  '#60A5FA', // Sky Blue
+  '#DC2626', // Dark Red
+  '#D97706', // Dark Amber
+  '#059669', // Dark Emerald
+  '#2563EB', // Dark Blue
+  '#EA580C', // Dark Orange
+  '#9333EA', // Dark Purple
+  '#BE123C', // Dark Rose
+  '#0D9488', // Dark Teal
+  '#7C3AED', // Dark Violet
+  '#0284C7', // Dark Cyan
+  '#C026D3', // Dark Magenta
+  '#CA8A04', // Dark Yellow
+  '#0891B2', // Dark Sky
+  '#DB2777', // Dark Pink
+  '#15803D', // Dark Green
+  '#4F46E5', // Dark Indigo
 ];
 
 function getColorForName(name: string): string {
