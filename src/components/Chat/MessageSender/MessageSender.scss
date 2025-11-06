@@ -1,3 +1,6 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+
 .message-sender {
   display: flex;
   flex-direction: column;
@@ -7,28 +10,28 @@
   .message-sender-input-wrapper {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--spacing-base);
     margin-top: auto;
 
     input {
-      font-family: 'Open Sans', sans-serif;
-      font-size: 14px;
-      color: #efefef;
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-primary);
       width: 100%;
       height: 30px;
-      background-color: rgba(255, 255, 255, 0.2);
+      background-color: var(--color-background-input);
       text-align: right;
       border: none;
-      border-radius: 8px;
+      border-radius: var(--border-radius-base);
       outline: none;
-      caret-color: #efefef;
+      caret-color: var(--color-text-primary);
       box-sizing: border-box;
-      padding: 5px;
+      padding: var(--spacing-xs);
 
       &::placeholder {
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--color-text-placeholder);
         text-align: right;
-        margin-right: 8px;
+        margin-right: var(--spacing-sm);
       }
     }
 
@@ -37,9 +40,7 @@
       border: none;
       cursor: pointer;
       padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      @include mixins.flex-center;
 
       &:disabled {
         cursor: not-allowed;
@@ -50,14 +51,11 @@
 }
 
 .message-sender-wrapper {
-  display: flex;
-  flex-direction: column;
+  @include mixins.flex-column;
   margin-top: auto;
 }
 
 .message-sender-sending {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 16px 0;
+  @include mixins.flex-center;
+  padding: var(--spacing-base) 0;
 }
