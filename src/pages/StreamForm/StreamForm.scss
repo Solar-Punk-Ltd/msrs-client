@@ -1,56 +1,52 @@
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .stream-form {
-  display: flex;
-  flex-direction: column;
+  @include mixins.flex-column;
   width: 100%;
   height: 100%;
   max-width: 420px;
   margin: 0 auto;
-  padding: 16px;
+  padding: var(--spacing-base);
 
-  @media (max-width: $breakpoint-mobile) {
+  @include theme.mobile-only {
     max-width: 100%;
-    padding: 8px;
+    padding: var(--spacing-sm);
     height: 100%;
   }
 
   &-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: #00000040;
-    border-radius: 12px;
-    font-family: 'Open Sans', sans-serif;
-    padding: 16px;
+    @include mixins.flex-column;
+    @include mixins.flex-center;
+    background-color: var(--color-background-glass);
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-family-base);
+    padding: var(--spacing-base);
     overflow: hidden;
     flex: 1;
     min-height: 0;
 
-    @media (max-width: $breakpoint-mobile) {
-      padding: 12px;
+    @include theme.mobile-only {
+      padding: var(--spacing-md);
     }
   }
 
   &-form,
   &-preview {
-    display: flex;
-    flex-direction: column;
+    @include mixins.flex-column;
     width: 100%;
     height: 100%;
     overflow: hidden;
   }
 
   &-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    @include mixins.flex-column;
+    gap: var(--spacing-md);
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1;
     min-height: 0;
-    padding-right: 4px;
+    padding-right: var(--spacing-xs);
 
     -webkit-overflow-scrolling: touch;
 
@@ -59,16 +55,16 @@
     }
 
     &::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
+      background: var(--color-background-scrollbar-track);
+      border-radius: var(--border-radius-2xs);
     }
 
     &::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 3px;
+      background: var(--color-background-scrollbar-thumb);
+      border-radius: var(--border-radius-2xs);
 
       &:hover {
-        background: rgba(255, 255, 255, 0.5);
+        background: var(--color-background-scrollbar-thumb-hover);
       }
     }
   }
@@ -77,12 +73,12 @@
     flex-shrink: 0;
 
     h2 {
-      font-size: 20px;
-      font-weight: 600;
-      margin: 0 0 16px 0;
-      color: #ffffff;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-      padding-bottom: 8px;
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-semibold);
+      margin: 0 0 var(--spacing-base) 0;
+      color: var(--color-text-inverse);
+      border-bottom: 2px solid var(--color-border-input);
+      padding-bottom: var(--spacing-sm);
     }
   }
 
@@ -91,28 +87,27 @@
       flex-shrink: 0;
 
       h2 {
-        font-size: 24px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        color: #ffffff;
-        border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-        padding-bottom: 8px;
+        font-size: var(--font-size-3xl);
+        font-weight: var(--font-weight-semibold);
+        margin: 0 0 var(--spacing-base) 0;
+        color: var(--color-text-inverse);
+        border-bottom: 2px solid var(--color-border-input);
+        padding-bottom: var(--spacing-sm);
 
-        @media (max-width: $breakpoint-mobile) {
-          font-size: 20px;
+        @include theme.mobile-only {
+          font-size: var(--font-size-xl);
         }
       }
     }
 
     &-content {
-      display: flex;
-      flex-direction: column;
+      @include mixins.flex-column;
       overflow-y: auto;
       overflow-x: hidden;
       flex: 1;
       min-height: 0;
-      gap: 8px;
-      padding-right: 4px;
+      gap: var(--spacing-sm);
+      padding-right: var(--spacing-xs);
       -webkit-overflow-scrolling: touch;
     }
   }
@@ -120,16 +115,16 @@
   &-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    padding-top: 16px;
-    margin-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    gap: var(--spacing-md);
+    padding-top: var(--spacing-base);
+    margin-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border-badge);
     flex-shrink: 0;
 
-    @media (max-width: $breakpoint-mobile) {
-      gap: 8px;
-      padding-top: 12px;
-      margin-top: 8px;
+    @include theme.mobile-only {
+      gap: var(--spacing-sm);
+      padding-top: var(--spacing-md);
+      margin-top: var(--spacing-sm);
       flex-direction: column;
 
       button {
@@ -141,32 +136,32 @@
   &-cancel-button,
   &-submit-button {
     min-width: 120px !important;
-    padding: 12px 24px !important;
-    font-size: 16px;
-    font-weight: 600 !important;
+    padding: var(--spacing-md) var(--spacing-xl) !important;
+    font-size: var(--font-size-sm) !important;
+    font-weight: var(--font-weight-semibold) !important;
 
-    @media (max-width: $breakpoint-mobile) {
+    @include theme.mobile-only {
       min-width: 100px !important;
-      padding: 10px 16px !important;
-      font-size: 14px;
+      padding: var(--spacing-sm) var(--spacing-base) !important;
+      font-size: var(--font-size-xs) !important;
     }
   }
 
   &-submit-button {
     order: 1;
 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background: var(--gradient-accent) !important;
 
     &:hover {
-      background: linear-gradient(135deg, #8990d0 0%, #6b46c1 100%) !important;
+      background: var(--gradient-accent-hover) !important;
     }
 
     &:disabled {
-      background: rgba(255, 255, 255, 0.2) !important;
+      background: var(--color-background-button-disabled) !important;
       opacity: 0.6;
     }
 
-    @media (max-width: $breakpoint-mobile) {
+    @include theme.mobile-only {
       order: 0;
     }
   }

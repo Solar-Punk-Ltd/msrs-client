@@ -1,9 +1,8 @@
-@use '@/styles/variables.scss' as *;
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
 
 .not-found {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include mixins.flex-center;
   min-height: 60vh;
   padding: 2rem;
 
@@ -14,39 +13,39 @@
 
   &__title {
     font-size: 6rem;
-    font-weight: 700;
-    color: #dc2626;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-error);
     margin-bottom: 1rem;
-    line-height: 1;
+    line-height: var(--line-height-none);
   }
 
   &__subtitle {
     font-size: 2rem;
-    font-weight: 600;
-    color: #ffffff;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-inverse);
     margin-bottom: 1rem;
   }
 
   &__message {
     font-size: 1.125rem;
-    color: #ffffff;
+    color: var(--color-text-inverse);
     margin-bottom: 2rem;
-    line-height: 1.6;
+    line-height: var(--line-height-relaxed);
   }
 
   &__link {
     display: inline-block;
-    background-color: #ffffff;
-    color: rgb(0, 0, 0);
+    background-color: var(--color-text-inverse);
+    color: var(--color-background-primary);
     padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
+    border-radius: var(--border-radius-base);
     text-decoration: none;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
+    font-weight: var(--font-weight-medium);
+    transition: background-color var(--duration-fast) var(--easing-ease-out);
 
     &:hover {
-      background-color: #000000;
-      color: white;
+      background-color: var(--color-background-dark);
+      color: var(--color-text-inverse);
     }
   }
 }
