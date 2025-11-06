@@ -64,7 +64,7 @@ describe('MainLayout', () => {
   it('renders the logo', () => {
     renderMainLayout(<div>Test</div>);
 
-    const logo = screen.getByAltText('logo');
+    const logo = screen.getByAltText('SolarPunk Logo');
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveClass('logo');
   });
