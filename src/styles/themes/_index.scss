@@ -1,0 +1,37 @@
+@forward 'base';
+@forward '../tokens/tokens';
+
+@use 'base';
+@use 'solarpunk';
+@use 'cryptomondays';
+
+$active-theme: 'solarpunk' !default;
+
+$themes: (
+  'solarpunk': solarpunk.$solarpunk-theme,
+  'cryptomondays': cryptomondays.$cryptomondays-theme,
+);
+
+/// Apply the currently active theme
+/// This mixin should be called on :root or the html element
+@mixin apply() {
+  @if $active-theme == 'cryptomondays' {
+    @include cryptomondays.apply-cryptomondays-theme();
+  } @else if $active-theme == 'solarpunk' {
+    @include solarpunk.apply-solarpunk-theme();
+  } @else {
+    @error 'Unknown theme: #{$active-theme}. Available themes: solarpunk, cryptomondays';
+  }
+}
+
+/// Get the current theme configuration
+/// @return {Map} The active theme map
+@function get-active-theme() {
+  @return map-get($themes, $active-theme);
+}
+
+/// Get the current theme name
+/// @return {String} The active theme name
+@function get-theme-name() {
+  @return $active-theme;
+}

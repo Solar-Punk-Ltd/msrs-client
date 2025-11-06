@@ -1,0 +1,9 @@
+@mixin load-fonts {
+  @font-face {
+    font-family: 'Cabin VF Beta';
+    src: url('/fonts/CabinVFBeta.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+}

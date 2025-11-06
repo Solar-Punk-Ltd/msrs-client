@@ -1,0 +1,301 @@
+@use 'sass:map';
+@use 'sass:string';
+@use '../tokens/tokens' as tokens;
+
+/// Get a spacing value from the spacing scale
+/// @param {String} $size - The size key (xs, sm, md, lg, xl, etc.)
+/// @return {Number} The spacing value in px
+@function spacing($size) {
+  @return map.get(tokens.$spacing-tokens, $size);
+}
+
+/// Get a font size value
+/// @param {String} $size - The size key (xs, sm, base, lg, xl, etc.)
+/// @return {Number} The font size value
+@function font-size($size) {
+  @return map.get(tokens.$font-size-tokens, $size);
+}
+
+/// Get a font weight value
+/// @param {String} $weight - The weight key (normal, medium, semibold, bold)
+/// @return {Number} The font weight value
+@function font-weight($weight) {
+  @return map.get(tokens.$font-weight-tokens, $weight);
+}
+
+/// Get a border radius value
+/// @param {String} $size - The size key (none, sm, base, md, lg, xl, full)
+/// @return {Number} The border radius value
+@function radius($size) {
+  @return map.get(tokens.$border-radius-tokens, $size);
+}
+
+/// Get a shadow value
+/// @param {String} $size - The size key (none, sm, base, md, lg, xl)
+/// @return {String} The box shadow value
+@function shadow($size) {
+  @return map.get(tokens.$shadow-tokens, $size);
+}
+
+/// Get a transition duration
+/// @param {String} $speed - The speed key (fast, base, medium, slow)
+/// @return {Number} The duration in ms
+@function duration($speed) {
+  @return map.get(tokens.$transition-duration-tokens, $speed);
+}
+
+/// Get a transition easing function
+/// @param {String} $easing - The easing key (ease, ease-in, ease-out, etc.)
+/// @return {String} The easing function
+@function easing($easing) {
+  @return map.get(tokens.$transition-easing-tokens, $easing);
+}
+
+/// Get a breakpoint value
+/// @param {String} $breakpoint - The breakpoint key (mobile, tablet, desktop, etc.)
+/// @return {Number} The breakpoint value
+@function breakpoint($breakpoint) {
+  @return map.get(tokens.$breakpoint-tokens, $breakpoint);
+}
+
+/// Get a blur value
+/// @param {String} $size - The blur size key (none, sm, base, md, lg, xl)
+/// @return {Number} The blur value in px
+@function blur($size) {
+  @return map.get(tokens.$blur-tokens, $size);
+}
+
+/// Generate CSS custom properties for colors
+/// @param {Map} $colors - Map of color tokens
+@mixin generate-color-properties($colors) {
+  // Primary colors
+  --color-primary: #{map.get($colors, 'primary')};
+  --color-primary-hover: #{map.get($colors, 'primary-hover')};
+  --color-primary-dark: #{map.get($colors, 'primary-dark')};
+
+  // Secondary colors
+  --color-secondary: #{map.get($colors, 'secondary')};
+  --color-secondary-light: #{map.get($colors, 'secondary-light')};
+  --color-secondary-dark: #{map.get($colors, 'secondary-dark')};
+
+  // Accent colors
+  --color-accent: #{map.get($colors, 'accent')};
+  --color-accent-hover: #{map.get($colors, 'accent-hover')};
+
+  // Background colors
+  --color-background-primary: #{map.get($colors, 'background-primary')};
+  --color-background-secondary: #{map.get($colors, 'background-secondary')};
+  --color-background-overlay: #{map.get($colors, 'background-overlay')};
+  --color-background-glass: #{map.get($colors, 'background-glass')};
+
+  // Overlay colors
+  --color-overlay-dark: #{map.get($colors, 'overlay-dark')};
+  --color-shadow-strong: #{map.get($colors, 'shadow-strong')};
+  --color-glow-primary: #{map.get($colors, 'glow-primary')};
+  --color-background-glass-light: #{map.get($colors, 'background-glass-light')};
+  --color-background-message: #{map.get($colors, 'background-message')};
+  --color-background-message-hover: #{map.get($colors, 'background-message-hover')};
+  --color-background-button-secondary: #{map.get($colors, 'background-button-secondary')};
+  --color-background-input: #{map.get($colors, 'background-input')};
+  --color-background-input-focus: #{map.get($colors, 'background-input-focus')};
+  --color-background-pagination: #{map.get($colors, 'background-pagination')};
+  --color-background-badge: #{map.get($colors, 'background-badge')};
+  --color-background-loading: #{map.get($colors, 'background-loading')};
+  --color-background-dark: #{map.get($colors, 'background-dark')};
+  --color-background-dark-strong: #{map.get($colors, 'background-dark-strong')};
+  --color-background-tooltip: #{map.get($colors, 'background-tooltip')};
+  --color-background-tooltip-hover: #{map.get($colors, 'background-tooltip-hover')};
+  --color-background-stamp-topup: #{map.get($colors, 'background-stamp-topup')};
+  --color-background-stamp-cost: #{map.get($colors, 'background-stamp-cost')};
+
+  // Spinner colors
+  --color-spinner-track: #{map.get($colors, 'spinner-track')};
+  --color-spinner-active: #{map.get($colors, 'spinner-active')};
+
+  // Text colors
+  --color-text-primary: #{map.get($colors, 'text-primary')};
+  --color-text-secondary: #{map.get($colors, 'text-secondary')};
+  --color-text-tertiary: #{map.get($colors, 'text-tertiary')};
+  --color-text-inverse: #{map.get($colors, 'text-inverse')};
+  --color-text-placeholder: #{map.get($colors, 'text-placeholder')};
+  --color-text-badge: #{map.get($colors, 'text-badge')};
+
+  // Status colors
+  --color-success: #{map.get($colors, 'success')};
+  --color-success-light: #{map.get($colors, 'success-light')};
+  --color-success-background: #{map.get($colors, 'success-background')};
+  --color-success-border: #{map.get($colors, 'success-border')};
+  --color-error: #{map.get($colors, 'error')};
+  --color-error-dark: #{map.get($colors, 'error-dark')};
+  --color-error-background: #{map.get($colors, 'error-background')};
+  --color-error-border: #{map.get($colors, 'error-border')};
+  --color-warning: #{map.get($colors, 'warning')};
+  --color-info: #{map.get($colors, 'info')};
+
+  // Border colors
+  --color-border-primary: #{map.get($colors, 'border-primary')};
+  --color-border-secondary: #{map.get($colors, 'border-secondary')};
+  --color-border-input: #{map.get($colors, 'border-input')};
+  --color-border-input-focus: #{map.get($colors, 'border-input-focus')};
+  --color-border-pagination: #{map.get($colors, 'border-pagination')};
+  --color-border-tooltip: #{map.get($colors, 'border-tooltip')};
+  --color-border-badge: #{map.get($colors, 'border-badge')};
+  --color-border-stamp-topup: #{map.get($colors, 'border-stamp-topup')};
+
+  // Disabled states
+  --color-disabled: #{map.get($colors, 'disabled')};
+  --color-disabled-light: #{map.get($colors, 'disabled-light')};
+}
+
+@mixin generate-typography-properties() {
+  // Font families
+  --font-family-base: #{tokens.$font-family-base};
+  --font-family-heading: #{tokens.$font-family-heading};
+  --font-family-mono: #{tokens.$font-family-mono};
+  --font-family-serif: #{tokens.$font-family-serif};
+
+  // Font sizes
+  @each $name, $value in tokens.$font-size-tokens {
+    --font-size-#{$name}: #{$value};
+  }
+
+  // Font weights
+  @each $name, $value in tokens.$font-weight-tokens {
+    --font-weight-#{$name}: #{$value};
+  }
+
+  // Line heights
+  @each $name, $value in tokens.$line-height-tokens {
+    --line-height-#{$name}: #{$value};
+  }
+}
+
+/// Generate CSS custom properties for spacing
+@mixin generate-spacing-properties() {
+  @each $name, $value in tokens.$spacing-tokens {
+    --spacing-#{$name}: #{$value};
+  }
+}
+
+/// Generate CSS custom properties for border radius
+@mixin generate-radius-properties() {
+  @each $name, $value in tokens.$border-radius-tokens {
+    --border-radius-#{$name}: #{$value};
+  }
+}
+
+/// Generate CSS custom properties for shadows
+@mixin generate-shadow-properties() {
+  @each $name, $value in tokens.$shadow-tokens {
+    --shadow-#{$name}: #{$value};
+  }
+}
+
+/// Generate CSS custom properties for transitions
+@mixin generate-transition-properties() {
+  @each $name, $value in tokens.$transition-duration-tokens {
+    --duration-#{$name}: #{$value};
+  }
+
+  @each $name, $value in tokens.$transition-easing-tokens {
+    --easing-#{$name}: #{$value};
+  }
+}
+
+/// Generate CSS custom properties for blur
+@mixin generate-blur-properties() {
+  @each $name, $value in tokens.$blur-tokens {
+    --blur-#{$name}: #{$value};
+  }
+}
+
+/// Generate CSS custom properties for gradients
+/// @param {Map} $gradients - Map of gradient tokens
+@mixin generate-gradient-properties($gradients) {
+  --gradient-primary: #{map.get($gradients, 'primary')};
+  --gradient-secondary: #{map.get($gradients, 'secondary')};
+  --gradient-accent: #{map.get($gradients, 'accent')};
+  --gradient-accent-hover: #{map.get($gradients, 'accent-hover')};
+  --gradient-overlay-top: #{map.get($gradients, 'overlay-top')};
+  --gradient-overlay-light: #{map.get($gradients, 'overlay-light')};
+  --gradient-header-overlay: #{map.get($gradients, 'header-overlay')};
+  --gradient-status-error: #{map.get($gradients, 'status-error')};
+
+  // Action button gradients
+  --gradient-action-pin: #{map.get($gradients, 'action-pin')};
+  --gradient-action-pin-hover: #{map.get($gradients, 'action-pin-hover')};
+  --gradient-action-delete: #{map.get($gradients, 'action-delete')};
+  --gradient-action-delete-hover: #{map.get($gradients, 'action-delete-hover')};
+  --gradient-action-unpin: #{map.get($gradients, 'action-unpin')};
+  --gradient-action-unpin-hover: #{map.get($gradients, 'action-unpin-hover')};
+  --gradient-action-edit: #{map.get($gradients, 'action-edit')};
+  --gradient-action-edit-hover: #{map.get($gradients, 'action-edit-hover')};
+  --gradient-action-token: #{map.get($gradients, 'action-token')};
+  --gradient-action-token-hover: #{map.get($gradients, 'action-token-hover')};
+
+  // Modal confirm button gradients
+  --gradient-modal-confirm: #{map.get($gradients, 'modal-confirm')};
+  --gradient-modal-confirm-hover: #{map.get($gradients, 'modal-confirm-hover')};
+
+  // Stamp manager gradients
+  --gradient-stamp-header: #{map.get($gradients, 'stamp-header')};
+  --gradient-stamp-info: #{map.get($gradients, 'stamp-info')};
+  --gradient-stamp-badge-chat: #{map.get($gradients, 'stamp-badge-chat')};
+  --gradient-stamp-badge-media: #{map.get($gradients, 'stamp-badge-media')};
+}
+
+/// Apply a theme by generating all CSS custom properties
+/// @param {Map} $theme - The theme configuration map containing colors, gradients, etc.
+@mixin apply-theme($theme) {
+  @include generate-color-properties(map.get($theme, 'colors'));
+  @include generate-typography-properties();
+  @include generate-spacing-properties();
+  @include generate-radius-properties();
+  @include generate-shadow-properties();
+  @include generate-transition-properties();
+  @include generate-blur-properties();
+  @include generate-gradient-properties(map.get($theme, 'gradients'));
+}
+
+/// Media query for mobile and up
+@mixin mobile-up {
+  @media (min-width: #{breakpoint('mobile')}) {
+    @content;
+  }
+}
+
+/// Media query for tablet and up
+@mixin tablet-up {
+  @media (min-width: #{breakpoint('tablet')}) {
+    @content;
+  }
+}
+
+/// Media query for desktop and up
+@mixin desktop-up {
+  @media (min-width: #{breakpoint('desktop')}) {
+    @content;
+  }
+}
+
+/// Media query for mobile only
+@mixin mobile-only {
+  @media (max-width: #{breakpoint('tablet') - 1px}) {
+    @content;
+  }
+}
+
+/// Media query for tablet only
+@mixin tablet-only {
+  @media (min-width: #{breakpoint('tablet')}) and (max-width: #{breakpoint('desktop') - 1px}) {
+    @content;
+  }
+}
+
+/// Media query for custom breakpoint
+/// @param {Number} $breakpoint - The breakpoint value
+@mixin screen($breakpoint) {
+  @media (max-width: $breakpoint) {
+    @content;
+  }
+}

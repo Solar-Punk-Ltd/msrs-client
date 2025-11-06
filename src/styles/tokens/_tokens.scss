@@ -1,0 +1,242 @@
+// ============================================================================
+// Design Tokens
+// ============================================================================
+
+// ============================================================================
+// Spacing Scale
+// ============================================================================
+
+$spacing-tokens: (
+  'none': 0,
+  '2xs': 2px,
+  'xs': 4px,
+  'sm': 8px,
+  'md': 12px,
+  'base': 16px,
+  'lg': 24px,
+  'xl': 32px,
+  '2xl': 40px,
+  '3xl': 48px,
+  '4xl': 64px,
+  '5xl': 80px,
+) !default;
+
+// ============================================================================
+// Typography Tokens
+// ============================================================================
+
+$font-family-base: 'Open Sans', sans-serif !default;
+$font-family-heading: 'Open Sans', sans-serif !default;
+$font-family-mono: 'Monaco', 'Courier New', monospace !default;
+$font-family-serif: 'Times New Roman', Times, serif !default;
+
+$font-size-tokens: (
+  '2xs': 10px,
+  'xs': 12px,
+  'sm': 13px,
+  'base': 14px,
+  'md': 15px,
+  'lg': 16px,
+  'xl': 18px,
+  '2xl': 20px,
+  '3xl': 24px,
+  '4xl': 32px,
+  '5xl': 40px,
+) !default;
+
+$font-weight-tokens: (
+  'normal': 400,
+  'medium': 500,
+  'semibold': 600,
+  'bold': 700,
+) !default;
+
+$line-height-tokens: (
+  'tight': 1.2,
+  'normal': 1.5,
+  'relaxed': 1.75,
+) !default;
+
+// ============================================================================
+// Color Tokens
+// ============================================================================
+
+$color-primary: #fe8950 !default;
+$color-primary-hover: #f9a880 !default;
+$color-primary-dark: #8841e4 !default;
+
+// Secondary Colors
+$color-secondary: #cc99ff !default;
+$color-secondary-light: #667eea !default;
+$color-secondary-dark: #190349 !default;
+
+// Accent Colors
+$color-accent: #ff8a50 !default;
+$color-accent-hover: #ff9966 !default;
+
+// Neutral Colors
+$color-background-primary: #000000 !default;
+$color-background-secondary: #190349 !default;
+$color-background-overlay: rgba(0, 0, 0, 0.5) !default;
+$color-background-glass: rgba(255, 255, 255, 0.15) !default;
+
+// Overlay Colors
+$color-overlay-dark: rgba(0, 0, 0, 0.6) !default;
+$color-shadow-strong: rgba(0, 0, 0, 0.5) !default;
+$color-glow-primary: rgba(136, 65, 228, 0.6) !default;
+$color-background-glass-light: rgba(255, 255, 255, 0.05) !default;
+$color-background-message: rgba(255, 255, 255, 0.05) !default;
+$color-background-button-secondary: rgba(0, 0, 0, 0.42) !default;
+$color-background-input: rgba(255, 255, 255, 0.1) !default;
+$color-background-input-focus: rgba(255, 255, 255, 0.15) !default;
+$color-background-pagination: rgba(255, 255, 255, 0.15) !default;
+$color-background-badge: rgba(255, 255, 255, 0.15) !default;
+$color-background-loading: #000000 !default;
+$color-background-dark: #000000 !default;
+$color-background-dark-strong: rgba(0, 0, 0, 0.8) !default;
+$color-background-tooltip: #000000 !default;
+$color-background-tooltip-hover: #000000 !default;
+
+// Spinner Colors
+$color-spinner-track: rgba(136, 65, 228, 0.3) !default;
+$color-spinner-active: #ff8a50 !default;
+
+// Text Colors
+$color-text-primary: #efefef !default;
+$color-text-secondary: rgba(255, 255, 255, 0.7) !default;
+$color-text-tertiary: rgba(255, 255, 255, 0.5) !default;
+$color-text-inverse: #ffffff !default;
+$color-text-placeholder: rgba(255, 255, 255, 0.6) !default;
+$color-text-badge: rgba(255, 255, 255, 0.9) !default;
+
+// Status Colors
+$color-success: #22c55e !default;
+$color-success-light: #48f286 !default;
+$color-error: #ff6b6b !default;
+$color-error-dark: #ee5a52 !default;
+$color-warning: #ffad69 !default;
+$color-info: #377dff !default;
+
+// Border Colors
+$color-border-primary: rgba(255, 255, 255, 0.1) !default;
+$color-border-secondary: rgba(255, 255, 255, 0.05) !default;
+$color-border-input: rgba(255, 255, 255, 0.3) !default;
+$color-border-input-focus: rgba(255, 255, 255, 0.6) !default;
+$color-border-pagination: rgba(255, 255, 255, 0.3) !default;
+$color-border-tooltip: #000000 !default;
+$color-border-badge: rgba(255, 255, 255, 0.2) !default;
+
+// Disabled States
+$color-disabled: #6b7280 !default;
+$color-disabled-light: #9ca3af !default;
+
+// ============================================================================
+// Border Radius Tokens
+// ============================================================================
+$border-radius-tokens: (
+  'none': 0,
+  'sm': 4px,
+  'base': 8px,
+  'input': 10px,
+  'md': 12px,
+  'lg': 16px,
+  'xl': 20px,
+  '2xl': 24px,
+  'full': 9999px,
+  'pill': 9999px,
+) !default;
+
+// ============================================================================
+// Shadow Tokens
+// ============================================================================
+$shadow-tokens: (
+  'none': none,
+  'sm': 0 1px 2px 0 rgba(0, 0, 0, 0.05),
+  'base': 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+  'md': 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  'button': 0 5px 10px rgba(0, 0, 0, 0.1),
+  'input-focus': 0 4px 12px rgba(0, 0, 0, 0.02),
+  'action-button': 0 2px 8px rgba(136, 65, 228, 0.3),
+  'action-button-hover': 0 4px 12px rgba(136, 65, 228, 0.4),
+  'action-delete': 0 2px 8px rgba(255, 138, 80, 0.3),
+  'action-delete-hover': 0 4px 12px rgba(255, 138, 80, 0.4),
+  'action-unpin': 0 2px 8px rgba(107, 114, 128, 0.3),
+  'action-unpin-hover': 0 4px 12px rgba(107, 114, 128, 0.4),
+  'action-token': 0 2px 8px rgba(79, 70, 229, 0.3),
+  'action-token-hover': 0 4px 12px rgba(79, 70, 229, 0.4),
+  'stamp-header': 0 4px 16px rgba(30, 58, 138, 0.25),
+  'stamp-info': 0 4px 16px rgba(30, 58, 138, 0.3),
+  'stamp-card': 0 4px 12px rgba(102, 126, 234, 0.2),
+  'lg': 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  'xl': 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  '2xl': 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+) !default;
+
+// ============================================================================
+// Transition Tokens
+// ============================================================================
+$transition-duration-tokens: (
+  'fast': 150ms,
+  'base': 200ms,
+  'medium': 300ms,
+  'slow': 500ms,
+) !default;
+
+$transition-easing-tokens: (
+  'ease': ease,
+  'ease-in': ease-in,
+  'ease-out': ease-out,
+  'ease-in-out': ease-in-out,
+  'linear': linear,
+  'bounce': cubic-bezier(0.68, -0.55, 0.265, 1.55),
+  'smooth': cubic-bezier(0.37, 0, 0.63, 1),
+  'smooth-alt': cubic-bezier(0.87, 0, 0.13, 1),
+) !default;
+
+// ============================================================================
+// Breakpoint Tokens
+// ============================================================================
+$breakpoint-tokens: (
+  'mobile': 500px,
+  'tablet': 768px,
+  'desktop': 1024px,
+  'wide': 1280px,
+  'ultrawide': 1536px,
+) !default;
+
+// ============================================================================
+// Z-Index Scale
+// ============================================================================
+$z-index-tokens: (
+  'base': 0,
+  'dropdown': 100,
+  'sticky': 200,
+  'fixed': 300,
+  'modal-backdrop': 400,
+  'modal': 500,
+  'popover': 600,
+  'tooltip': 700,
+  'notification': 800,
+) !default;
+
+// ============================================================================
+// Gradient Tokens
+// ============================================================================
+$gradient-primary: linear-gradient(180deg, #8841e4 0%, #ff8a50 100%) !default;
+$gradient-secondary: linear-gradient(135deg, #667eea 0%, #cc99ff 100%) !default;
+$gradient-accent: linear-gradient(135deg, #ff6b35 0%, #ff8e53 50%, #ffb366 100%) !default;
+$gradient-overlay-top: linear-gradient(180deg, #000000 0%, rgba(0, 0, 0, 0) 100%) !default;
+$gradient-header-overlay: linear-gradient(180deg, #190349, rgba(0, 0, 0, 0)) !default;
+$gradient-status-error: linear-gradient(135deg, #ff6b6b, #ee5a52) !default;
+
+// ============================================================================
+// Backdrop Blur Tokens
+// ============================================================================
+$blur-tokens: (
+  'none': 0,
+  'sm': 4px,
+  'base': 8px,
+  'md': 12px,
+  'lg': 16px,
+  'xl': 20px,
+) !default;
