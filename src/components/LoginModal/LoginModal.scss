@@ -40,8 +40,13 @@
 }
 
 .login-modal-header {
-  font-size: var(--font-size-3xl);
+  font-size: var(--modal-header-font-size, var(--font-size-3xl));
   margin-bottom: var(--spacing-lg);
+  font-weight: var(--font-weight-bold);
+
+  @include theme.mobile-only {
+    font-size: var(--modal-header-font-size-mobile, var(--modal-header-font-size, var(--font-size-2xl)));
+  }
 }
 
 .login-modal-content {
@@ -84,12 +89,17 @@
 .login-modal-button {
   display: flex;
   align-items: center;
-  height: 40px;
+  height: var(--modal-button-height, 40px);
   box-sizing: border-box;
-  padding-top: 0;
-  padding-bottom: 0;
-  font-size: var(--font-size-xl);
+  padding: 0 var(--modal-button-padding-x, var(--spacing-lg)) !important;
+  font-size: var(--modal-button-font-size, var(--font-size-xl)) !important;
   width: auto !important;
+
+  @include theme.mobile-only {
+    height: var(--modal-button-height-mobile, var(--modal-button-height, 36px));
+    padding: 0 var(--modal-button-padding-x-mobile, var(--modal-button-padding-x, var(--spacing-md))) !important;
+    font-size: var(--modal-button-font-size-mobile, var(--modal-button-font-size, var(--font-size-lg))) !important;
+  }
 
   &.primary {
     background-color: var(--modal-cancel-background, var(--color-primary)) !important;

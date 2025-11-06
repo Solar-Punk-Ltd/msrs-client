@@ -163,7 +163,18 @@ $cryptomondays-theme: (
   --modal-glow: 0 0 2px rgba(55, 125, 255, 0.3);
   --modal-cancel-background: #6b46c1;
   --modal-cancel-hover: #7c3aed;
+  --modal-header-font-size: var(--font-size-2xl);
+  --modal-header-font-size-mobile: var(--font-size-xl);
+  --modal-button-height: 40px;
+  --modal-button-font-size: var(--font-size-xl);
+  --modal-button-padding-x: var(--spacing-lg);
+  --modal-button-height-mobile: 36px;
+  --modal-button-font-size-mobile: var(--font-size-base);
+  --modal-button-padding-x-mobile: var(--spacing-base);
 
   // Chat message styling
   --chat-message-background: rgba(55, 125, 255, 0.15);
+
+  // Back button styling
+  --back-button-font-size-mobile: var(--font-size-sm);
 }

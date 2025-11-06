@@ -143,6 +143,14 @@ $solarpunk-theme: (
   --modal-glow: none;
   --modal-cancel-background: #fe8950;
   --modal-cancel-hover: #ff9966;
+  --modal-header-font-size: var(--font-size-2xl);
+  --modal-header-font-size-mobile: var(--font-size-xl);
+  --modal-button-height: 40px;
+  --modal-button-font-size: var(--font-size-xl);
+  --modal-button-padding-x: var(--spacing-lg);
+  --modal-button-height-mobile: 36px;
+  --modal-button-font-size-mobile: var(--font-size-base);
+  --modal-button-padding-x-mobile: var(--spacing-base);
 
   // Chat message styling
   --chat-message-background: rgba(255, 255, 255, 0.05);
@@ -172,4 +180,7 @@ $solarpunk-theme: (
   --stream-group-border-radius: 16px;
   --stream-group-padding: 20px;
   --stream-group-blur: blur(10px);
+
+  // Back button styling
+  --back-button-font-size-mobile: var(--font-size-sm);
 }
