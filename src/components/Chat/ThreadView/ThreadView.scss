@@ -1,3 +1,5 @@
+@use '@/styles/themes/base' as theme;
+
 .thread-view {
   display: flex;
   flex-direction: column;
@@ -23,12 +25,22 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.02);
   flex-shrink: 0;
+
+  @include theme.mobile-only {
+    gap: 8px;
+    padding: 0 8px;
+  }
 }
 
 .back-button {
   padding: 8px 12px;
   font-size: 14px;
   min-width: auto;
+
+  @include theme.mobile-only {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -40,6 +52,10 @@
   font-size: 18px;
   font-weight: 600;
   color: #efefef;
+
+  @include theme.mobile-only {
+    font-size: 16px;
+  }
 }
 
 .original-message-container {
@@ -47,6 +63,10 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.02);
   flex-shrink: 0;
+
+  @include theme.mobile-only {
+    display: none;
+  }
 }
 
 .thread-messages-container {
