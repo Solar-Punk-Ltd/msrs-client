@@ -35,13 +35,29 @@ header {
   box-sizing: border-box;
   background: var(--gradient-header-overlay);
   flex-shrink: 0;
-  z-index: 10;
+  z-index: 100;
 }
 
 .logo {
   width: auto;
   height: 50px;
   z-index: 1;
+
+  &.logo--desktop {
+    display: block;
+
+    @include theme.mobile-only {
+      display: none;
+    }
+  }
+
+  &.logo--mobile {
+    display: none;
+
+    @include theme.mobile-only {
+      display: block;
+    }
+  }
 }
 
 .content {

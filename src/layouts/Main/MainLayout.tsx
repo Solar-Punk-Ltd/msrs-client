@@ -1,6 +1,6 @@
 import { LoginButton } from '@/components/LoginButton/LoginButton';
 import { LoginModal } from '@/components/LoginModal/LoginModal';
-import { Logo } from '@/components/Logo';
+import { Logo, LogoVariant } from '@/components/Logo';
 import { NetworkStatus } from '@/components/NetworkStatus/NetworkStatus';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useUserContext } from '@/providers/User';
@@ -19,7 +19,8 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="main-layout" role="main-layout">
       <NetworkStatus isOnline={true} />
       <header>
-        <Logo height={50} className="logo" />
+        <Logo height={50} className="logo logo--desktop" />
+        <Logo height={40} variant={LogoVariant.ICON} className="logo logo--mobile" />
         <LoginButton />
       </header>
       {isLoginModalOpen && <LoginModal />}

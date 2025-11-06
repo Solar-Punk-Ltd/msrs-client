@@ -67,9 +67,10 @@ describe('MainLayout', () => {
   it('renders the logo', () => {
     renderMainLayout(<div>Test</div>);
 
-    const logo = screen.getByAltText('SolarPunk Logo');
-    expect(logo).toBeInTheDocument();
-    expect(logo).toHaveClass('logo');
+    const logos = screen.getAllByAltText('SolarPunk Logo');
+    expect(logos).toHaveLength(2);
+    expect(logos[0]).toHaveClass('logo--desktop');
+    expect(logos[1]).toHaveClass('logo--mobile');
   });
 
   it('applies the correct CSS classes', () => {
