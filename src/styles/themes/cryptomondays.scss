@@ -45,8 +45,8 @@ $cryptomondays-colors: (
   'spinner-track': rgba(200, 220, 255, 0.4),
   'spinner-active': #e0ecff,
   // Chat colors
-  'chat-loading': #B19CD9,
-  'send-button': #B19CD9,
+  'chat-loading': #b19cd9,
+  'send-button': #b19cd9,
 
   // Text colors
   'text-primary': #ffffff,
@@ -107,8 +107,8 @@ $cryptomondays-gradients: (
   'action-token': linear-gradient(135deg, #a855f7, #9333ea),
   'action-token-hover': linear-gradient(135deg, #c084fc, #a855f7),
   // Modal confirm button gradients
-  'modal-confirm': linear-gradient(135deg, #0EA5E9, #7DD3FC),
-  'modal-confirm-hover': linear-gradient(135deg, #38BDF8, #BAE6FD),
+  'modal-confirm': linear-gradient(135deg, #0ea5e9, #7dd3fc),
+  'modal-confirm-hover': linear-gradient(135deg, #38bdf8, #bae6fd),
   // Stamp manager gradients
   'stamp-header': linear-gradient(135deg, #0943ba, #4e3fec),
   'stamp-info': linear-gradient(135deg, rgba(9, 67, 186, 0.95), rgba(78, 63, 236, 0.95)),
@@ -141,7 +141,7 @@ $cryptomondays-theme: (
   --font-family-heading: #{$cryptomondays-font-family-heading};
 
   // Background image
-  --background-image: url('/assets/themes/cryptomondays/cryptomonday_bg.avif');
+  --background-image: url('/assets/themes/cryptomondays/cryptomonday_bg.avif'), var(--gradient-primary);
 
   // Reusable border and glow styles
   --accent-border: 1px solid rgba(55, 125, 255, 0.3);
@@ -155,12 +155,14 @@ $cryptomondays-theme: (
   --login-dropdown-glow: 0 0 2px rgba(55, 125, 255, 0.3);
   --login-dropdown-divider: 1px solid rgba(55, 125, 255, 0.3);
   --login-dropdown-text: #cccccc;
+  --login-button-padding: var(--spacing-md) var(--spacing-lg);
+  --login-button-font-size: var(--font-size-lg);
 
   // Modal styling
   --modal-border: 1px solid rgba(55, 125, 255, 0.3);
   --modal-glow: 0 0 2px rgba(55, 125, 255, 0.3);
-  --modal-cancel-background: #6B46C1;
-  --modal-cancel-hover: #7C3AED;
+  --modal-cancel-background: #6b46c1;
+  --modal-cancel-hover: #7c3aed;
 
   // Chat message styling
   --chat-message-background: rgba(55, 125, 255, 0.15);

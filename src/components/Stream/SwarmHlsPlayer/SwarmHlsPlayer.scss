@@ -18,10 +18,10 @@
   gap: var(--spacing-lg);
   padding: 2rem;
   text-align: center;
-  background: var(--color-background-glass);
+  background: var(--player-loading-background, var(--color-background-glass));
   border-radius: var(--border-radius-md);
-  border: var(--accent-border, none);
-  box-shadow: var(--accent-glow, var(--shadow-2xl));
+  border: var(--player-loading-border, var(--accent-border, none));
+  box-shadow: var(--player-loading-glow, var(--accent-glow, var(--shadow-2xl)));
   width: 100%;
 
   h2 {
@@ -36,10 +36,10 @@
   @include mixins.flex-center;
   padding: 2rem;
   text-align: center;
-  background: var(--color-background-glass);
+  background: var(--player-error-background, var(--color-background-glass));
   border-radius: var(--border-radius-md);
-  border: var(--accent-border, none);
-  box-shadow: var(--accent-glow, var(--shadow-2xl));
+  border: var(--player-error-border, var(--accent-border, none));
+  box-shadow: var(--player-error-glow, var(--accent-glow, var(--shadow-2xl)));
   margin: 1rem 0;
   width: 100%;
 

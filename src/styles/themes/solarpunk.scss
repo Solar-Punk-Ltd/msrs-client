@@ -45,7 +45,7 @@ $solarpunk-colors: (
   'spinner-active': #ff8a50,
   // Chat colors
   'chat-loading': #ff8a50,
-  'send-button': #EC7B48,
+  'send-button': #ec7b48,
 
   // Text colors
   'text-primary': #efefef,
@@ -81,7 +81,7 @@ $solarpunk-colors: (
 );
 
 $solarpunk-gradients: (
-  'primary': linear-gradient(180deg, #8841e4 0%, #ff8a50 100%),
+  'primary': linear-gradient(rgb(136, 65, 228), rgb(255, 138, 80)),
   'secondary': linear-gradient(135deg, #667eea 0%, #cc99ff 100%),
   'accent': linear-gradient(135deg, #ff6b35 0%, #ff8e53 50%, #ffb366 100%),
   'accent-hover': linear-gradient(135deg, #ff7a40 0%, #ff9966 50%, #ffc680 100%),
@@ -120,6 +120,56 @@ $solarpunk-theme: (
 @mixin apply-solarpunk-theme() {
   @include theme-base.apply-theme($solarpunk-theme);
 
-  // No background image for SolarPunk theme
-  --background-image: none;
+  // Background for SolarPunk theme
+  --background-image: var(--gradient-primary);
+
+  // Reusable border and glow styles
+  --accent-border: none;
+  --accent-glow: none;
+  --pinned-border: 2px solid #{map.get($solarpunk-colors, 'primary')};
+  --pinned-glow: 0 0 12px #{map.get($solarpunk-colors, 'primary')};
+
+  // Login dropdown styling
+  --login-dropdown-background: linear-gradient(rgb(136, 65, 228), rgb(255, 138, 80));
+  --login-dropdown-border: none;
+  --login-dropdown-glow: none;
+  --login-dropdown-divider: 1px solid rgba(255, 255, 255, 0.2);
+  --login-dropdown-text: #efefef;
+  --login-button-padding: var(--spacing-xs) var(--spacing-sm);
+  --login-button-font-size: var(--font-size-base);
+
+  // Modal styling
+  --modal-border: none;
+  --modal-glow: none;
+  --modal-cancel-background: #fe8950;
+  --modal-cancel-hover: #ff9966;
+
+  // Chat message styling
+  --chat-message-background: rgba(255, 255, 255, 0.05);
+
+  // Stream info styling
+  --stream-info-background: rgba(255, 255, 255, 0.05);
+  --stream-info-border: 1px solid rgba(255, 255, 255, 0.1);
+  --stream-info-glow: none;
+
+  // Player loading/error styling
+  --player-loading-background: rgba(255, 255, 255, 0.05);
+  --player-loading-border: 1px solid rgba(255, 255, 255, 0.1);
+  --player-loading-glow: none;
+  --player-error-background: rgba(255, 255, 255, 0.05);
+  --player-error-border: 1px solid rgba(255, 255, 255, 0.1);
+  --player-error-glow: none;
+
+  // Typography
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0.025em;
+  --letter-spacing-wide: 0.03em;
+  --letter-spacing-wider: 0.05em;
+
+  // Stream group styling
+  --stream-group-background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(204, 153, 255, 0.1));
+  --stream-group-border: 1px solid rgba(255, 255, 255, 0.1);
+  --stream-group-border-radius: 16px;
+  --stream-group-padding: 20px;
+  --stream-group-blur: blur(10px);
 }

@@ -3,10 +3,10 @@
 
 .stream-info-container {
   width: 100%;
-  background: var(--color-background-glass);
+  background: var(--stream-info-background, var(--color-background-glass));
   border-radius: var(--border-radius-md);
-  border: var(--accent-border, none);
-  box-shadow: var(--accent-glow, var(--shadow-2xl));
+  border: var(--stream-info-border, var(--accent-border, none));
+  box-shadow: var(--stream-info-glow, var(--accent-glow, var(--shadow-2xl)));
   transition: all var(--duration-base) var(--easing-ease-out);
   font-family: var(--font-family-serif);
 }

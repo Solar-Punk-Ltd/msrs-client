@@ -7,7 +7,8 @@
 }
 
 .login-button {
-  padding: var(--spacing-md) !important;
+  padding: var(--login-button-padding, var(--spacing-sm) var(--spacing-base)) !important;
+  font-size: var(--login-button-font-size, var(--font-size-base)) !important;
   background-color: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
@@ -42,7 +43,7 @@
   text-align: left;
   cursor: pointer;
   transition: background-color var(--duration-fast) var(--easing-ease-out),
-              color var(--duration-fast) var(--easing-ease-out);
+    color var(--duration-fast) var(--easing-ease-out);
 
   &:hover {
     background-color: var(--color-background-glass-light);

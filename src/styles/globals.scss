@@ -1,15 +1,22 @@
-// NOTE: To change themes, modify this value directly or set VITE_THEME in .env
-// The vite.config.js will replace this with the env var value
-@use 'themes' as theme with (
-  $active-theme: 'cryptomondays'
-);
+@use 'themes/solarpunk' as solarpunk;
+@use 'themes/cryptomondays' as cryptomondays;
 @use 'mixins' as mixins;
 @use 'fonts' as fonts;
 
 @include fonts.load-fonts();
 
+// Default theme variables (CryptoMondays as fallback)
 :root {
-  @include theme.apply();
+  @include cryptomondays.apply-cryptomondays-theme();
+}
+
+// Theme switching via data-theme attribute
+html[data-theme='solarpunk'] {
+  @include solarpunk.apply-solarpunk-theme();
+}
+
+html[data-theme='cryptomondays'] {
+  @include cryptomondays.apply-cryptomondays-theme();
 }
 
 html {
