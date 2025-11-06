@@ -71,7 +71,7 @@
   }
 
   .message {
-    background-color: var(--color-background-message);
+    background-color: var(--chat-message-background, var(--color-background-message));
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--border-radius-base);
     margin-right: var(--spacing-xs);

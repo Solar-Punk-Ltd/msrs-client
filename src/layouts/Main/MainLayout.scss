@@ -5,6 +5,9 @@
   position: relative;
   height: 100%;
   background: var(--gradient-primary);
+  background-image: var(--background-image, none);
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
@@ -42,6 +45,9 @@ header {
 @include theme.mobile-up {
   .main-layout {
     background: var(--gradient-primary);
+    background-image: var(--background-image, none);
+    background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
   }
 }

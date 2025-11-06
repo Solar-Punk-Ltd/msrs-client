@@ -5,6 +5,7 @@
 @use 'solarpunk';
 @use 'cryptomondays';
 
+// Receives $active-theme from globals.scss via 'with' configuration
 $active-theme: 'solarpunk' !default;
 
 $themes: (

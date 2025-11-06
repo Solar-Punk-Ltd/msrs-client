@@ -7,7 +7,6 @@
 }
 
 .login-button {
-  font-size: var(--font-size-base) !important;
   padding: var(--spacing-md) !important;
   background-color: transparent !important;
   box-shadow: none !important;
@@ -23,9 +22,10 @@
   top: 100%;
   right: 0;
   min-width: 150px;
-  background: var(--gradient-primary);
+  background: var(--login-dropdown-background, var(--gradient-primary));
+  border: var(--login-dropdown-border, none);
   border-radius: var(--border-radius-base);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--login-dropdown-glow, var(--shadow-lg));
   z-index: 1000;
   overflow: hidden;
   margin-top: var(--spacing-xs);
@@ -36,18 +36,20 @@
   padding: var(--spacing-md) var(--spacing-base);
   border: none;
   background: transparent;
-  color: var(--color-text-primary);
+  color: var(--login-dropdown-text, var(--color-text-primary));
   font-family: var(--font-family-base);
   font-size: var(--font-size-sm);
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--easing-ease-out);
+  transition: background-color var(--duration-fast) var(--easing-ease-out),
+              color var(--duration-fast) var(--easing-ease-out);
 
   &:hover {
     background-color: var(--color-background-glass-light);
+    color: var(--color-text-primary);
   }
 
   &:not(:first-child) {
-    border-top: 1px solid var(--color-border-primary);
+    border-top: var(--login-dropdown-divider, 1px solid var(--color-border-primary));
   }
 }

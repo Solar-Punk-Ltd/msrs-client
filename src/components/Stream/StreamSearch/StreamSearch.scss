@@ -2,7 +2,7 @@
 @use '@/styles/mixins' as mixins;
 
 .stream-search {
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-md);
   padding-bottom: var(--spacing-sm);
   width: 100%;
   box-sizing: border-box;
@@ -36,8 +36,7 @@
   font-family: var(--font-family-base);
   box-sizing: border-box;
   transition: border-color var(--duration-base) var(--easing-ease),
-              background-color var(--duration-base) var(--easing-ease),
-              box-shadow var(--duration-base) var(--easing-ease);
+    background-color var(--duration-base) var(--easing-ease);
 
   &::placeholder {
     color: var(--color-text-placeholder);
@@ -47,7 +46,6 @@
     outline: none;
     border-color: var(--color-border-input-focus);
     background: var(--color-background-input-focus);
-    box-shadow: var(--shadow-input-focus);
   }
 }
 
@@ -62,8 +60,7 @@
   color: var(--color-text-placeholder);
   cursor: pointer;
   @include mixins.flex-center;
-  transition: color var(--duration-fast) var(--easing-ease-out),
-              transform var(--duration-fast) var(--easing-ease-out);
+  transition: color var(--duration-fast) var(--easing-ease-out), transform var(--duration-fast) var(--easing-ease-out);
 
   svg {
     width: 16px;
