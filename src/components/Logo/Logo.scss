@@ -1,0 +1,17 @@
+.logo {
+  width: auto;
+  display: block;
+  user-select: none;
+
+  &--full {
+    // Full logo styling
+  }
+
+  &--icon {
+    // Icon-only logo styling
+  }
+
+  &--on-dark {
+    // Dark background optimized logo styling
+  }
+}
