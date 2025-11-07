@@ -6,6 +6,8 @@ import { cloneDeep, isEqual } from 'lodash';
 import { useSerializedEffect } from '@/hooks/useSerializedEffect';
 import { MessageReceiveMode } from '@/types/messaging';
 import { StateArrayWithTimestamp, StateEntry } from '@/types/stream';
+import { fetchRegistrationFeed } from '@/utils/auth/login';
+import { persistAdminConfigs } from '@/utils/auth/persistence';
 import { config } from '@/utils/shared/config';
 
 import { useWakuContext } from '../Waku';
@@ -135,6 +137,12 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       setIsLoading(true);
 
       try {
+        const adminConfigs = await fetchRegistrationFeed();
+        if (adminConfigs.length > 0) {
+          persistAdminConfigs(adminConfigs);
+          console.log(`✅ Fetched and persisted ${adminConfigs.length} admin config(s)`);
+        }
+
         const data = await fetchAppState();
 
         // Check if still mounted after async operation

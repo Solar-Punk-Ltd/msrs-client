@@ -12,6 +12,7 @@ type RuntimeConfig = {
   VITE_STREAMER_GSOC_TOPIC: string;
   VITE_MESSAGE_RECEIVE_MODE: string;
   VITE_WAKU_STATIC_PEER: string;
+  VITE_REGISTER_TOPIC: string;
 };
 
 function getEnv(name: string): string {
@@ -55,4 +56,5 @@ export const config = {
   streamerGsocTopic: getEnv('VITE_STREAMER_GSOC_TOPIC'),
   messageReceiveMode: getMessageReceiveModeEnv('VITE_MESSAGE_RECEIVE_MODE', MessageReceiveMode.WAKU),
   wakuStaticPeer: getEnv('VITE_WAKU_STATIC_PEER'),
+  registerTopic: getEnv('VITE_REGISTER_TOPIC'),
 };

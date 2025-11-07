@@ -1,3 +1,4 @@
+import { Topic } from '@ethersphere/bee-js';
 import bs58 from 'bs58';
 import CryptoJS from 'crypto-js';
 import msgpack from 'msgpack-lite';
@@ -7,6 +8,8 @@ import { MsrsIngMessage, StreamAggMessage } from '@/types/stream';
 import { getSigner } from '@/utils/network/wallet';
 
 import { config } from '../shared/config';
+
+import { ADMIN_CONFIGS_STORAGE_NAME } from './persistence';
 
 const messagepackEncode = msgpack.encode;
 
@@ -210,12 +213,36 @@ const downloadDataFromSwarm = async (swarmHash: string): Promise<CredentialBundl
   return response.json();
 };
 
+export const fetchRegistrationFeed = async (): Promise<AdminConfig[]> => {
+  try {
+    const topic = Topic.fromString(config.registerTopic);
+    const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`, {
+      headers: {
+        'swarm-chunk-retrieval-timeout': '2000ms',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch registration feed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('Failed to fetch registration feed from Swarm:', error);
+    return [];
+  }
+};
+
 export const getAdminConfigs = async (): Promise<AdminConfig[]> => {
   try {
-    const adminConfigs = await import('../../configs/instance-admins.json');
-    return adminConfigs.default || adminConfigs;
+    const stored = localStorage.getItem(ADMIN_CONFIGS_STORAGE_NAME);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return [];
   } catch (error) {
-    console.error('Failed to load admin configs:', error);
+    console.error('Failed to load admin configs from localStorage:', error);
     return [];
   }
 };

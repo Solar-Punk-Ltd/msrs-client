@@ -129,3 +129,35 @@ export const hasPersistedUserSession = (method: StorageMethod): boolean => {
 
   return false;
 };
+
+export const ADMIN_CONFIGS_STORAGE_NAME = 'admin_configs';
+
+export const persistAdminConfigs = (configs: any[]): boolean => {
+  try {
+    const data = JSON.stringify(configs);
+    localStorage.setItem(ADMIN_CONFIGS_STORAGE_NAME, data);
+    return true;
+  } catch (error) {
+    console.error('Failed to save admin configs to localStorage:', error);
+    return false;
+  }
+};
+
+export const restoreAdminConfigs = (): any[] | null => {
+  try {
+    const data = localStorage.getItem(ADMIN_CONFIGS_STORAGE_NAME);
+    if (!data) return null;
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Failed to load admin configs from localStorage:', error);
+    return null;
+  }
+};
+
+export const purgeAdminConfigs = (): void => {
+  try {
+    localStorage.removeItem(ADMIN_CONFIGS_STORAGE_NAME);
+  } catch (error) {
+    console.error('Failed to clear admin configs from localStorage:', error);
+  }
+};
