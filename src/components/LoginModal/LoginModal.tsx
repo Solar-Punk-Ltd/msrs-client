@@ -67,6 +67,7 @@ export function LoginModal() {
           className="login-modal-input"
           onChange={(e) => setLocalName(e.target.value)}
           disabled={isLoading}
+          maxLength={20}
           onKeyPress={(e) => {
             if (e.key === 'Enter') {
               handleUsernameLogin();

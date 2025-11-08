@@ -12,6 +12,10 @@
   background-color: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   &:hover {
     text-decoration: underline;
@@ -21,8 +25,7 @@
 .login-dropdown {
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 0;
   min-width: 150px;
   background: var(--login-dropdown-background, var(--gradient-primary));
   border: var(--login-dropdown-border, none);
