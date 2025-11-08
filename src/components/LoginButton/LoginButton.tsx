@@ -16,8 +16,10 @@ export const LoginButton = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const { isUserLoggedIn, setIsLoginModalOpen, nickname, logout, isAdmin } = useUserContext();
+  const { isUserLoggedIn, setIsLoginModalOpen, nickname, logout, isAdmin, instanceId } = useUserContext();
   const { theme, setTheme } = useTheme();
+
+  const isSolarpunkAdmin = isAdmin && instanceId === 'solarpunk';
 
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -107,9 +109,11 @@ export const LoginButton = () => {
               </button>
             )}
             <div className="login-dropdown-divider" />
-            <button className="login-dropdown-item" onClick={handleThemeToggle}>
-              Theme: {theme === THEME_NAMES.SOLARPUNK ? 'SolarPunk' : 'CryptoMondays'}
-            </button>
+            {isSolarpunkAdmin && (
+              <button className="login-dropdown-item" onClick={handleThemeToggle}>
+                Theme: {theme === THEME_NAMES.SOLARPUNK ? 'SolarPunk' : 'CryptoMondays'}
+              </button>
+            )}
             <button className="login-dropdown-item" onClick={handleLogout}>
               Logout
             </button>
