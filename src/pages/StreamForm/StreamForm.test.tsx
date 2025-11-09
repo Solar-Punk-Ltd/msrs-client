@@ -37,6 +37,7 @@ vi.mock('@/hooks/useStreamForm', () => ({
       thumbnail: null,
       mediaType: MediaType.VIDEO,
       scheduledStartTime: undefined,
+      tags: [],
     },
     updateField: mockUpdateField,
     validateForm: mockValidateForm,
@@ -91,6 +92,30 @@ vi.mock('@/components/Stream/StreamFormFields', () => ({
       value={value ? value.toISOString().slice(0, 16) : ''}
       onChange={(e) => onChange(e.target.value ? new Date(e.target.value) : undefined)}
     />
+  ),
+  TagsField: ({ value, onChange }: any) => (
+    <div data-testid="tags-field">
+      <input
+        data-testid="tags-input"
+        placeholder="Add a tag"
+        onKeyPress={(e) => {
+          if (e.key === 'Enter') {
+            const input = e.target as HTMLInputElement;
+            if (input.value) {
+              onChange([...value, input.value]);
+              input.value = '';
+            }
+          }
+        }}
+      />
+      <div data-testid="tags-list">
+        {value.map((tag: string, index: number) => (
+          <span key={index} data-testid={`tag-${index}`}>
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
   ),
   ErrorMessage: ({ error }: any) => (error ? <div data-testid="error-message">{error}</div> : null),
   PreviewField: ({ label, value }: any) => (
@@ -299,6 +324,7 @@ describe('StreamForm', () => {
           thumbnail: null,
           mediaType: MediaType.VIDEO,
           scheduledStartTime: undefined,
+          tags: [],
         });
       });
 

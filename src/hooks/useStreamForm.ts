@@ -11,6 +11,7 @@ export function useStreamForm() {
     thumbnail: null,
     mediaType: MediaType.VIDEO,
     scheduledStartTime: undefined,
+    tags: [],
   });
 
   const [isInitializing, setIsInitializing] = useState(false);
@@ -54,11 +55,12 @@ export function useStreamForm() {
       description: stream.description || '',
       mediaType: stream.mediaType,
       scheduledStartTime: stream.scheduledStartTime,
+      tags: stream.tags || [],
     });
     setIsInitializing(false);
   }, []);
 
-  const validateForm = (): string | null => {
+  const validateForm = (skipScheduledTime: boolean = false): string | null => {
     if (!metadata.title.trim()) {
       return ERROR_MESSAGES.NAME_REQUIRED;
     }
@@ -71,12 +73,7 @@ export function useStreamForm() {
     if (metadata.description.length > LIMITS.DESCRIPTION_MAX_LENGTH) {
       return ERROR_MESSAGES.DESCRIPTION_TOO_LONG;
     }
-
-    // Note: Do we want thumbnail to be required?
-    // if (!metadata.thumbnail) {
-    //   return ERROR_MESSAGES.THUMBNAIL_REQUIRED;
-    // }
-    if (!metadata.scheduledStartTime) {
+    if (!skipScheduledTime && !metadata.scheduledStartTime) {
       return ERROR_MESSAGES.SCHEDULED_TIME_REQUIRED;
     }
     return null;

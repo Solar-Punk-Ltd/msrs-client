@@ -62,6 +62,7 @@ export async function createStream(session: Session, meta: StreamMetadata) {
       mediaType: meta.mediaType,
       thumbnail: ref,
       scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime : null,
+      tags: meta.tags,
     },
   };
 
@@ -99,10 +100,10 @@ export async function updateStream(session: Session, meta: StreamMetadata, topic
       topic,
       title: meta.title,
       description: meta.description,
-      state: StateType.SCHEDULED,
       mediaType: meta.mediaType,
       thumbnail: ref,
       scheduledStartTime: meta.scheduledStartTime ? meta.scheduledStartTime : null,
+      tags: meta.tags,
     },
   };
 

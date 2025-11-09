@@ -15,7 +15,8 @@ const StreamEntryProto = new protobuf.Type('StreamEntry')
   .add(new protobuf.Field('thumbnail', 10, 'string', 'optional'))
   .add(new protobuf.Field('description', 11, 'string', 'optional'))
   .add(new protobuf.Field('scheduledStartTime', 12, 'string', 'optional'))
-  .add(new protobuf.Field('pinned', 13, 'bool', 'optional'));
+  .add(new protobuf.Field('pinned', 13, 'bool', 'optional'))
+  .add(new protobuf.Field('tags', 14, 'string', 'repeated'));
 
 const StreamListProto = new protobuf.Type('StreamList')
   .add(StreamEntryProto)

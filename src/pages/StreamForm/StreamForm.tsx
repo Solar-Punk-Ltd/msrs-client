@@ -10,13 +10,14 @@ import {
   NameField,
   PreviewField,
   ScheduleField,
+  TagsField,
   ThumbnailField,
 } from '@/components/Stream/StreamFormFields';
 import { useStreamForm } from '@/hooks/useStreamForm';
 import { useAppContext } from '@/providers/App/App';
 import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
-import { MEDIA_TYPE_LABELS, MediaType } from '@/types/stream';
+import { MEDIA_TYPE_LABELS, MediaType, StateType } from '@/types/stream';
 import { createStream, updateStream } from '@/utils/stream/stream';
 
 import './StreamForm.scss';
@@ -43,6 +44,7 @@ export interface StreamMetadata {
   thumbnail: File | string | null;
   mediaType: MediaType;
   scheduledStartTime?: string;
+  tags: string[];
 }
 
 function StreamMetadataPreview({
@@ -52,6 +54,7 @@ function StreamMetadataPreview({
   isEditMode,
   onBack,
   onConfirm,
+  streamState,
 }: {
   metadata: StreamMetadata;
   error: string | null;
@@ -59,7 +62,9 @@ function StreamMetadataPreview({
   isEditMode?: boolean;
   onBack: () => void;
   onConfirm: () => void;
+  streamState?: StateType;
 }) {
+  const isExistingStream = streamState === StateType.VOD || streamState === StateType.LIVE;
   return (
     <div className="stream-form-preview">
       <div className="stream-form-preview-header">
@@ -71,7 +76,7 @@ function StreamMetadataPreview({
 
         <PreviewField label="Stream Title" value={metadata.title} />
         <PreviewField label="Description" value={metadata.description} type="description" />
-        <PreviewField label="Media Type" value={MEDIA_TYPE_LABELS[metadata.mediaType]} />
+        {!isExistingStream && <PreviewField label="Media Type" value={MEDIA_TYPE_LABELS[metadata.mediaType]} />}
 
         {metadata.thumbnail && (
           <PreviewField
@@ -82,7 +87,9 @@ function StreamMetadataPreview({
           />
         )}
 
-        {metadata.scheduledStartTime && (
+        {metadata.tags.length > 0 && <PreviewField label="Tags" value={metadata.tags} type="tags" />}
+
+        {!isExistingStream && metadata.scheduledStartTime && (
           <PreviewField label="Scheduled Start Time" value={new Date(metadata.scheduledStartTime).toLocaleString()} />
         )}
       </div>
@@ -114,6 +121,7 @@ function StreamEditForm({
   onPreview,
   onError,
   isInitializing,
+  streamState,
 }: {
   metadata: StreamMetadata;
   error: string | null;
@@ -122,10 +130,13 @@ function StreamEditForm({
   onPreview: () => void;
   onError: (error: string) => void;
   isInitializing: boolean;
+  streamState?: StateType;
 }) {
   if (isInitializing) {
     return <InputLoading />;
   }
+
+  const isExistingStream = streamState === StateType.VOD || streamState === StateType.LIVE;
 
   return (
     <div className="stream-form-form">
@@ -145,7 +156,11 @@ function StreamEditForm({
             maxLength={LIMITS.DESCRIPTION_MAX_LENGTH}
           />
 
-          <MediaTypeField value={metadata.mediaType} onChange={(value) => onFieldChange('mediaType', value)} />
+          <TagsField value={metadata.tags} onChange={(value) => onFieldChange('tags', value)} />
+
+          {!isExistingStream && (
+            <MediaTypeField value={metadata.mediaType} onChange={(value) => onFieldChange('mediaType', value)} />
+          )}
         </div>
 
         <div className="stream-form-section">
@@ -158,12 +173,14 @@ function StreamEditForm({
           />
         </div>
 
-        <div className="stream-form-section">
-          <ScheduleField
-            value={metadata.scheduledStartTime ? new Date(metadata.scheduledStartTime) : undefined}
-            onChange={(date) => onFieldChange('scheduledStartTime', date ? date.toISOString() : undefined)}
-          />
-        </div>
+        {!isExistingStream && (
+          <div className="stream-form-section">
+            <ScheduleField
+              value={metadata.scheduledStartTime ? new Date(metadata.scheduledStartTime) : undefined}
+              onChange={(date) => onFieldChange('scheduledStartTime', date ? date.toISOString() : undefined)}
+            />
+          </div>
+        )}
       </div>
 
       <div className="stream-form-actions">
@@ -216,7 +233,8 @@ export function StreamForm() {
   };
 
   const handlePreview = () => {
-    const validationError = validateForm();
+    const isExistingStream = streamToEdit?.state === StateType.VOD || streamToEdit?.state === StateType.LIVE;
+    const validationError = validateForm(isExistingStream);
     if (validationError) {
       setError(validationError);
       return;
@@ -266,6 +284,7 @@ export function StreamForm() {
             isEditMode={isEditMode}
             onBack={handleBackToEdit}
             onConfirm={handleSubmitStream}
+            streamState={streamToEdit?.state}
           />
         ) : (
           <StreamEditForm
@@ -276,6 +295,7 @@ export function StreamForm() {
             onPreview={handlePreview}
             onError={setError}
             isInitializing={isInitializing}
+            streamState={streamToEdit?.state}
           />
         )}
       </div>
