@@ -58,6 +58,11 @@ export function StreamManager() {
       return;
     }
 
+    if (stream.isExternal === true) {
+      console.error('Cannot pin external streams');
+      return;
+    }
+
     try {
       const newPinState = stream.pinned ? !stream.pinned : true;
       await updateStreamPin(session, stream.topic, stream.owner, newPinState);
