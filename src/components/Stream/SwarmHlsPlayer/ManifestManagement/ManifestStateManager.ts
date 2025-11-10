@@ -55,7 +55,7 @@ export class ManifestStateManager {
   }
 
   public isUsingPolling(topicId: string): boolean {
-    return !!this.topics.get(topicId)?.pollingInterval;
+    return !!this.topics.get(topicId)?.isPollingSetup;
   }
 
   public getTopicState(topicId: string): TopicState | undefined {
@@ -91,7 +91,7 @@ export class ManifestStateManager {
 
     const state = this.topics.get(hexTopic);
     const wakuAlreadySetup = !!state?.wakuUnsubscribe;
-    const pollingAlreadySetup = !!state?.pollingInterval || !!state?.isPollingSetup;
+    const pollingAlreadySetup = !!state?.isPollingSetup;
 
     const shouldUseWaku =
       messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
@@ -295,92 +295,88 @@ export class ManifestStateManager {
       state.index = FeedIndex.fromBigInt(BigInt(1));
     }
 
-    if (state.pollingInterval) {
-      clearTimeout(state.pollingInterval);
-      delete state.pollingInterval;
+    if (state.pollingTimeout) {
+      clearTimeout(state.pollingTimeout);
+      delete state.pollingTimeout;
     }
 
+    // Use a sequence counter to prevent race conditions
+    state.pollSequence = (state.pollSequence || 0) + 1;
+    const currentSequence = state.pollSequence;
     state.isPollingSetup = true;
-
-    const LOOKAHEAD_COUNT = 2;
+    state.missCount = 0;
+    state.lastPollTime = 0;
 
     const pollManifest = async () => {
       const currentState = this.topics.get(hexTopic);
-      if (!currentState || !currentState.isPollingSetup) return;
 
-      if (currentState.isPollingRunning) {
-        console.log('⏭️ Skipping poll - already running');
+      if (!currentState || !currentState.isPollingSetup || currentState.pollSequence !== currentSequence) {
+        console.log(`⏹️ Polling stopped for ${hexTopic}`);
         return;
       }
 
-      currentState.isPollingRunning = true;
+      const now = Date.now();
+      if (currentState.lastPollTime && now - currentState.lastPollTime < 100) {
+        currentState.pollingTimeout = setTimeout(pollManifest, 100);
+        return;
+      }
+      currentState.lastPollTime = now;
 
       try {
         const currentIndex = currentState.index ?? FeedIndex.fromBigInt(BigInt(1));
+        const id = makeFeedIdentifier(topic, currentIndex);
 
-        const indicesToTry = [currentIndex];
-        let nextIndex = currentIndex;
-        for (let i = 1; i < LOOKAHEAD_COUNT; i++) {
-          nextIndex = nextIndex.next();
-          indicesToTry.push(nextIndex);
-        }
+        const response = await this.fetcher.fetchSOC(owner, id.toString());
 
-        const fetchPromises = indicesToTry.map(async (index) => {
-          const id = makeFeedIdentifier(topic, index);
-          try {
-            const response = await this.fetcher.fetchSOC(owner, id.toString());
-            if (response.ok) {
-              const manifest = await response.text();
-              return { index, manifest, success: true };
+        if (response.ok) {
+          const manifest = await response.text();
+
+          if (ManifestParser.isVOD(manifest)) {
+            console.log('🎬 Stream completed - VOD manifest received');
+            this.updateManifest(hexTopic, manifest);
+
+            delete currentState.isPollingSetup;
+            delete currentState.pollSequence;
+            delete currentState.missCount;
+            delete currentState.lastPollTime;
+            if (currentState.pollingTimeout) {
+              clearTimeout(currentState.pollingTimeout);
+              delete currentState.pollingTimeout;
             }
-            return { index, manifest: '', success: false };
-          } catch {
-            return { index, manifest: '', success: false };
+            return;
           }
-        });
 
-        const results = await Promise.all(fetchPromises);
+          const hasChanged = this.updateManifest(hexTopic, manifest);
 
-        let foundAny = false;
-        for (const result of results) {
-          if (result.success) {
-            foundAny = true;
+          if (hasChanged) {
+            console.log(`📨 Polling fetched manifest at index ${currentIndex}`);
+            currentState.index = currentIndex.next();
+            currentState.missCount = 0;
 
-            if (ManifestParser.isVOD(result.manifest)) {
-              console.log('🎬 Stream completed - VOD reached (ENDLIST detected)');
-              this.updateManifest(hexTopic, result.manifest);
-              delete currentState.isPollingSetup;
-              delete currentState.isPollingRunning;
-              return;
-            }
-
-            const hasChanged = this.updateManifest(hexTopic, result.manifest);
-
-            if (hasChanged) {
-              console.log(`📨 Polling fetched manifest at index ${result.index}`);
-
-              if (!currentState.wakuUnsubscribe) {
-                currentState.lastSequence++;
-              }
-            }
-
-            currentState.index = result.index.next();
+            currentState.pollingTimeout = setTimeout(pollManifest, 200);
           } else {
-            // Stop processing on first failure (means we've caught up)
-            break;
+            // No change in manifest, slightly longer delay
+            currentState.pollingTimeout = setTimeout(pollManifest, 1000);
           }
-        }
+        } else if (response.status === 404) {
+          // Not found - manifest not yet available
+          currentState.missCount = (currentState.missCount || 0) + 1;
 
-        if (!foundAny) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      } finally {
-        currentState.isPollingRunning = false;
-      }
+          const baseDelay = currentState.missCount < 3 ? 500 : 1000;
+          const delay = Math.min(5000, baseDelay * Math.min(currentState.missCount, 5));
 
-      const state = this.topics.get(hexTopic);
-      if (state && state.isPollingSetup && !ManifestParser.isVOD(state.manifest)) {
-        setTimeout(() => pollManifest(), 0);
+          currentState.pollingTimeout = setTimeout(pollManifest, delay);
+        } else {
+          console.error(`Polling error (status ${response.status}), retrying...`);
+          currentState.pollingTimeout = setTimeout(pollManifest, 2000);
+        }
+      } catch (error) {
+        console.error('Polling exception:', error);
+
+        const currentState = this.topics.get(hexTopic);
+        if (currentState && currentState.pollSequence === currentSequence) {
+          currentState.pollingTimeout = setTimeout(pollManifest, 1500);
+        }
       }
     };
 
@@ -403,15 +399,18 @@ export class ManifestStateManager {
     if (!state) return;
 
     if (state.wakuUnsubscribe) {
-      await state.wakuUnsubscribe();
+      try {
+        await state.wakuUnsubscribe();
+      } catch (error) {
+        console.error('Error unsubscribing from Waku:', error);
+      }
     }
 
-    if (state.pollingInterval) {
-      clearTimeout(state.pollingInterval);
+    if (state.pollingTimeout) {
+      clearTimeout(state.pollingTimeout);
     }
 
-    delete state.isPollingSetup;
-    delete state.isPollingRunning;
+    state.pollSequence = -1;
 
     this.topics.delete(topicId);
   }

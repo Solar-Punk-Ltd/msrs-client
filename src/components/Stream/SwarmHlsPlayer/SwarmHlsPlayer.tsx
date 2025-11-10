@@ -117,12 +117,50 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
     if (Hls.isSupported()) {
       hls = new Hls({
         pLoader: CustomManifestLoader,
-        liveSyncDuration: 10,
-        liveMaxLatencyDuration: 30,
-        maxBufferLength: 60,
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 10,
+
+        maxBufferLength: 30,
         maxMaxBufferLength: 120,
         maxBufferSize: 60 * 1024 * 1024, // 60MB
         maxBufferHole: 1,
+
+        // Segment Loading
+        maxFragLookUpTolerance: 0.25,
+        fragLoadingTimeOut: 20000,
+        fragLoadingMaxRetry: 6,
+        fragLoadingRetryDelay: 1000,
+        fragLoadingMaxRetryTimeout: 64000,
+
+        // Manifest Loading
+        manifestLoadingTimeOut: 10000,
+        manifestLoadingMaxRetry: 3,
+        manifestLoadingRetryDelay: 1000,
+        levelLoadingTimeOut: 10000,
+        levelLoadingMaxRetry: 4,
+        levelLoadingRetryDelay: 1000,
+
+        // Performance Features
+        enableWorker: true,
+        enableSoftwareAES: false,
+        lowLatencyMode: true,
+        backBufferLength: 90,
+
+        // Progressive Loading
+        progressive: true,
+        testBandwidth: false,
+
+        // Start Level
+        startLevel: -1,
+        autoStartLoad: true,
+        startPosition: -1,
+
+        highBufferWatchdogPeriod: 2000,
+        nudgeOffset: 0.1,
+        nudgeMaxRetry: 3,
+        maxStarvationDelay: 8,
+        maxLoadingDelay: 8,
+        minAutoBitrate: 0,
       });
 
       const restartStream = () => {

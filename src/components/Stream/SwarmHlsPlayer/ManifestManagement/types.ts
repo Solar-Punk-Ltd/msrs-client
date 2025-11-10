@@ -12,9 +12,11 @@ export interface TopicState {
   manifest: string;
   lastSequence: number;
   wakuUnsubscribe?: () => Promise<void>;
-  pollingInterval?: NodeJS.Timeout;
+  pollingTimeout?: NodeJS.Timeout;
   isPollingSetup?: boolean;
-  isPollingRunning?: boolean;
+  pollSequence?: number;
+  missCount?: number;
+  lastPollTime?: number;
 }
 
 export interface WakuMetadata {

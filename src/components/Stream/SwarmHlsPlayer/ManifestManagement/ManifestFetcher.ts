@@ -10,10 +10,27 @@ import { SwarmFetcher } from './SwarmFetcher';
 
 export class ManifestFetcher {
   private stateManager = ManifestStateManager.getInstance();
+
   private fetcher = new SwarmFetcher();
   private manifestQueue = new Pqueue({ concurrency: 1 });
 
+  private inflight = new Map<string, Promise<string>>();
+  private prefetchTimers = new Map<string, NodeJS.Timeout>();
+
   public async fetch(url: string): Promise<string> {
+    if (this.inflight.has(url)) {
+      return this.inflight.get(url)!;
+    }
+
+    const promise = this.doFetch(url).finally(() => {
+      this.inflight.delete(url);
+    });
+
+    this.inflight.set(url, promise);
+    return promise;
+  }
+
+  private async doFetch(url: string): Promise<string> {
     const [owner, topicPart] = url.split('/');
     const topic = Topic.fromString(topicPart);
     const hexTopic = topic.toString();
@@ -80,30 +97,77 @@ export class ManifestFetcher {
 
   private async followupPollingFetch(owner: string, topic: Topic, currentIndex: FeedIndex): Promise<string> {
     const hexTopic = topic.toString();
-    const nextId = makeFeedIdentifier(topic, currentIndex.next()).toString();
 
-    // Prefetch next manifest asynchronously
-    this.fetcher
-      .fetchSOC(owner, nextId)
-      .then((res) => {
-        this.manifestQueue.add(async () => {
-          try {
-            const manifest = await res.text();
-            const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
+    const cached = this.stateManager.getLatestManifest(hexTopic, '');
 
-            if (hasChanged) {
-              const index = this.stateManager.getIndex(hexTopic)!;
-              this.stateManager.setIndex(hexTopic, index.next());
-            }
-          } catch (error) {
-            console.error('Failed to process follow-up manifest:', error);
+    const existingTimer = this.prefetchTimers.get(hexTopic);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      this.prefetchTimers.delete(hexTopic);
+    }
+
+    const prefetchDelay = cached ? 500 : 0;
+
+    const timer = setTimeout(() => {
+      this.prefetchTimers.delete(hexTopic);
+      this.prefetchNextManifest(owner, topic, currentIndex);
+    }, prefetchDelay);
+
+    this.prefetchTimers.set(hexTopic, timer);
+
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const nextId = makeFeedIdentifier(topic, currentIndex.next()).toString();
+      const response = await this.fetcher.fetchSOC(owner, nextId);
+      const manifest = await response.text();
+
+      const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
+      if (hasChanged) {
+        this.stateManager.setIndex(hexTopic, currentIndex.next());
+      }
+
+      return manifest;
+    } catch (error) {
+      console.error('Synchronous fetch failed, returning stale manifest:', error);
+      return this.stateManager.getLatestManifest(hexTopic, '');
+    }
+  }
+
+  private async prefetchNextManifest(owner: string, topic: Topic, currentIndex: FeedIndex): Promise<void> {
+    const hexTopic = topic.toString();
+    const nextIndex = currentIndex.next();
+    const nextId = makeFeedIdentifier(topic, nextIndex).toString();
+
+    try {
+      const response = await this.fetcher.fetchSOC(owner, nextId);
+
+      await this.manifestQueue.add(async () => {
+        try {
+          const manifest = await response.text();
+          const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
+
+          if (hasChanged) {
+            console.log(`📦 Prefetched manifest at index ${nextIndex}`);
+            this.stateManager.setIndex(hexTopic, nextIndex);
           }
-        });
-      })
-      .catch((error) => {
-        console.error('Failed to prefetch follow-up manifest:', error);
+        } catch (error) {
+          console.error('Failed to process prefetched manifest:', error);
+        }
       });
+    } catch (error) {
+      console.debug('Prefetch attempt failed (normal during stream startup):', error);
+    }
+  }
 
-    return this.stateManager.getLatestManifest(hexTopic);
+  public cleanup(): void {
+    for (const timer of this.prefetchTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.prefetchTimers.clear();
+    this.inflight.clear();
+    this.manifestQueue.clear();
   }
 }

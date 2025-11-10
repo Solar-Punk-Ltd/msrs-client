@@ -33,4 +33,9 @@ export class CustomManifestLoader extends PlaylistLoader {
       super.load(context, config, callbacks);
     }
   }
+
+  destroy(): void {
+    manifestFetcher.cleanup();
+    super.destroy?.();
+  }
 }
