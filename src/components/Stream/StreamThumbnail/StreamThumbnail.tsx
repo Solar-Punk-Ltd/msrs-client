@@ -59,7 +59,7 @@ const useHlsThumbnailCapture = (videoRef: React.RefObject<HTMLVideoElement>, man
           cleanup();
 
           if (videoRef.current) {
-            videoRef.current.currentTime = 0.1;
+            videoRef.current.currentTime = 1;
             videoRef.current.pause();
             hls.stopLoad();
           }

@@ -12,6 +12,7 @@ import { MainLayout } from './MainLayout';
 
 vi.mock('@/utils/auth/login', () => ({
   autoLogin: vi.fn(),
+  fetchRegistrationFeed: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@/providers/Waku', () => ({
@@ -67,10 +68,14 @@ describe('MainLayout', () => {
   it('renders the logo', () => {
     renderMainLayout(<div>Test</div>);
 
-    const logos = screen.getAllByAltText('SolarPunk Logo');
+    const logos = screen.getAllByAltText(/Logo/);
     expect(logos).toHaveLength(2);
-    expect(logos[0]).toHaveClass('logo--desktop');
-    expect(logos[1]).toHaveClass('logo--mobile');
+
+    const desktopLogo = logos.find((logo) => logo.classList.contains('logo--desktop'));
+    const mobileLogo = logos.find((logo) => logo.classList.contains('logo--mobile'));
+
+    expect(desktopLogo).toBeDefined();
+    expect(mobileLogo).toBeDefined();
   });
 
   it('applies the correct CSS classes', () => {

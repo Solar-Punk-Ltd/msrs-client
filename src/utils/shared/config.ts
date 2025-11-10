@@ -64,6 +64,12 @@ export const config = {
   streamerGsocResourceId: getEnv('VITE_STREAMER_GSOC_RESOURCE_ID'),
   streamerGsocTopic: getEnv('VITE_STREAMER_GSOC_TOPIC'),
   messageReceiveMode: getMessageReceiveModeEnv('VITE_MESSAGE_RECEIVE_MODE', MessageReceiveMode.WAKU),
-  wakuStaticPeer: getEnv('VITE_WAKU_STATIC_PEER'),
+  get wakuStaticPeer(): string {
+    const mode = this.messageReceiveMode;
+    if (mode === MessageReceiveMode.SWARM) {
+      return '';
+    }
+    return getEnv('VITE_WAKU_STATIC_PEER');
+  },
   registerTopic: getEnv('VITE_REGISTER_TOPIC'),
 };
