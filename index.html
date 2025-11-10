@@ -5,6 +5,7 @@
     <link rel="icon" type="image/svg+xml" id="favicon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1" />
     <title>Streaming Platform</title>
+    <script src="/config.js"></script>
     <script>
       // Theme detection - runs before React to prevent flash
       (function () {
@@ -13,10 +14,14 @@
         // Determine initial theme (same priority as ThemeProvider)
         let theme = localStorage.getItem(THEME_STORAGE_KEY);
         if (theme !== 'solarpunk' && theme !== 'cryptomondays') {
-          // Check VITE_THEME env var (will be replaced at build time)
-          theme = '%VITE_THEME%';
+          if (window.__CONFIG__ && window.__CONFIG__.VITE_THEME) {
+            theme = window.__CONFIG__.VITE_THEME;
+          } else {
+            // Fallback to build-time replacement
+            theme = '%VITE_THEME%';
+          }
           if (theme !== 'solarpunk' && theme !== 'cryptomondays') {
-            theme = 'cryptomondays'; // default
+            theme = 'cryptomondays';
           }
         }
 

@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import type { LightNode } from '@solarpunkltd/waku-sdk';
 
 import { useSerializedEffect } from '@/hooks/useSerializedEffect';
+import { MessageReceiveMode } from '@/types/messaging';
+import { config } from '@/utils/shared/config';
 import { WakuChannelManager } from '@/utils/waku/WakuChannelManager';
 
 import { WakuNodeManager } from '../utils/waku/WakuNodeManager';
@@ -26,6 +28,10 @@ interface NodeState {
 }
 
 export function WakuProvider({ children }: WakuProviderProps) {
+  const messageReceiveMode = config.messageReceiveMode;
+  const shouldUseWaku =
+    messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
+
   const [nodeState, setNodeState] = useState<NodeState>({
     isHealty: false,
     isRecovering: false,
@@ -38,6 +44,10 @@ export function WakuProvider({ children }: WakuProviderProps) {
   const listenerCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
+    if (!shouldUseWaku) {
+      console.log('[WakuProvider] Waku disabled (mode: SWARM only)');
+      return;
+    }
     let isMounted = true;
     let setupAborted = false;
 
@@ -99,11 +109,15 @@ export function WakuProvider({ children }: WakuProviderProps) {
         listenerCleanupRef.current = null;
       }
     };
-  }, []);
+  }, [shouldUseWaku]);
 
   useSerializedEffect(
     'waku-channel-manager',
     async (isMounted) => {
+      if (!shouldUseWaku) {
+        return;
+      }
+
       const node = nodeState.node;
 
       if (!node) {
@@ -160,7 +174,7 @@ export function WakuProvider({ children }: WakuProviderProps) {
         }
       }
     },
-    [nodeState.node],
+    [nodeState.node, shouldUseWaku],
   );
 
   const contextValue: WakuContextState = {

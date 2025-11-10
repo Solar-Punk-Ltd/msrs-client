@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+import { getTheme } from '@/utils/shared/config';
 import { THEME_NAMES, THEME_STORAGE_KEY, ThemeName } from '@/utils/theme/themeConfig';
 
 interface ThemeContextType {
@@ -15,7 +16,7 @@ function getInitialTheme(): ThemeName {
     return stored as ThemeName;
   }
 
-  const envTheme = import.meta.env.VITE_THEME;
+  const envTheme = getTheme();
   if (envTheme === THEME_NAMES.SOLARPUNK || envTheme === THEME_NAMES.CRYPTOMONDAYS) {
     return envTheme as ThemeName;
   }

@@ -1,6 +1,7 @@
 import { MessageReceiveMode } from '@/types/messaging';
 
 type RuntimeConfig = {
+  VITE_THEME: string;
   VITE_READER_BEE_URL: string;
   VITE_WRITER_BEE_URL: string;
   VITE_STAMP: string;
@@ -41,6 +42,14 @@ function getMessageReceiveModeEnv(name: string, defaultValue: MessageReceiveMode
     return defaultValue;
   } catch {
     return defaultValue;
+  }
+}
+
+export function getTheme(): string {
+  try {
+    return getEnv('VITE_THEME');
+  } catch {
+    return 'cryptomondays';
   }
 }
 
