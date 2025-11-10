@@ -8,6 +8,7 @@ import { ThreadView } from '@/components/Chat/ThreadView/ThreadView';
 import { useSwarmChat, VisibleMessage } from '@/hooks/useSwarmChat';
 import { useUserContext } from '@/providers/User';
 import { useWakuContext } from '@/providers/Waku';
+import { MessageReceiveMode } from '@/types/messaging';
 import { config } from '@/utils/shared/config';
 
 import './Chat.scss';
@@ -54,7 +55,10 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic, isExternal = false }) 
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isSendingThreadMessage, setIsSendingThreadMessage] = useState(false);
 
-  const wakuNodeLoading = !node || !channelManager;
+  const messageReceiveMode = config.messageReceiveMode;
+  const isWakuRequired =
+    messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
+  const wakuNodeLoading = isWakuRequired && (!node || !channelManager);
 
   const {
     chatLoading,
