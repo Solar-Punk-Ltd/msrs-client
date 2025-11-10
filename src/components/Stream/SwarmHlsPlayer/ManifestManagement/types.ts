@@ -14,6 +14,7 @@ export interface TopicState {
   wakuUnsubscribe?: () => Promise<void>;
   pollingInterval?: NodeJS.Timeout;
   isPollingSetup?: boolean;
+  isPollingRunning?: boolean;
 }
 
 export interface WakuMetadata {

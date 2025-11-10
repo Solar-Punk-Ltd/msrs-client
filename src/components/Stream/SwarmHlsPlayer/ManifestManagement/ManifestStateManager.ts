@@ -302,45 +302,85 @@ export class ManifestStateManager {
 
     state.isPollingSetup = true;
 
+    const LOOKAHEAD_COUNT = 2;
+
     const pollManifest = async () => {
       const currentState = this.topics.get(hexTopic);
       if (!currentState || !currentState.isPollingSetup) return;
 
-      const currentIndex = currentState.index ?? FeedIndex.fromBigInt(BigInt(1));
-      const id = makeFeedIdentifier(topic, currentIndex);
+      if (currentState.isPollingRunning) {
+        console.log('⏭️ Skipping poll - already running');
+        return;
+      }
+
+      currentState.isPollingRunning = true;
 
       try {
-        const response = await this.fetcher.fetchSOC(owner, id.toString());
+        const currentIndex = currentState.index ?? FeedIndex.fromBigInt(BigInt(1));
 
-        if (response.ok) {
-          const newManifest = await response.text();
-
-          if (ManifestParser.isVOD(newManifest)) {
-            console.log('🎬 Stream completed - VOD reached (ENDLIST detected)');
-            this.updateManifest(hexTopic, newManifest);
-            delete currentState.isPollingSetup;
-            return;
-          }
-
-          const hasChanged = this.updateManifest(hexTopic, newManifest);
-
-          if (hasChanged) {
-            console.log(`📨 Polling fetched manifest at index ${currentIndex}`);
-
-            if (!currentState.wakuUnsubscribe) {
-              currentState.lastSequence++;
-            }
-          }
-
-          currentState.index = currentIndex.next();
+        const indicesToTry = [currentIndex];
+        let nextIndex = currentIndex;
+        for (let i = 1; i < LOOKAHEAD_COUNT; i++) {
+          nextIndex = nextIndex.next();
+          indicesToTry.push(nextIndex);
         }
-      } catch (error) {
-        // Index not found yet, will retry
+
+        const fetchPromises = indicesToTry.map(async (index) => {
+          const id = makeFeedIdentifier(topic, index);
+          try {
+            const response = await this.fetcher.fetchSOC(owner, id.toString());
+            if (response.ok) {
+              const manifest = await response.text();
+              return { index, manifest, success: true };
+            }
+            return { index, manifest: '', success: false };
+          } catch {
+            return { index, manifest: '', success: false };
+          }
+        });
+
+        const results = await Promise.all(fetchPromises);
+
+        let foundAny = false;
+        for (const result of results) {
+          if (result.success) {
+            foundAny = true;
+
+            if (ManifestParser.isVOD(result.manifest)) {
+              console.log('🎬 Stream completed - VOD reached (ENDLIST detected)');
+              this.updateManifest(hexTopic, result.manifest);
+              delete currentState.isPollingSetup;
+              delete currentState.isPollingRunning;
+              return;
+            }
+
+            const hasChanged = this.updateManifest(hexTopic, result.manifest);
+
+            if (hasChanged) {
+              console.log(`📨 Polling fetched manifest at index ${result.index}`);
+
+              if (!currentState.wakuUnsubscribe) {
+                currentState.lastSequence++;
+              }
+            }
+
+            currentState.index = result.index.next();
+          } else {
+            // Stop processing on first failure (means we've caught up)
+            break;
+          }
+        }
+
+        if (!foundAny) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      } finally {
+        currentState.isPollingRunning = false;
       }
 
       const state = this.topics.get(hexTopic);
       if (state && state.isPollingSetup && !ManifestParser.isVOD(state.manifest)) {
-        state.pollingInterval = setTimeout(pollManifest, 1000);
+        setTimeout(() => pollManifest(), 0);
       }
     };
 
@@ -371,6 +411,7 @@ export class ManifestStateManager {
     }
 
     delete state.isPollingSetup;
+    delete state.isPollingRunning;
 
     this.topics.delete(topicId);
   }
