@@ -13,7 +13,7 @@ export function StreamBrowser() {
   const { data } = useQuery({
     queryKey: ['app-state'],
     queryFn: () => fetchAppState(),
-    refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 2500,
+    refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 250,
     retry: true,
     enabled: !isLoading,
     staleTime: 0,
