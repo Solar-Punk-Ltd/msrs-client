@@ -127,10 +127,10 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
 
         // Segment Loading
         maxFragLookUpTolerance: 0.25,
-        fragLoadingTimeOut: 20000,
-        fragLoadingMaxRetry: 6,
-        fragLoadingRetryDelay: 1000,
-        fragLoadingMaxRetryTimeout: 64000,
+        fragLoadingTimeOut: 15000,
+        fragLoadingMaxRetry: 2,
+        fragLoadingRetryDelay: 500,
+        fragLoadingMaxRetryTimeout: 15000,
 
         // Manifest Loading
         manifestLoadingTimeOut: 10000,
@@ -188,6 +188,14 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
 
       hls.on(Events.ERROR, (_event, data) => {
         console.error('HLS.js error:', data);
+
+        if (
+          !data.fatal &&
+          (data.details === ErrorDetails.FRAG_LOAD_TIMEOUT || data.details === ErrorDetails.FRAG_LOAD_ERROR)
+        ) {
+          console.warn('Fragment load issue - HLS.js will skip to next segment');
+          return;
+        }
 
         if (data.fatal) {
           if (data.details === ErrorDetails.LEVEL_PARSING_ERROR) {

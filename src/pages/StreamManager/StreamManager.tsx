@@ -29,7 +29,19 @@ export function StreamManager() {
 
   const { data } = useQuery({
     queryKey: ['app-state'],
-    queryFn: () => fetchAppState(),
+    queryFn: async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+      try {
+        const result = await fetchAppState();
+        clearTimeout(timeoutId);
+        return result;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    },
     refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 250,
     retry: true,
     enabled: !isLoading,
