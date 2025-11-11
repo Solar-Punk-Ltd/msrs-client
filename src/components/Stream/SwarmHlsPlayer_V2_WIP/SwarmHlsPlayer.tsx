@@ -1,9 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Topic } from '@ethersphere/bee-js';
 import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
+import { useSerializedEffect } from '@/hooks/useSerializedEffect';
+import { useWakuContext } from '@/providers/Waku';
+import { MessageReceiveMode } from '@/types/messaging';
 import { MediaType } from '@/types/stream';
+import { config } from '@/utils/shared/config';
 
+import { ManifestStateManager } from './ManifestManagement/ManifestStateManager';
 import { CustomManifestLoader } from './CustomManifestLoader';
 
 import './SwarmHlsPlayer.scss';
@@ -22,24 +28,90 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   controls = true,
   ...videoProps
 }) => {
+  const { channelManager } = useWakuContext();
   const [restartTrigger, setRestartTrigger] = useState(0);
-  const [hasFatalError, setHasFatalError] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [hasFatalError, setHasFatalError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 3;
 
+  useSerializedEffect(
+    `swarm-hls-player-${owner}-${topic}`,
+    async (isMounted) => {
+      const topicObj = Topic.fromString(topic);
+      const hexTopic = topicObj.toString();
+      const stateManager = ManifestStateManager.getInstance();
+      const messageReceiveMode = config.messageReceiveMode;
+
+      const shouldUseWaku =
+        messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
+
+      if (shouldUseWaku && !channelManager) {
+        console.log('⏸️ Waiting for channel manager to become available...');
+
+        await stateManager.clear(hexTopic);
+
+        if (isMounted()) {
+          setIsReady(false);
+        }
+        return;
+      }
+
+      try {
+        await stateManager.setChannelManager(shouldUseWaku ? channelManager : null);
+
+        if (!isMounted()) {
+          console.log('⏭️ Component unmounted during channel manager setup');
+          return;
+        }
+
+        await stateManager.setupStreamSubscription(owner, topicObj);
+
+        if (!isMounted()) {
+          console.log('⏭️ Component unmounted during subscription setup, cleaning up');
+          await stateManager.clear(hexTopic);
+          return;
+        }
+
+        console.log(`Stream subscription ready (mode: ${messageReceiveMode})`);
+        setIsReady(true);
+      } catch (error) {
+        if (!isMounted()) {
+          console.log('⏭️ Component unmounted, ignoring subscription error');
+          return;
+        }
+
+        console.error('Failed to setup subscription:', error);
+        setIsReady(false);
+      }
+    },
+    async () => {
+      const topicObj = Topic.fromString(topic);
+      const hexTopic = topicObj.toString();
+      const stateManager = ManifestStateManager.getInstance();
+
+      try {
+        await stateManager.clear(hexTopic);
+        console.log('✅ Stream subscription cleanup complete');
+      } catch (err) {
+        console.error('❌ Error during stream subscription cleanup:', err);
+      }
+    },
+    [owner, topic, channelManager],
+  );
+
   useEffect(() => {
     retryCountRef.current = 0;
     setHasFatalError(false);
-    setIsReady(false);
   }, [owner, topic]);
 
   useEffect(() => {
+    if (!isReady) return;
+
     const video = videoRef.current;
     if (!video) return;
 
-    setIsReady(false);
     let hls: Hls | null = null;
 
     if (Hls.isSupported()) {
@@ -117,7 +189,6 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       hls.on(Events.MANIFEST_PARSED, () => {
         retryCountRef.current = 0;
         setHasFatalError(false);
-        setIsReady(true);
 
         if (autoPlay) {
           video.play().catch((err) => {
@@ -135,7 +206,16 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
         hls = null;
       }
     };
-  }, [autoPlay, restartTrigger, owner, topic]);
+  }, [isReady, autoPlay, restartTrigger, owner, topic]);
+
+  if (!isReady) {
+    return (
+      <div className="swarm-hls-player-loading">
+        <InputLoading />
+        <h2>Initializing stream...</h2>
+      </div>
+    );
+  }
 
   if (hasFatalError) {
     return (
@@ -146,34 +226,17 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
     );
   }
 
-  return (
-    <>
-      {!isReady && (
-        <div className="swarm-hls-player-loading">
-          <InputLoading />
-          <h2>Loading stream...</h2>
-        </div>
-      )}
-      {mediaType === MediaType.VIDEO ? (
-        <video
-          className="swarm-hls-player-video"
-          ref={videoRef}
-          controls={controls}
-          autoPlay={autoPlay}
-          muted
-          playsInline
-          style={{ display: isReady ? 'block' : 'none' }}
-          {...videoProps}
-        />
-      ) : (
-        <audio
-          className="swarm-hls-player-audio"
-          ref={videoRef}
-          controls={controls}
-          autoPlay={autoPlay}
-          style={{ display: isReady ? 'block' : 'none' }}
-        />
-      )}
-    </>
+  return mediaType === MediaType.VIDEO ? (
+    <video
+      className="swarm-hls-player-video"
+      ref={videoRef}
+      controls={controls}
+      autoPlay={autoPlay}
+      muted
+      playsInline
+      {...videoProps}
+    />
+  ) : (
+    <audio className="swarm-hls-player-audio" ref={videoRef} controls={controls} autoPlay={autoPlay} />
   );
 };

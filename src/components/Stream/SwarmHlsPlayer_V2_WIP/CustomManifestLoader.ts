@@ -1,7 +1,7 @@
 import type { HlsConfig, Loader, LoaderCallbacks, LoaderConfiguration, PlaylistLoaderContext } from 'hls.js';
 import Hls from 'hls.js';
 
-import { ManifestFetcher } from './ManifestManagement';
+import { ManifestFetcher } from './ManifestManagement/ManifestFetcher';
 
 const manifestFetcher = new ManifestFetcher();
 
@@ -32,5 +32,10 @@ export class CustomManifestLoader extends PlaylistLoader {
     } else {
       super.load(context, config, callbacks);
     }
+  }
+
+  destroy(): void {
+    manifestFetcher.cleanup();
+    super.destroy?.();
   }
 }
