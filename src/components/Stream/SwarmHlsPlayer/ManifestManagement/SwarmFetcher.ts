@@ -21,7 +21,7 @@ export class SwarmFetcher {
     const url = `${this.baseUrl}/${path}`;
 
     const controller = new AbortController();
-    const timeoutId = withTimeout ? setTimeout(() => controller.abort(), 8000) : undefined;
+    const timeoutId = withTimeout ? setTimeout(() => controller.abort(), 5000) : undefined;
 
     try {
       const response = await fetch(url, {

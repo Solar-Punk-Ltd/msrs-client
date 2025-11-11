@@ -85,6 +85,9 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic, isExternal = false }) 
       chatAddress: config.streamStateOwner,
       chatTopic: `chat-${topic}`,
       enveloped: false,
+      feedReadTimeout: 10000,
+      gsocWriteTimeout: 2000,
+      socReadTimeout: 3500,
     },
   });
 
