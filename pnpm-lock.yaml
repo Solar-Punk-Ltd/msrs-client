@@ -12,8 +12,8 @@ importers:
         specifier: ^9.0.3
         version: 9.8.1
       '@solarpunkltd/swarm-chat-js':
-        specifier: ^6.2.5
-        version: 6.2.5
+        specifier: ^6.2.6
+        version: 6.2.6
       '@solarpunkltd/waku-sdk':
         specifier: ^0.0.41
         version: 0.0.41(@multiformats/multiaddr@12.5.1)
@@ -871,8 +871,8 @@ packages:
     resolution: {integrity: sha512-KV321z5m/0nuAg83W1dPLy85HpHDk7Sdi4fJbwvacWsEhAh+rZUW4ZfGcXmUIvjZg4ss2bcwNlRhJ7GBEUG08w==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  '@solarpunkltd/swarm-chat-js@6.2.5':
-    resolution: {integrity: sha512-KoJeAxnkh9c1lw9nyvTwRx5i1OSGDxciaOmEt54w/veC0CYxo+ZmxhcWCU0UPDCzpi6HN9BiZpw2WXO+Fff+mg==}
+  '@solarpunkltd/swarm-chat-js@6.2.6':
+    resolution: {integrity: sha512-NPKy7JMl+P2qhWI4qGUGlx70v5J9+qGQ99q1fEqNI5d26QYHtSjZ/9LHi4Hcc0HjJ9yVF+dh4Md1w7XtEJv5GQ==}
 
   '@solarpunkltd/waku-core@0.0.40':
     resolution: {integrity: sha512-lU0RS8XJcPytNKu7+pqD1zmNtCP6GsdIolES9XBzNuWtswcGp+9altIZlD9MkEwOu+0iFp+jpTP+554dFWNHLA==}
@@ -4480,7 +4480,7 @@ snapshots:
 
   '@sindresorhus/fnv1a@3.1.0': {}
 
-  '@solarpunkltd/swarm-chat-js@6.2.5':
+  '@solarpunkltd/swarm-chat-js@6.2.6':
     dependencies:
       '@ethersphere/bee-js': 9.8.1
       cafe-utility: 27.18.0
