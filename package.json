@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@ethersphere/bee-js": "^9.0.3",
-    "@solarpunkltd/swarm-chat-js": "^6.2.4",
+    "@solarpunkltd/swarm-chat-js": "^6.2.5",
     "@solarpunkltd/waku-sdk": "^0.0.41",
     "@tanstack/react-query": "^5.89.0",
     "@waku/utils": "^0.0.27",
