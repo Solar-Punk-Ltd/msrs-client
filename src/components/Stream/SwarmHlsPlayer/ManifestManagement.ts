@@ -196,15 +196,31 @@ export class ManifestFetcher {
   }
 
   private async fetchResource(path: string): Promise<Response> {
-    const response = await fetch(`${this.baseUrl}/${path}`, {
-      headers: {
-        'swarm-chunk-retrieval-timeout': '2000ms',
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${path}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    try {
+      const response = await fetch(`${this.baseUrl}/${path}`, {
+        headers: {
+          'swarm-chunk-retrieval-timeout': '2000ms',
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${path}`);
+      }
+
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timeout: ${path}`);
+      }
+      throw error;
     }
-    return response;
   }
 
   private extractIndex(response: Response): FeedIndex {

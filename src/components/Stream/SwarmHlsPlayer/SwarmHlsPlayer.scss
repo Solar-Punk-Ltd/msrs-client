@@ -1,5 +1,20 @@
+@use '@/styles/mixins' as mixins;
+
 .swarm-hls-player-audio {
   width: 100%;
+
+  // Hide the timeline/seek bar for live streams - is this required for audio?
+  &.swarm-hls-player-live::-webkit-media-controls-timeline {
+    display: none;
+  }
+
+  &.swarm-hls-player-live::-webkit-media-controls-current-time-display {
+    display: none;
+  }
+
+  &.swarm-hls-player-live::-webkit-media-controls-time-remaining-display {
+    display: none;
+  }
 }
 
 .swarm-hls-player-video {
@@ -7,6 +22,61 @@
   height: auto;
   aspect-ratio: 16 / 9;
   background-color: #000;
-  border-radius: 12px;
   object-fit: contain;
+
+  // Hide the timeline/seek bar for live streams
+  &.swarm-hls-player-live::-webkit-media-controls-timeline {
+    display: none;
+  }
+
+  &.swarm-hls-player-live::-webkit-media-controls-current-time-display {
+    display: none;
+  }
+
+  &.swarm-hls-player-live::-webkit-media-controls-time-remaining-display {
+    display: none;
+  }
+}
+
+.swarm-hls-player-loading {
+  @include mixins.flex-column;
+  @include mixins.flex-center;
+  gap: var(--spacing-lg);
+  padding: 2rem;
+  text-align: center;
+  background: var(--player-loading-background, var(--color-background-glass));
+  border-radius: var(--border-radius-md);
+  border: var(--player-loading-border, var(--accent-border, none));
+  box-shadow: var(--player-loading-glow, var(--accent-glow, var(--shadow-2xl)));
+  width: 100%;
+
+  h2 {
+    color: var(--color-text-inverse);
+    margin: 0 0 0.5rem 0;
+    font-size: var(--font-size-lg);
+  }
+}
+
+.swarm-hls-player-error {
+  @include mixins.flex-column;
+  @include mixins.flex-center;
+  padding: 2rem;
+  text-align: center;
+  background: var(--player-error-background, var(--color-background-glass));
+  border-radius: var(--border-radius-md);
+  border: var(--player-error-border, var(--accent-border, none));
+  box-shadow: var(--player-error-glow, var(--accent-glow, var(--shadow-2xl)));
+  margin: 1rem 0;
+  width: 100%;
+
+  h2 {
+    color: var(--color-text-inverse);
+    margin: 0 0 0.5rem 0;
+    font-size: var(--font-size-xl);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
 }
