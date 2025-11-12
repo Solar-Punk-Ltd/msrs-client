@@ -20,7 +20,7 @@ interface AppContextState {
   error: Error | null;
   messageReceiveMode: MessageReceiveMode;
   setNewStreamList: (data: StateArrayWithTimestamp) => void;
-  fetchAppState: () => Promise<StateArrayWithTimestamp | null>;
+  fetchAppState: (signal?: AbortSignal) => Promise<StateArrayWithTimestamp | null>;
   refreshStreamList: () => Promise<void>;
 }
 
@@ -60,7 +60,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
   const shouldUseWaku =
     messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
 
-  const fetchAppState = useCallback(async (): Promise<StateArrayWithTimestamp | null> => {
+  const fetchAppState = useCallback(async (signal?: AbortSignal): Promise<StateArrayWithTimestamp | null> => {
     try {
       setError(null);
       const topic = Topic.fromString(config.streamStateTopic);
@@ -69,6 +69,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         headers: {
           'swarm-chunk-retrieval-timeout': '2000ms',
         },
+        signal,
       });
 
       if (!response.ok) {
@@ -140,7 +141,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         const adminConfigs = await fetchRegistrationFeed();
         if (adminConfigs.length > 0) {
           persistAdminConfigs(adminConfigs);
-          console.log(`✅ Fetched and persisted ${adminConfigs.length} admin config(s)`);
         }
 
         const data = await fetchAppState();

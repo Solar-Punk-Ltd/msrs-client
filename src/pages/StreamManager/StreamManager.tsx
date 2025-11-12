@@ -31,10 +31,10 @@ export function StreamManager() {
     queryKey: ['app-state'],
     queryFn: async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       try {
-        const result = await fetchAppState();
+        const result = await fetchAppState(controller.signal);
         clearTimeout(timeoutId);
         return result;
       } catch (error) {
