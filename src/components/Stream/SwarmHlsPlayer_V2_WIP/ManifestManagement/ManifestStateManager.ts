@@ -349,7 +349,6 @@ export class ManifestStateManager {
           const hasChanged = this.updateManifest(hexTopic, manifest);
 
           if (hasChanged) {
-            console.log(`📨 Polling fetched manifest at index ${currentIndex}`);
             currentState.index = currentIndex.next();
             currentState.missCount = 0;
 

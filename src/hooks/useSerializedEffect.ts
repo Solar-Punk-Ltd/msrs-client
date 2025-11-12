@@ -102,19 +102,15 @@ export const useSerializedEffect = (
     return () => {
       componentMountedRef.current = false;
 
-      console.log(`🗑️  [${queueName}] Component unmounting - cancelling pending operations`);
-
       const currentExecOp = currentExecutingOpRef.current;
       const currentPairId = currentExecOp ? queuedOperationsRef.current.get(currentExecOp)?.pairId : null;
 
-      queuedOperationsRef.current.forEach((op, id) => {
+      queuedOperationsRef.current.forEach((op) => {
         if (currentPairId !== null && op.pairId === currentPairId) {
-          console.log(`  ✅ [${queueName}] Keeping Op ${id} (current pair: ${currentPairId})`);
           return;
         }
 
         op.cancelled = true;
-        console.log(`  ❌ [${queueName}] Cancelled Op ${id} (pair: ${op.pairId}, type: ${op.type})`);
       });
     };
   }, [queueName]);
@@ -128,9 +124,6 @@ export const useSerializedEffect = (
 
     const isMounted = () => isMountedRef.current;
 
-    console.log(`📋 [${queueName}:Op ${myOpId}] Queued for execution (pair: ${pairId})`);
-    console.log(`   [${queueName}] Queue size: ${queue.size}, Pending: ${queue.pending}`);
-
     const setupOp: QueuedOperation = {
       id: myOpId,
       pairId,
@@ -142,34 +135,28 @@ export const useSerializedEffect = (
     pendingOpsRef.current++;
     if (setLoading && pendingOpsRef.current === 1) {
       setLoading(true);
-      console.log(`⏳ [${queueName}:Op ${myOpId}] Loading started (pending: ${pendingOpsRef.current})`);
     }
 
     queue
       .add(async () => {
         if (setupOp.cancelled) {
-          console.log(`⏭️  [${queueName}:Op ${myOpId}] Setup skipped (cancelled)`);
           return;
         }
 
         if (!componentMountedRef.current) {
-          console.log(`⏭️  [${queueName}:Op ${myOpId}] Setup skipped (component unmounted)`);
           return;
         }
 
         if (!isMountedRef.current) {
-          console.log(`⏭️  [${queueName}:Op ${myOpId}] Setup skipped (effect unmounted)`);
           return;
         }
 
         currentExecutingOpRef.current = myOpId;
 
-        console.log(`🚀 [${queueName}:Op ${myOpId}] Setup starting...`);
         try {
           await setup(isMounted);
-          console.log(`✅ [${queueName}:Op ${myOpId}] Setup completed`);
         } catch (error) {
-          console.error(`❌ [${queueName}:Op ${myOpId}] Setup failed:`, error);
+          console.error(`[${queueName}] Setup failed:`, error);
           throw error;
         } finally {
           if (currentExecutingOpRef.current === myOpId) {
@@ -178,16 +165,14 @@ export const useSerializedEffect = (
         }
       })
       .catch((error) => {
-        console.error(`❌ [${queueName}:Op ${myOpId}] Queue error:`, error);
+        console.error(`[${queueName}] Queue error:`, error);
       })
       .finally(() => {
         pendingOpsRef.current--;
         queuedOperationsRef.current.delete(myOpId);
-        console.log(`   [${queueName}:Op ${myOpId}] Setup finished (pending: ${pendingOpsRef.current})`);
 
         if (setLoading && pendingOpsRef.current === 0) {
           setLoading(false);
-          console.log(`✅ [${queueName}:Op ${myOpId}] Loading finished (all operations complete)`);
         }
       });
 
@@ -203,36 +188,27 @@ export const useSerializedEffect = (
       };
       queuedOperationsRef.current.set(cleanupOpId, cleanupOp);
 
-      console.log(`🧹 [${queueName}:Op ${cleanupOpId}] Cleanup queued (pair: ${pairId})`);
-
       pendingOpsRef.current++;
       if (setLoading && pendingOpsRef.current === 1) {
         setLoading(true);
-        console.log(
-          `⏳ [${queueName}:Op ${cleanupOpId}] Loading started for cleanup (pending: ${pendingOpsRef.current})`,
-        );
       }
 
       queue
         .add(async () => {
           if (cleanupOp.cancelled) {
-            console.log(`⏭️  [${queueName}:Op ${cleanupOpId}] Cleanup skipped (cancelled)`);
             return;
           }
 
           if (!cleanup) {
-            console.log(`⏭️  [${queueName}:Op ${cleanupOpId}] No cleanup function`);
             return;
           }
 
           currentExecutingOpRef.current = cleanupOpId;
 
-          console.log(`🛑 [${queueName}:Op ${cleanupOpId}] Cleanup starting...`);
           try {
             await cleanup();
-            console.log(`✅ [${queueName}:Op ${cleanupOpId}] Cleanup completed`);
           } catch (error) {
-            console.error(`❌ [${queueName}:Op ${cleanupOpId}] Cleanup failed:`, error);
+            console.error(`[${queueName}] Cleanup failed:`, error);
           } finally {
             if (currentExecutingOpRef.current === cleanupOpId) {
               currentExecutingOpRef.current = null;
@@ -240,16 +216,14 @@ export const useSerializedEffect = (
           }
         })
         .catch((error) => {
-          console.error(`❌ [${queueName}:Op ${cleanupOpId}] Cleanup queue error:`, error);
+          console.error(`[${queueName}] Cleanup queue error:`, error);
         })
         .finally(() => {
           pendingOpsRef.current--;
           queuedOperationsRef.current.delete(cleanupOpId);
-          console.log(`   [${queueName}:Op ${cleanupOpId}] Cleanup finished (pending: ${pendingOpsRef.current})`);
 
           if (setLoading && pendingOpsRef.current === 0) {
             setLoading(false);
-            console.log(`✅ [${queueName}:Op ${cleanupOpId}] Loading finished (all operations complete)`);
           }
         });
     };

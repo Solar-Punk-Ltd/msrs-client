@@ -150,7 +150,6 @@ export class ManifestFetcher {
           const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
 
           if (hasChanged) {
-            console.log(`📦 Prefetched manifest at index ${nextIndex}`);
             this.stateManager.setIndex(hexTopic, nextIndex);
           }
         } catch (error) {
