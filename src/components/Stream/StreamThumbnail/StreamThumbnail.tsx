@@ -16,6 +16,8 @@ const THUMBNAIL_CONFIG = {
   MAX_RETRY_COUNT: 2,
   RETRY_TIMEOUT_MS: 3500,
   LOAD_QUEUE_CONCURRENCY: 2,
+  CAPTURE_TIME_SECONDS: 1,
+  VIDEO_LOAD_TIMEOUT_MS: 6000,
 } as const;
 
 interface StreamThumbnailProps {
@@ -38,68 +40,343 @@ interface ThumbnailState {
 
 const loadQueue = new PQueue({ concurrency: THUMBNAIL_CONFIG.LOAD_QUEUE_CONCURRENCY });
 
-const useHlsThumbnailCapture = (videoRef: React.RefObject<HTMLVideoElement>, manifestUrl: string) => {
-  const hlsRef = useRef<Hls | null>(null);
-  const retryCountRef = useRef(0);
+const activeHlsInstances = new Map<string, Hls>();
 
-  const captureFromHls = useCallback(async (): Promise<boolean> => {
-    if (!videoRef.current) return false;
+const captureVideoFrame = async (video: HTMLVideoElement): Promise<string | null> => {
+  try {
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      return null;
+    }
 
-    const result = await loadQueue.add(async () => {
-      return new Promise<boolean>((resolve) => {
-        const hls = new Hls();
-        hlsRef.current = hls;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-        const cleanup = () => {
-          hls.off(Events.FRAG_CHANGED, onFragChanged);
-          hls.off(Events.ERROR, onError);
-        };
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
 
-        const onFragChanged = () => {
-          cleanup();
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          if (videoRef.current) {
-            videoRef.current.currentTime = 1;
-            videoRef.current.pause();
-            hls.stopLoad();
-          }
-
-          resolve(true);
-        };
-
-        const onError = (_event: any, data: any) => {
-          console.error('HLS loading error:', data);
-          cleanup();
-
-          if (retryCountRef.current < THUMBNAIL_CONFIG.MAX_RETRY_COUNT) {
-            retryCountRef.current++;
-            setTimeout(() => captureFromHls(), THUMBNAIL_CONFIG.RETRY_TIMEOUT_MS);
-            resolve(false);
+    return new Promise<string | null>((resolve) => {
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(URL.createObjectURL(blob));
           } else {
-            hls.stopLoad();
-            resolve(false);
+            resolve(null);
           }
-        };
-
-        hls.on(Events.FRAG_CHANGED, onFragChanged);
-        hls.on(Events.ERROR, onError);
-
-        hls.attachMedia(videoRef.current!);
-        hls.loadSource(manifestUrl);
-      });
+        },
+        'image/jpeg',
+        0.9,
+      );
     });
-
-    return result ?? false;
-  }, [manifestUrl, videoRef]);
-
-  const cleanup = useCallback(() => {
-    hlsRef.current?.destroy();
-    hlsRef.current = null;
-  }, []);
-
-  return { captureFromHls, cleanup };
+  } catch (error) {
+    console.error('Error capturing video frame:', error);
+    return null;
+  }
 };
 
+export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
+  manifestUrl,
+  thumbnailRef,
+  owner,
+  topic,
+  state,
+  duration,
+  mediaType,
+  title,
+  pinned,
+}) => {
+  const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const captureAttemptedRef = useRef(false);
+  const cleanupTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const [thumbnailState, setThumbnailState] = useState<ThumbnailState>({
+    isLoading: true,
+    thumbnailUrl: null,
+    hasData: false,
+  });
+
+  const handleClick = useCallback(() => {
+    navigate(`/watch/${mediaType}/${owner}/${topic}`);
+  }, [navigate, mediaType, owner, topic]);
+
+  const captureFromHls = useCallback(async (): Promise<string | null> => {
+    if (!videoRef.current || captureAttemptedRef.current) return null;
+
+    const video = videoRef.current;
+
+    const existingHls = activeHlsInstances.get(manifestUrl);
+    if (existingHls && !existingHls.media) {
+      existingHls.destroy();
+      activeHlsInstances.delete(manifestUrl);
+    }
+
+    return new Promise<string | null>((resolve) => {
+      let hls: Hls | null = null;
+      let isResolved = false;
+
+      const timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          console.error('HLS capture timeout');
+          cleanup();
+          resolve(null);
+        }
+      }, THUMBNAIL_CONFIG.VIDEO_LOAD_TIMEOUT_MS);
+
+      const cleanup = () => {
+        if (isResolved) return;
+        isResolved = true;
+
+        clearTimeout(timeoutId);
+
+        if (hls) {
+          hls.stopLoad();
+          cleanupTimeoutRef.current = setTimeout(() => {
+            if (hls && activeHlsInstances.get(manifestUrl) === hls) {
+              hls.destroy();
+              activeHlsInstances.delete(manifestUrl);
+            }
+          }, 100);
+        }
+      };
+
+      const captureFrame = async () => {
+        if (isResolved) return;
+
+        try {
+          await video.play();
+          await new Promise((r) => setTimeout(r, 250)); // Let video render
+          video.pause();
+
+          const url = await captureVideoFrame(video);
+          cleanup();
+          resolve(url);
+          captureAttemptedRef.current = true;
+        } catch (error) {
+          console.error('Error during frame capture:', error);
+          cleanup();
+          resolve(null);
+        }
+      };
+
+      hls = new Hls({
+        enableWorker: true,
+        maxBufferLength: 3,
+        maxMaxBufferLength: 5,
+        startLevel: -1, // Auto quality
+      });
+
+      activeHlsInstances.set(manifestUrl, hls);
+
+      let hasLoadedData = false;
+
+      const onManifestParsed = () => {
+        // Wait for actual video data
+      };
+
+      const onFragBuffered = () => {
+        if (!hasLoadedData && !isResolved) {
+          hasLoadedData = true;
+          // Give video time to decode
+          setTimeout(() => {
+            if (!isResolved && video.readyState >= 2) {
+              captureFrame();
+            }
+          }, 500);
+        }
+      };
+
+      const onError = (_event: Events.ERROR, data: any) => {
+        console.error('HLS error:', data);
+        if (data.fatal) {
+          cleanup();
+          resolve(null);
+        }
+      };
+
+      // Video events
+      video.onloadeddata = () => {
+        if (!isResolved && hasLoadedData) {
+          captureFrame();
+        }
+      };
+
+      video.onerror = () => {
+        cleanup();
+        resolve(null);
+      };
+
+      hls.on(Events.MANIFEST_PARSED, onManifestParsed);
+      hls.on(Events.FRAG_BUFFERED, onFragBuffered);
+      hls.on(Events.ERROR, onError);
+
+      hls.attachMedia(video);
+      hls.loadSource(manifestUrl);
+      hls.startLoad();
+    });
+  }, [manifestUrl]);
+
+  useEffect(() => {
+    let isSubscribed = true;
+    captureAttemptedRef.current = false;
+
+    const loadThumbnail = async () => {
+      if (!isSubscribed) return;
+
+      setThumbnailState({ isLoading: true, thumbnailUrl: null, hasData: false });
+
+      // For scheduled and audio streams, only try fetched thumbnail
+      if (state === StateType.SCHEDULED || mediaType === MediaType.AUDIO) {
+        if (thumbnailRef) {
+          try {
+            const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
+            if (isSubscribed && url) {
+              setThumbnailState({
+                isLoading: false,
+                thumbnailUrl: url,
+                hasData: true,
+              });
+              return;
+            }
+          } catch (error) {
+            console.error('Error fetching thumbnail:', error);
+          }
+        }
+
+        if (isSubscribed) {
+          setThumbnailState({
+            isLoading: false,
+            thumbnailUrl: null,
+            hasData: false,
+          });
+        }
+        return;
+      }
+
+      // For video streams: try fetched thumbnail first
+      if (thumbnailRef) {
+        try {
+          const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
+          if (isSubscribed && url) {
+            setThumbnailState({
+              isLoading: false,
+              thumbnailUrl: url,
+              hasData: true,
+            });
+            return;
+          }
+        } catch (error) {
+          console.error('Error fetching thumbnail:', error);
+        }
+      }
+
+      // Fallback to HLS capture for video
+      if (mediaType === MediaType.VIDEO && manifestUrl) {
+        // Use queue to prevent concurrent captures
+        const captureResult = await loadQueue.add<string | null>(async () => {
+          if (!isSubscribed) return null;
+          return captureFromHls();
+        });
+
+        const capturedUrl = captureResult ?? null;
+
+        if (isSubscribed) {
+          setThumbnailState({
+            isLoading: false,
+            thumbnailUrl: capturedUrl,
+            hasData: !!capturedUrl,
+          });
+        } else if (capturedUrl) {
+          URL.revokeObjectURL(capturedUrl);
+        }
+      } else {
+        if (isSubscribed) {
+          setThumbnailState({
+            isLoading: false,
+            thumbnailUrl: null,
+            hasData: false,
+          });
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      if (isSubscribed) {
+        loadThumbnail();
+      }
+    }, 50);
+
+    return () => {
+      isSubscribed = false;
+      clearTimeout(timeoutId);
+
+      if (cleanupTimeoutRef.current) {
+        clearTimeout(cleanupTimeoutRef.current);
+      }
+
+      // Clean up blob URL
+      if (thumbnailState.thumbnailUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(thumbnailState.thumbnailUrl);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manifestUrl, thumbnailRef, state, mediaType]);
+
+  const { isLoading, thumbnailUrl } = thumbnailState;
+  const shouldShowDefault = !isLoading && !thumbnailUrl;
+
+  return (
+    <div className={`stream-thumbnail ${pinned ? 'stream-thumbnail--pinned' : ''}`}>
+      <div className="stream-thumbnail-media" onClick={handleClick}>
+        {isLoading && <LoadingSpinner />}
+
+        {thumbnailUrl && !isLoading && <img src={thumbnailUrl} alt={title} className="stream-thumbnail-image" />}
+
+        {/* Hidden video for capture */}
+        <video
+          ref={videoRef}
+          muted
+          playsInline
+          preload="metadata"
+          style={{
+            position: 'fixed',
+            top: '-9999px',
+            left: '-9999px',
+            width: '320px',
+            height: '180px',
+            opacity: 0,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {shouldShowDefault && <img src={AudioStreamImage} alt="Stream thumbnail" className="stream-thumbnail-image" />}
+
+        {shouldShowDefault && mediaType === MediaType.AUDIO && <AudioIcon />}
+        {shouldShowDefault && mediaType === MediaType.VIDEO && <VideoIcon />}
+
+        {!isLoading && (
+          <>
+            <div className="stream-thumbnail-play-overlay">
+              <img src={PlayIcon} alt="Play" />
+            </div>
+            {state === StateType.LIVE && <LiveBadge />}
+            {duration && state !== StateType.LIVE && <DurationBadge duration={duration} />}
+          </>
+        )}
+      </div>
+
+      <div className="stream-thumbnail-metadata">
+        <h3 className="stream-thumbnail-title" title={title}>
+          {title}
+        </h3>
+      </div>
+    </div>
+  );
+};
+
+// Component definitions
 const LoadingSpinner: React.FC = () => (
   <div className="stream-thumbnail-loading">
     <div className="stream-thumbnail-spinner"></div>
@@ -145,132 +422,3 @@ const VideoIcon: React.FC = () => (
     </svg>
   </div>
 );
-
-export const StreamThumbnail: React.FC<StreamThumbnailProps> = ({
-  manifestUrl,
-  thumbnailRef,
-  owner,
-  topic,
-  state,
-  duration,
-  mediaType,
-  title,
-  pinned,
-}) => {
-  const navigate = useNavigate();
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const [thumbnailState, setThumbnailState] = useState<ThumbnailState>({
-    isLoading: true,
-    thumbnailUrl: null,
-    hasData: false,
-  });
-
-  const { captureFromHls, cleanup: _cleanupHls } = useHlsThumbnailCapture(videoRef, manifestUrl);
-
-  const handleClick = useCallback(() => {
-    navigate(`/watch/${mediaType}/${owner}/${topic}`);
-  }, [navigate, mediaType, owner, topic]);
-
-  const loadThumbnail = useCallback(async () => {
-    setThumbnailState((prev) => ({ ...prev, isLoading: true }));
-
-    // For scheduled and audio streams, only try to use fetched thumbnail
-    if (state === StateType.SCHEDULED || mediaType === MediaType.AUDIO) {
-      if (thumbnailRef) {
-        const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
-        setThumbnailState({
-          isLoading: false,
-          thumbnailUrl: url,
-          hasData: !!url,
-        });
-      } else {
-        setThumbnailState({
-          isLoading: false,
-          thumbnailUrl: null,
-          hasData: false,
-        });
-      }
-      return;
-    }
-
-    // For non-scheduled: try fetch first, then HLS capture
-    if (thumbnailRef) {
-      const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
-      if (url) {
-        setThumbnailState({
-          isLoading: false,
-          thumbnailUrl: url,
-          hasData: true,
-        });
-        return;
-      }
-    }
-
-    // Fallback to HLS capture
-    const success = await captureFromHls();
-    setThumbnailState({
-      isLoading: false,
-      thumbnailUrl: null,
-      hasData: success,
-    });
-  }, [state, thumbnailRef, captureFromHls]);
-
-  useEffect(() => {
-    loadThumbnail();
-
-    return () => {
-      if (thumbnailState.thumbnailUrl) {
-        URL.revokeObjectURL(thumbnailState.thumbnailUrl);
-      }
-    };
-  }, [loadThumbnail]);
-
-  const { isLoading, thumbnailUrl, hasData } = thumbnailState;
-  const shouldShowVideo = !thumbnailUrl && hasData;
-  const shouldShowDefault = !isLoading && !hasData;
-
-  return (
-    <div className={`stream-thumbnail ${pinned ? 'stream-thumbnail--pinned' : ''}`}>
-      <div className="stream-thumbnail-media" onClick={handleClick}>
-        {isLoading && <LoadingSpinner />}
-
-        {thumbnailUrl && !isLoading && <img src={thumbnailUrl} alt={title} className="stream-thumbnail-image" />}
-
-        {/* Always render video element for HLS capture, but only show when needed */}
-        <video
-          ref={videoRef}
-          className="stream-thumbnail-video"
-          controls={false}
-          muted
-          playsInline
-          style={{ display: shouldShowVideo ? 'block' : 'none' }}
-        />
-
-        {shouldShowDefault && <img src={AudioStreamImage} alt="Stream thumbnail" className="stream-thumbnail-image" />}
-
-        {shouldShowDefault && mediaType === MediaType.AUDIO && <AudioIcon />}
-
-        {shouldShowDefault && mediaType === MediaType.VIDEO && <VideoIcon />}
-
-        {!isLoading && (
-          <>
-            <div className="stream-thumbnail-play-overlay">
-              <img src={PlayIcon} alt="Play" />
-            </div>
-
-            {state === StateType.LIVE && <LiveBadge />}
-
-            {duration && state !== StateType.LIVE && <DurationBadge duration={duration} />}
-          </>
-        )}
-      </div>
-
-      <div className="stream-thumbnail-metadata">
-        <h3 className="stream-thumbnail-title" title={title}>
-          {title}
-        </h3>
-      </div>
-    </div>
-  );
-};
