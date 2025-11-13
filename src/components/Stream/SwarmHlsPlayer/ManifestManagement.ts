@@ -202,7 +202,7 @@ export class ManifestFetcher {
     try {
       const response = await fetch(`${this.baseUrl}/${path}`, {
         headers: {
-          'swarm-chunk-retrieval-timeout': '2000ms',
+          'swarm-chunk-retrieval-timeout': '5000ms',
         },
         signal: controller?.signal,
       });

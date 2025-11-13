@@ -216,11 +216,7 @@ const downloadDataFromSwarm = async (swarmHash: string): Promise<CredentialBundl
 export const fetchRegistrationFeed = async (): Promise<AdminConfig[]> => {
   try {
     const topic = Topic.fromString(config.registerTopic);
-    const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`, {
-      headers: {
-        'swarm-chunk-retrieval-timeout': '2000ms',
-      },
-    });
+    const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch registration feed: ${response.statusText}`);

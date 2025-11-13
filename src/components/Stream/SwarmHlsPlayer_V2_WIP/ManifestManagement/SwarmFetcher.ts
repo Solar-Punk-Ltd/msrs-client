@@ -25,7 +25,7 @@ export class SwarmFetcher {
 
     try {
       const response = await fetch(url, {
-        headers: { 'swarm-chunk-retrieval-timeout': '2000ms' },
+        headers: { 'swarm-chunk-retrieval-timeout': '5000ms' },
         signal: controller.signal,
       });
 

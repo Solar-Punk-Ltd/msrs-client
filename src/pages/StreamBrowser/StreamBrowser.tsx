@@ -14,7 +14,7 @@ export function StreamBrowser() {
     queryKey: ['app-state'],
     queryFn: async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
 
       try {
         const result = await fetchAppState(controller.signal);

@@ -12,6 +12,8 @@ interface CacheEntry {
   url: string | null;
   loading: boolean;
   error: boolean;
+  state?: StateType;
+  hasValidFrame: boolean;
   promise?: Promise<string | null>;
 }
 
@@ -164,22 +166,37 @@ class ThumbnailCache {
     state?: StateType;
   }): Promise<string | null> {
     const cacheKey = this.getCacheKey(props);
-
     const existing = this.cache.get(cacheKey);
-    if (existing) {
+
+    const shouldReload =
+      existing &&
+      !existing.loading &&
+      // Was scheduled but now is not, and we don't have a valid frame
+      existing.state === StateType.SCHEDULED &&
+      props.state !== StateType.SCHEDULED &&
+      !existing.hasValidFrame &&
+      props.mediaType === MediaType.VIDEO;
+
+    if (existing && !shouldReload) {
       if (existing.loading && existing.promise) {
         return existing.promise;
       }
+
       return existing.url;
     }
 
-    const entry: CacheEntry = {
+    const entry: CacheEntry = existing || {
       url: null,
       loading: true,
       error: false,
+      state: props.state,
+      hasValidFrame: false,
     };
 
-    entry.promise = this.loadThumbnail(props);
+    entry.state = props.state;
+    entry.loading = true;
+
+    entry.promise = this.loadThumbnail(props, entry);
     this.cache.set(cacheKey, entry);
 
     const result = await entry.promise;
@@ -192,18 +209,24 @@ class ThumbnailCache {
     return result;
   }
 
-  private async loadThumbnail(props: {
-    manifestUrl: string;
-    thumbnailRef?: string;
-    mediaType: MediaType;
-    state?: StateType;
-  }): Promise<string | null> {
+  private async loadThumbnail(
+    props: {
+      manifestUrl: string;
+      thumbnailRef?: string;
+      mediaType: MediaType;
+      state?: StateType;
+    },
+    entry: CacheEntry,
+  ): Promise<string | null> {
     const { manifestUrl, thumbnailRef, mediaType, state } = props;
 
     if (state === StateType.SCHEDULED || mediaType === MediaType.AUDIO) {
       if (thumbnailRef) {
         try {
           const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
+          if (url) {
+            entry.hasValidFrame = false; // This is not a captured frame
+          }
           return url || null;
         } catch (error) {
           console.error('Error fetching thumbnail:', error);
@@ -212,20 +235,38 @@ class ThumbnailCache {
       return null;
     }
 
+    // For video: try fetched thumbnail first
     if (thumbnailRef) {
       try {
         const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
-        if (url) return url;
+        if (url) {
+          entry.hasValidFrame = false;
+          return url;
+        }
       } catch (error) {
         console.error('Error fetching thumbnail:', error);
       }
     }
 
+    // Fallback to HLS capture for video
     if (mediaType === MediaType.VIDEO && manifestUrl) {
-      return this.captureFromHls(manifestUrl);
+      const capturedUrl = await this.captureFromHls(manifestUrl);
+      if (capturedUrl) {
+        entry.hasValidFrame = true;
+      }
+      return capturedUrl;
     }
 
     return null;
+  }
+
+  invalidateIfScheduled(props: { manifestUrl?: string; thumbnailRef?: string; owner: string; topic: string }): void {
+    const cacheKey = this.getCacheKey(props);
+    const entry = this.cache.get(cacheKey);
+
+    if (entry && entry.state === StateType.SCHEDULED && !entry.hasValidFrame) {
+      entry.state = undefined;
+    }
   }
 
   clearEntry(props: { manifestUrl?: string; thumbnailRef?: string; owner: string; topic: string }): void {

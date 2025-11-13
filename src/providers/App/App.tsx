@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useRef, useState } from 'react';
-import { Topic } from '@ethersphere/bee-js';
+import { FeedIndex, Topic } from '@ethersphere/bee-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { cloneDeep, isEqual } from 'lodash';
 
@@ -8,6 +8,7 @@ import { MessageReceiveMode } from '@/types/messaging';
 import { StateArrayWithTimestamp, StateEntry } from '@/types/stream';
 import { fetchRegistrationFeed } from '@/utils/auth/login';
 import { persistAdminConfigs } from '@/utils/auth/persistence';
+import { makeFeedIdentifier } from '@/utils/network/bee';
 import { config } from '@/utils/shared/config';
 
 import { useWakuContext } from '../Waku';
@@ -55,6 +56,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
   const [error, setError] = useState<Error | null>(null);
 
   const wakuManagerRef = useRef<WakuStreamManager | null>(null);
+  const currentIndexRef = useRef<FeedIndex | null>(null);
 
   const messageReceiveMode = config.messageReceiveMode;
   const shouldUseWaku =
@@ -65,18 +67,41 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       setError(null);
       const topic = Topic.fromString(config.streamStateTopic);
 
-      const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`, {
+      if (!currentIndexRef.current) {
+        const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
+
+        const hex = response.headers.get('Swarm-Feed-Index');
+        if (hex) {
+          currentIndexRef.current = FeedIndex.fromBigInt(BigInt(`0x${hex}`));
+        }
+
+        const data = await response.json();
+        return data;
+      }
+
+      const nextIndex = currentIndexRef.current.next();
+      const nextId = makeFeedIdentifier(topic, nextIndex);
+
+      const response = await fetch(`${config.readerBeeUrl}/soc/${config.streamStateOwner}/${nextId.toString()}`, {
         headers: {
-          'swarm-chunk-retrieval-timeout': '2000ms',
+          'swarm-chunk-retrieval-timeout': '5000ms',
         },
         signal,
       });
 
       if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
         throw new Error(`Failed to fetch: ${response.statusText}`);
       }
 
       const data = await response.json();
+      currentIndexRef.current = nextIndex;
       return data;
     } catch (error) {
       console.error('Failed to fetch app state:', error);
@@ -118,7 +143,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
             console.error('Error cleaning up manager:', err);
           }
 
-          // Reset state only if still mounted
           if (isMounted()) {
             setStreamList({ entries: [], lastModified: 0 });
             setIsLoading(true);
@@ -145,7 +169,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
         const data = await fetchAppState();
 
-        // Check if still mounted after async operation
         if (!isMounted()) {
           console.log('⏭️  Component unmounted during fetch, aborting');
           return;
@@ -156,11 +179,9 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           lastModified: data ? data.lastModified : 0,
         });
 
-        // Setup Waku if needed (WAKU or BOTH mode)
         if (shouldUseWaku && node && channelManager && !wakuManagerRef.current) {
           const manager = new WakuStreamManager(channelManager, data);
 
-          // Check if still mounted after instantiation
           if (!isMounted()) {
             console.log('⏭️  Component unmounted during manager setup');
             await manager.cleanup();
@@ -171,14 +192,12 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
           try {
             await manager.subscribe((stateArray) => {
-              // Only update if still mounted
               if (isMounted() && wakuManagerRef.current === manager) {
                 console.log('📨 Received stream update via Waku');
                 setNewStreamList(stateArray);
               }
             });
 
-            // Check if still valid after subscription
             if (!isMounted() || wakuManagerRef.current !== manager) {
               console.log('⏭️  Invalid state after subscription, cleaning up');
               await manager.cleanup();
@@ -253,7 +272,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           console.warn('No stream list change detected within timeout');
         }
       } else {
-        // Polling mode (SWARM only or fallback)
         let changeDetected = false;
         const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
 
