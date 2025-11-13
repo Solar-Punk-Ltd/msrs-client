@@ -4,7 +4,7 @@ import { MediaType, StateType } from '@/types/stream';
 import { fetchThumbnail } from '@/utils/stream/stream';
 
 const THUMBNAIL_CONFIG = {
-  VIDEO_LOAD_TIMEOUT_MS: 15000,
+  VIDEO_LOAD_TIMEOUT_MS: 30000,
   CAPTURE_DELAY_MS: 1000,
 } as const;
 
@@ -94,6 +94,12 @@ class ThumbnailCache {
         try {
           await video.play();
           await new Promise((r) => setTimeout(r, 250));
+
+          if (video.duration > 1) {
+            video.currentTime = 1;
+            await new Promise((r) => setTimeout(r, 100));
+          }
+
           video.pause();
 
           const url = await this.captureVideoFrame(video);

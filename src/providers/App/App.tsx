@@ -167,7 +167,18 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
           persistAdminConfigs(adminConfigs);
         }
 
-        const data = await fetchAppState();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        let data: StateArrayWithTimestamp | null = null;
+
+        try {
+          data = await fetchAppState(controller.signal);
+          clearTimeout(timeoutId);
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
+        }
 
         if (!isMounted()) {
           console.log('⏭️  Component unmounted during fetch, aborting');

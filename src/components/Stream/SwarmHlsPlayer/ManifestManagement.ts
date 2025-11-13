@@ -155,16 +155,33 @@ export class ManifestFetcher {
   private async handleInitialFetch(owner: string, topic: Topic): Promise<string> {
     const hexTopic = topic.toString();
 
-    const res = await this.fetchResource(`feeds/${owner}/${hexTopic}`, false);
-    const manifest = await res.text();
+    try {
+      const index1 = FeedIndex.fromBigInt(BigInt(1));
+      const socId = makeFeedIdentifier(topic, index1).toString();
+      const res = await this.fetchResource(`soc/${owner}/${socId}`);
+      const manifest = await res.text();
 
-    const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
-    if (hasChanged) {
-      const index = this.extractIndex(res);
-      this.stateManager.setIndex(hexTopic, index);
+      const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
+      if (hasChanged) {
+        this.stateManager.setIndex(hexTopic, index1);
+      }
+
+      return manifest;
+    } catch (error) {
+      console.log('SOC fetch failed, falling back to feeds call:', error);
+
+      // Fall back to feeds call
+      const res = await this.fetchResource(`feeds/${owner}/${hexTopic}`);
+      const manifest = await res.text();
+
+      const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
+      if (hasChanged) {
+        const index = this.extractIndex(res);
+        this.stateManager.setIndex(hexTopic, index);
+      }
+
+      return manifest;
     }
-
-    return manifest;
   }
 
   private async handleFollowupFetch(owner: string, topic: Topic): Promise<string> {
