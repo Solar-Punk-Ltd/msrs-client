@@ -12,13 +12,14 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
 
-FROM nginx:stable-alpine
+FROM openresty/openresty:1.25.3.1-1-bookworm AS openresty-debian
 
-RUN rm /etc/nginx/conf.d/default.conf
+RUN rm /etc/nginx/conf.d/default.conf 2>/dev/null || true
+RUN rm /usr/local/openresty/nginx/conf/conf.d/default.conf 2>/dev/null || true
 
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
+COPY nginx/default.conf /usr/local/openresty/nginx/conf/conf.d/default.conf
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/local/openresty/nginx/html
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/usr/local/openresty/bin/openresty", "-g", "daemon off;"]
