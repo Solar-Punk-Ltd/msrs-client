@@ -187,7 +187,6 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
         }
 
         const messageData = typeof data === 'string' ? JSON.parse(data) : data;
-        console.log('Message event:', messageData, updates);
 
         setMessages((prevMessages) => {
           const existingIndex = prevMessages.findIndex((msg) => msg.id === messageData.id);

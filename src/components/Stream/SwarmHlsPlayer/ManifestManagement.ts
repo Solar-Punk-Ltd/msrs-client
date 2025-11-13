@@ -155,7 +155,7 @@ export class ManifestFetcher {
   private async handleInitialFetch(owner: string, topic: Topic): Promise<string> {
     const hexTopic = topic.toString();
 
-    const res = await this.fetchResource(`feeds/${owner}/${hexTopic}`);
+    const res = await this.fetchResource(`feeds/${owner}/${hexTopic}`, false);
     const manifest = await res.text();
 
     const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
@@ -171,7 +171,7 @@ export class ManifestFetcher {
     const nextId = this.generateNextId(topic);
     const hexTopic = topic.toString();
 
-    this.fetchResource(`soc/${owner}/${nextId}`)
+    this.fetchResource(`soc/${owner}/${nextId}`, true)
       .then((res) => {
         manifestQueue.add(async () => {
           const manifest = await res.text();
@@ -195,19 +195,19 @@ export class ManifestFetcher {
     return nextId.toString();
   }
 
-  private async fetchResource(path: string): Promise<Response> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+  private async fetchResource(path: string, useAbort: boolean = false): Promise<Response> {
+    const controller = useAbort ? new AbortController() : null;
+    const timeoutId = useAbort ? setTimeout(() => controller?.abort(), 4000) : null;
 
     try {
       const response = await fetch(`${this.baseUrl}/${path}`, {
         headers: {
           'swarm-chunk-retrieval-timeout': '2000ms',
         },
-        signal: controller.signal,
+        signal: controller?.signal,
       });
 
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${path}`);
@@ -215,7 +215,7 @@ export class ManifestFetcher {
 
       return response;
     } catch (error) {
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error(`Request timeout: ${path}`);
       }
