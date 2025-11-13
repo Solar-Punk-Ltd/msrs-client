@@ -17,12 +17,13 @@ export function LoginModal() {
   const [error, setError] = useState<string | null>(null);
 
   const handleUsernameLogin = async () => {
-    if (localName && localName.length > 0 && localName.length <= 20) {
+    const trimmedName = localName.trim();
+    if (trimmedName && trimmedName.length > 0 && trimmedName.length <= 20) {
       setIsLoading(true);
       setError(null);
 
       try {
-        await loginAsUser(localName);
+        await loginAsUser(trimmedName);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Login failed');
       } finally {

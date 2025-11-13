@@ -78,7 +78,8 @@ export function Provider({ children }: Props): ReactElement {
   };
 
   const loginAsUser = async (username: string) => {
-    const res = await nicknameLogin(username);
+    const trimmedUsername = username.trim();
+    const res = await nicknameLogin(trimmedUsername);
 
     if (res.session) {
       setSession(res.session);

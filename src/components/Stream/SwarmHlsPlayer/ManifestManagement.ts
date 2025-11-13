@@ -214,7 +214,7 @@ export class ManifestFetcher {
 
   private async fetchResource(path: string, useAbort: boolean = false): Promise<Response> {
     const controller = useAbort ? new AbortController() : null;
-    const timeoutId = useAbort ? setTimeout(() => controller?.abort(), 10000) : null;
+    const timeoutId = useAbort ? setTimeout(() => controller?.abort(), 8500) : null;
 
     try {
       const response = await fetch(`${this.baseUrl}/${path}`, {

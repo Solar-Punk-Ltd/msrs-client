@@ -12,19 +12,7 @@ export function StreamBrowser() {
 
   const { data } = useQuery({
     queryKey: ['app-state'],
-    queryFn: async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500);
-
-      try {
-        const result = await fetchAppState(controller.signal);
-        clearTimeout(timeoutId);
-        return result;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
-      }
-    },
+    queryFn: fetchAppState,
     refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 1000,
     retry: true,
     enabled: !isLoading,

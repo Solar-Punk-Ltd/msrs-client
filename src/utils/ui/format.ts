@@ -28,6 +28,7 @@ export const formatBzzAmount = (costString: string): string => {
 };
 
 export const createUniqueUsername = (name: string, publicKey: string): string => {
+  const trimmedName = name.trim();
   const cleanPubKey = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey;
 
   const keyIdentifier = cleanPubKey.slice(-6).toLowerCase();
@@ -35,5 +36,5 @@ export const createUniqueUsername = (name: string, publicKey: string): string =>
   const part1 = keyIdentifier.slice(0, 3);
   const part2 = keyIdentifier.slice(3, 6);
 
-  return `${name} ${part1}:${part2}`;
+  return `${trimmedName} ${part1}:${part2}`;
 };

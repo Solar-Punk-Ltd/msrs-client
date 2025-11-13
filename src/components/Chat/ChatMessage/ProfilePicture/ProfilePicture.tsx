@@ -13,8 +13,9 @@ interface ProfilePictureProps {
 }
 
 export function ProfilePicture({ name, address, color, ownMessage = false }: ProfilePictureProps) {
-  const initial = name.charAt(0).toUpperCase();
-  const uniqueUsername = createUniqueUsername(name, address);
+  const trimmedName = name.trim();
+  const initial = trimmedName.charAt(0).toUpperCase();
+  const uniqueUsername = createUniqueUsername(trimmedName, address);
 
   return (
     <PortalTooltip content={uniqueUsername} position="auto" delay={200} maxWidth={200}>

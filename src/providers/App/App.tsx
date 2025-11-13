@@ -21,7 +21,8 @@ interface AppContextState {
   error: Error | null;
   messageReceiveMode: MessageReceiveMode;
   setNewStreamList: (data: StateArrayWithTimestamp) => void;
-  fetchAppState: (signal?: AbortSignal) => Promise<StateArrayWithTimestamp | null>;
+  fetchAppState: () => Promise<StateArrayWithTimestamp | null>;
+  fetchInitialAppState: () => Promise<StateArrayWithTimestamp | null>;
   refreshStreamList: () => Promise<void>;
 }
 
@@ -62,33 +63,53 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
   const shouldUseWaku =
     messageReceiveMode === MessageReceiveMode.WAKU || messageReceiveMode === MessageReceiveMode.BOTH;
 
-  const fetchAppState = useCallback(async (signal?: AbortSignal): Promise<StateArrayWithTimestamp | null> => {
+  const fetchInitialAppState = useCallback(async (): Promise<StateArrayWithTimestamp | null> => {
     try {
       setError(null);
       const topic = Topic.fromString(config.streamStateTopic);
 
-      if (!currentIndexRef.current) {
-        const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`);
+      const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`);
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.statusText}`);
-        }
-
-        const hex = response.headers.get('Swarm-Feed-Index');
-        if (hex) {
-          currentIndexRef.current = FeedIndex.fromBigInt(BigInt(`0x${hex}`));
-        }
-
-        const data = await response.json();
-        return data;
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.statusText}`);
       }
+
+      const hex = response.headers.get('Swarm-Feed-Index');
+      if (hex) {
+        currentIndexRef.current = FeedIndex.fromBigInt(BigInt(`0x${hex}`));
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      currentIndexRef.current = FeedIndex.fromBigInt(BigInt(-1));
+      console.error('Failed to fetch initial app state:', error);
+      setError(error instanceof Error ? error : new Error('Unknown error occurred'));
+      return null;
+    }
+  }, []);
+
+  const fetchAppState = useCallback(async (): Promise<StateArrayWithTimestamp | null> => {
+    if (!currentIndexRef.current) {
+      console.warn('Index not available, call fetchInitialAppState first');
+      return null;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      setError(null);
+      const topic = Topic.fromString(config.streamStateTopic);
 
       const nextIndex = currentIndexRef.current.next();
       const nextId = makeFeedIdentifier(topic, nextIndex);
 
       const response = await fetch(`${config.readerBeeUrl}/soc/${config.streamStateOwner}/${nextId.toString()}`, {
-        signal,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -101,6 +122,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       currentIndexRef.current = nextIndex;
       return data;
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('Failed to fetch app state:', error);
       setError(error instanceof Error ? error : new Error('Unknown error occurred'));
       return null;
@@ -159,22 +181,16 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       setIsLoading(true);
 
       try {
-        const adminConfigs = await fetchRegistrationFeed();
+        const [adminConfigsResult, dataResult] = await Promise.allSettled([
+          fetchRegistrationFeed(),
+          fetchInitialAppState(),
+        ]);
+
+        const adminConfigs = adminConfigsResult.status === 'fulfilled' ? adminConfigsResult.value : [];
+        const data = dataResult.status === 'fulfilled' ? dataResult.value : null;
+
         if (adminConfigs.length > 0) {
           persistAdminConfigs(adminConfigs);
-        }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-        let data: StateArrayWithTimestamp | null = null;
-
-        try {
-          data = await fetchAppState(controller.signal);
-          clearTimeout(timeoutId);
-        } catch (error) {
-          clearTimeout(timeoutId);
-          throw error;
         }
 
         if (!isMounted()) {
@@ -320,6 +336,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     messageReceiveMode,
     setNewStreamList,
     fetchAppState,
+    fetchInitialAppState,
     refreshStreamList,
   };
 
