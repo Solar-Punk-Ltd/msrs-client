@@ -4,8 +4,8 @@ import { MediaType, StateType } from '@/types/stream';
 import { fetchThumbnail } from '@/utils/stream/stream';
 
 const THUMBNAIL_CONFIG = {
-  VIDEO_LOAD_TIMEOUT_MS: 12000,
-  CAPTURE_DELAY_MS: 500,
+  VIDEO_LOAD_TIMEOUT_MS: 15000,
+  CAPTURE_DELAY_MS: 1000,
 } as const;
 
 interface CacheEntry {
