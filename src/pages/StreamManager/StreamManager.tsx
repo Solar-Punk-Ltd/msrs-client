@@ -42,7 +42,7 @@ export function StreamManager() {
         throw error;
       }
     },
-    refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 250,
+    refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 1000,
     retry: true,
     enabled: !isLoading,
     staleTime: 0,
