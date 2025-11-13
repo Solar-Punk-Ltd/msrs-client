@@ -1,12 +1,19 @@
 import { FeedIndex, Topic } from '@ethersphere/bee-js';
 import Pqueue from 'p-queue';
 
+import { StateType } from '@/types/stream';
 import { makeFeedIdentifier } from '@/utils/network/bee';
 import { config } from '@/utils/shared/config';
 
 interface TopicState {
   index: FeedIndex | null;
   manifest: string;
+}
+
+export interface StreamMetadata {
+  state?: StateType;
+  isExternal?: boolean;
+  index?: number;
 }
 
 const manifestQueue = new Pqueue({
@@ -16,6 +23,7 @@ const manifestQueue = new Pqueue({
 export class ManifestStateManager {
   private static instance: ManifestStateManager;
   private topics: Map<string, TopicState> = new Map();
+  private streamMetadata: Map<string, StreamMetadata> = new Map();
 
   private constructor() {}
 
@@ -24,6 +32,22 @@ export class ManifestStateManager {
       ManifestStateManager.instance = new ManifestStateManager();
     }
     return ManifestStateManager.instance;
+  }
+
+  setStreamMetadata(topicId: string, metadata: StreamMetadata): void {
+    this.streamMetadata.set(topicId, metadata);
+  }
+
+  getStreamMetadata(topicId: string): StreamMetadata | undefined {
+    return this.streamMetadata.get(topicId);
+  }
+
+  clearStreamMetadata(topicId?: string): void {
+    if (topicId) {
+      this.streamMetadata.delete(topicId);
+    } else {
+      this.streamMetadata.clear();
+    }
   }
 
   getIndex(topicId: string): FeedIndex | null {
@@ -145,8 +169,9 @@ export class ManifestFetcher {
   async fetch(url: string): Promise<string> {
     const [owner, topicPart] = url.split('/');
     const topic = Topic.fromString(topicPart);
+    const hexTopic = topic.toString();
 
-    if (!this.stateManager.getIndex(topic.toString())) {
+    if (!this.stateManager.getIndex(hexTopic)) {
       return this.handleInitialFetch(owner, topic);
     }
     return this.handleFollowupFetch(owner, topic);
@@ -154,8 +179,11 @@ export class ManifestFetcher {
 
   private async handleInitialFetch(owner: string, topic: Topic): Promise<string> {
     const hexTopic = topic.toString();
+    const streamMetadata = this.stateManager.getStreamMetadata(hexTopic);
 
-    try {
+    // If stream is external, always use SOC with index 1
+    if (streamMetadata?.isExternal) {
+      console.log('External stream detected, using SOC index 1');
       const index1 = FeedIndex.fromBigInt(BigInt(1));
       const socId = makeFeedIdentifier(topic, index1).toString();
       const res = await this.fetchResource(`soc/${owner}/${socId}`);
@@ -167,17 +195,53 @@ export class ManifestFetcher {
       }
 
       return manifest;
-    } catch (error) {
-      console.log('SOC fetch failed, falling back to feeds call:', error);
+    }
 
-      // Fall back to feeds call
-      const res = await this.fetchResource(`feeds/${owner}/${hexTopic}`);
+    // If VOD and we have the index from stateEntry, fetch directly
+    if (streamMetadata?.state === StateType.VOD && streamMetadata.index) {
+      console.log(`VOD stream detected, fetching directly with index ${streamMetadata.index}`);
+      const vodIndex = FeedIndex.fromBigInt(BigInt(streamMetadata.index));
+      const socId = makeFeedIdentifier(topic, vodIndex).toString();
+
+      try {
+        const res = await this.fetchResource(`soc/${owner}/${socId}`);
+        const manifest = await res.text();
+
+        const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
+        if (hasChanged) {
+          this.stateManager.setIndex(hexTopic, vodIndex);
+        }
+
+        return manifest;
+      } catch (error) {
+        console.log('VOD index fetch failed, falling back to feeds:', error);
+      }
+    }
+
+    // For LIVE streams or fallback, use feeds endpoint
+    try {
+      console.log('Live stream or fallback, using feeds endpoint');
+      const res = await this.fetchResource(`feeds/${owner}/${hexTopic}`, { abortEnabled: true, timeout: 20000 });
       const manifest = await res.text();
 
       const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
       if (hasChanged) {
         const index = this.extractIndex(res);
         this.stateManager.setIndex(hexTopic, index);
+      }
+
+      return manifest;
+    } catch (error) {
+      console.log('Feeds fetch failed, falling back to SOC index 1:', error);
+
+      const index1 = FeedIndex.fromBigInt(BigInt(1));
+      const socId = makeFeedIdentifier(topic, index1).toString();
+      const res = await this.fetchResource(`soc/${owner}/${socId}`);
+      const manifest = await res.text();
+
+      const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
+      if (hasChanged) {
+        this.stateManager.setIndex(hexTopic, index1);
       }
 
       return manifest;
@@ -188,7 +252,7 @@ export class ManifestFetcher {
     const nextId = this.generateNextId(topic);
     const hexTopic = topic.toString();
 
-    this.fetchResource(`soc/${owner}/${nextId}`, true)
+    this.fetchResource(`soc/${owner}/${nextId}`, { abortEnabled: true, timeout: 6000 })
       .then((res) => {
         manifestQueue.add(async () => {
           const manifest = await res.text();
@@ -212,9 +276,10 @@ export class ManifestFetcher {
     return nextId.toString();
   }
 
-  private async fetchResource(path: string, useAbort: boolean = false): Promise<Response> {
-    const controller = useAbort ? new AbortController() : null;
-    const timeoutId = useAbort ? setTimeout(() => controller?.abort(), 8500) : null;
+  private async fetchResource(path: string, options?: { abortEnabled?: boolean; timeout?: number }): Promise<Response> {
+    const { abortEnabled = false, timeout = 8500 } = options ?? {};
+    const controller = abortEnabled ? new AbortController() : null;
+    const timeoutId = abortEnabled ? setTimeout(() => controller?.abort(), timeout) : null;
 
     try {
       const response = await fetch(`${this.baseUrl}/${path}`, {

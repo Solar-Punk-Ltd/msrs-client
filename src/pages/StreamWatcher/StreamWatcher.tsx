@@ -92,7 +92,14 @@ export function StreamWatcher() {
 
       {foundStream && !isScheduled && (mediatype === MediaType.AUDIO || mediatype === MediaType.VIDEO) && (
         <div className="stream-item-player">
-          <SwarmHlsPlayer owner={owner} topic={topic} mediaType={mediatype as MediaType} />
+          <SwarmHlsPlayer
+            owner={owner}
+            topic={topic}
+            mediaType={mediatype as MediaType}
+            streamState={foundStream.state}
+            isExternal={foundStream.isExternal}
+            manifestIndex={foundStream.index}
+          />
         </div>
       )}
 

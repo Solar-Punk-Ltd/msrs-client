@@ -1,9 +1,18 @@
 import type { HlsConfig, Loader, LoaderCallbacks, LoaderConfiguration, PlaylistLoaderContext } from 'hls.js';
 import Hls from 'hls.js';
 
-import { ManifestFetcher } from './ManifestManagement';
+import { ManifestFetcher, ManifestStateManager, StreamMetadata } from './ManifestManagement';
 
 const manifestFetcher = new ManifestFetcher();
+const stateManager = ManifestStateManager.getInstance();
+
+export function setStreamMetadata(topicId: string, metadata: StreamMetadata): void {
+  stateManager.setStreamMetadata(topicId, metadata);
+}
+
+export function clearStreamMetadata(topicId?: string): void {
+  stateManager.clearStreamMetadata(topicId);
+}
 
 const PlaylistLoader = Hls.DefaultConfig.loader as unknown as {
   new (config: HlsConfig): Loader<PlaylistLoaderContext>;

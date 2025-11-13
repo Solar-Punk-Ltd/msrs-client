@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Topic } from '@ethersphere/bee-js';
 import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
-import { MediaType } from '@/types/stream';
+import { MediaType, StateType } from '@/types/stream';
 
-import { CustomManifestLoader } from './CustomManifestLoader';
+import { clearStreamMetadata, CustomManifestLoader, setStreamMetadata } from './CustomManifestLoader';
 
 import './SwarmHlsPlayer.scss';
 
@@ -12,12 +13,18 @@ interface HlsPlayerProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
   owner: string;
   topic: string;
   mediaType: MediaType;
+  streamState?: StateType;
+  isExternal?: boolean;
+  manifestIndex?: number;
 }
 
 export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   owner,
   topic,
   mediaType,
+  streamState,
+  isExternal,
+  manifestIndex,
   autoPlay = true,
   controls = true,
   ...videoProps
@@ -40,6 +47,13 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    const hexTopic = Topic.fromString(topic).toString();
+    setStreamMetadata(hexTopic, {
+      state: streamState,
+      isExternal,
+      index: manifestIndex,
+    });
 
     setIsReady(false);
     let hls: Hls | null = null;
@@ -146,12 +160,15 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
     }
 
     return () => {
+      const hexTopic = Topic.fromString(topic).toString();
+      clearStreamMetadata(hexTopic);
+
       if (hls) {
         hls.destroy();
         hls = null;
       }
     };
-  }, [autoPlay, restartTrigger, owner, topic]);
+  }, [autoPlay, restartTrigger, owner, topic, streamState, isExternal, manifestIndex]);
 
   if (hasFatalError) {
     return (
