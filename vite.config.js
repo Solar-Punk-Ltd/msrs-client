@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
+import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath } from 'url';
 import { defineConfig, loadEnv } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
@@ -21,7 +22,23 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
-    plugins: [nodePolyfills(), react(), htmlPlugin()],
+    plugins: [
+      nodePolyfills(),
+      react(),
+      htmlPlugin(),
+      // Add bundle analyzer (only in analyze mode)
+      // eslint-disable-next-line no-undef
+      ...(process.env.ANALYZE
+        ? [
+            visualizer({
+              open: true,
+              filename: 'dist/stats.html',
+              gzipSize: true,
+              brotliSize: true,
+            }),
+          ]
+        : []),
+    ],
     css: {
       preprocessorOptions: {
         scss: {
@@ -37,11 +54,17 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          entryFileNames: `assets/[name].js`,
-          chunkFileNames: `assets/[name].js`,
-          assetFileNames: `assets/[name].[ext]`,
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'waku-vendor': ['@solarpunkltd/waku-sdk', '@waku/utils'],
+            'swarm-vendor': ['@ethersphere/bee-js', '@solarpunkltd/swarm-chat-js'],
+            'crypto-vendor': ['ethers', 'crypto-js', 'bs58'],
+            'media-vendor': ['hls.js'],
+            'utils-vendor': ['lodash', 'clsx', 'p-queue', 'pako', 'protobufjs', 'msgpack-lite'],
+          },
         },
       },
+      chunkSizeWarningLimit: 1000,
     },
     test: {
       globals: true,

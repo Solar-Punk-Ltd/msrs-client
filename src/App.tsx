@@ -27,23 +27,23 @@ function AppContent() {
   useThemeAssets(theme);
 
   useEffect(() => {
-    // Add class to body to hide initial loading screen
+    // Hide initial loading screen as soon as React is mounted
     document.body.classList.add('react-loaded');
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <WalletProvider>
-        <WakuProvider>
-          <AppProvider>
-            <UserProvider>
-              <HashRouter>
+      <HashRouter>
+        <WalletProvider>
+          <UserProvider>
+            <WakuProvider>
+              <AppProvider>
                 <BaseRouter />
-              </HashRouter>
-            </UserProvider>
-          </AppProvider>
-        </WakuProvider>
-      </WalletProvider>
+              </AppProvider>
+            </WakuProvider>
+          </UserProvider>
+        </WalletProvider>
+      </HashRouter>
     </QueryClientProvider>
   );
 }
