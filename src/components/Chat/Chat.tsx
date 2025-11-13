@@ -86,8 +86,8 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic, isExternal = false }) 
       chatTopic: `chat-${topic}`,
       enveloped: false,
       feedReadTimeout: 12500,
-      gsocWriteTimeout: 2000,
-      socReadTimeout: 3500,
+      gsocWriteTimeout: 5000,
+      socReadTimeout: 5000,
     },
   });
 

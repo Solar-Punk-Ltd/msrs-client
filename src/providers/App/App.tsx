@@ -87,9 +87,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       const nextId = makeFeedIdentifier(topic, nextIndex);
 
       const response = await fetch(`${config.readerBeeUrl}/soc/${config.streamStateOwner}/${nextId.toString()}`, {
-        headers: {
-          'swarm-chunk-retrieval-timeout': '5000ms',
-        },
         signal,
       });
 

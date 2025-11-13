@@ -21,11 +21,10 @@ export class SwarmFetcher {
     const url = `${this.baseUrl}/${path}`;
 
     const controller = new AbortController();
-    const timeoutId = withTimeout ? setTimeout(() => controller.abort(), 5000) : undefined;
+    const timeoutId = withTimeout ? setTimeout(() => controller.abort(), 10000) : undefined;
 
     try {
       const response = await fetch(url, {
-        headers: { 'swarm-chunk-retrieval-timeout': '5000ms' },
         signal: controller.signal,
       });
 
