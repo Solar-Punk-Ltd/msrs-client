@@ -55,9 +55,6 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes('node_modules/buffer') || id.includes('node_modules/process')) {
-              return 'polyfills';
-            }
             // React and routing
             if (
               id.includes('node_modules/react') ||
@@ -78,7 +75,9 @@ export default defineConfig(({ mode }) => {
             if (
               id.includes('node_modules/ethers') ||
               id.includes('node_modules/crypto-js') ||
-              id.includes('node_modules/bs58')
+              id.includes('node_modules/bs58') ||
+              id.includes('node_modules/buffer') ||
+              id.includes('node_modules/process')
             ) {
               return 'crypto-vendor';
             }
