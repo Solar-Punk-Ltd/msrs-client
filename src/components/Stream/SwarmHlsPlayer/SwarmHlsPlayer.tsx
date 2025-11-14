@@ -195,6 +195,8 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
           autoPlay={autoPlay}
           muted
           playsInline
+          onClick={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
           style={{ display: isReady ? 'block' : 'none' }}
           {...videoProps}
         />
@@ -204,6 +206,8 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
           ref={videoRef}
           controls={controls}
           autoPlay={autoPlay}
+          onClick={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
           style={{ display: isReady ? 'block' : 'none' }}
         />
       )}
