@@ -1,5 +1,6 @@
 import { createLightNode, HealthStatus, type LightNode, WakuEvent } from '@solarpunkltd/waku-sdk';
 
+import { sleep } from '../shared/async';
 import { config } from '../shared/config';
 
 enum HealthRecoveryType {
@@ -264,7 +265,7 @@ export class WakuNodeManager {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return sleep(ms);
   }
 
   public cleanListeners(): void {

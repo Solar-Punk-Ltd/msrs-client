@@ -25,6 +25,7 @@ export function StreamWatcher() {
   const { streamList, isLoading, refreshStreamList, messageReceiveMode } = useAppContext();
 
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
+  const [isInfoExpanded, setIsInfoExpanded] = useState(false);
 
   const foundStream = useMemo(() => {
     if (streamList && owner && topic) {
@@ -48,11 +49,12 @@ export function StreamWatcher() {
 
     let timeoutId: NodeJS.Timeout | null = null;
     let isMounted = true;
+    const abortController = new AbortController();
 
     const poll = async () => {
       if (!isMounted) return;
 
-      await refreshStreamList();
+      await refreshStreamList(abortController.signal);
 
       if (isMounted) {
         timeoutId = setTimeout(poll, SCHEDULED_STREAM_POLL_INTERVAL);
@@ -63,6 +65,7 @@ export function StreamWatcher() {
 
     return () => {
       isMounted = false;
+      abortController.abort();
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
@@ -110,6 +113,7 @@ export function StreamWatcher() {
           tags={foundStream.tags}
           scheduledStartTime={foundStream.scheduledStartTime}
           isScheduled={isScheduled}
+          onExpandChange={setIsInfoExpanded}
         />
       )}
 
@@ -127,7 +131,7 @@ export function StreamWatcher() {
         </div>
       )}
 
-      <div className="stream-item-chat">
+      <div className={`stream-item-chat ${isInfoExpanded ? 'hidden' : ''}`}>
         <Chat owner={owner} topic={topic} isExternal={foundStream?.isExternal} />
       </div>
     </div>

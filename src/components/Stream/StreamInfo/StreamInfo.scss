@@ -9,9 +9,18 @@
   box-shadow: var(--stream-info-glow, var(--accent-glow, var(--shadow-2xl)));
   transition: all var(--duration-base) var(--easing-ease-out);
   font-family: var(--font-family-serif);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.stream-info-container.expanded {
+  flex: 1;
+  min-height: 0;
 }
 
 .stream-info-container.collapsed {
+  flex-shrink: 0;
   padding: 0;
 }
 
@@ -52,12 +61,18 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+
+  > svg {
+    flex-shrink: 0;
+  }
 }
 
 .toggle-title {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  flex: 1;
+  min-width: 0;
 }
 
 .toggle-title svg {
@@ -71,26 +86,60 @@
   margin: 0;
   line-height: var(--line-height-normal);
   transition: all var(--duration-base) var(--easing-ease-out);
+
+  @include theme.mobile-only {
+    font-size: var(--font-size-sm);
+  }
+}
+
+.stream-info-container.collapsed .stream-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stream-info-container.expanded .stream-title {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
+
+  @include theme.mobile-only {
+    white-space: normal;
+    overflow: visible;
+  }
 }
 
 .stream-info-content {
-  overflow: hidden;
-  transition: all var(--duration-base) var(--easing-ease-out);
+  transition: opacity var(--duration-base) var(--easing-ease-out);
   padding: 0 var(--spacing-md) var(--spacing-sm) var(--spacing-md);
+  min-height: 0;
 }
 
 .stream-info-container.expanded .stream-info-content {
-  max-height: 1000px;
   opacity: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--color-background-scrollbar-track);
+    border-radius: var(--border-radius-2xs);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-background-scrollbar-thumb);
+    border-radius: var(--border-radius-2xs);
+
+    &:hover {
+      background: var(--color-background-scrollbar-thumb-hover);
+    }
+  }
 }
 
 .stream-info-container.collapsed .stream-info-content {
-  max-height: 0;
+  display: none;
   opacity: 0;
 }
 

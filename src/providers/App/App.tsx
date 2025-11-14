@@ -9,6 +9,7 @@ import { StateArrayWithTimestamp, StateEntry } from '@/types/stream';
 import { fetchRegistrationFeed } from '@/utils/auth/login';
 import { persistAdminConfigs } from '@/utils/auth/persistence';
 import { makeFeedIdentifier } from '@/utils/network/bee';
+import { sleep } from '@/utils/shared/async';
 import { config } from '@/utils/shared/config';
 
 import { useWakuContext } from '../Waku';
@@ -18,12 +19,13 @@ import { WakuStreamManager } from './WakuStreamManager';
 interface AppContextState {
   streamList: StateEntry[];
   isLoading: boolean;
+  isRefreshing: boolean;
   error: Error | null;
   messageReceiveMode: MessageReceiveMode;
   setNewStreamList: (data: StateArrayWithTimestamp) => void;
   fetchAppState: () => Promise<StateArrayWithTimestamp | null>;
   fetchInitialAppState: () => Promise<StateArrayWithTimestamp | null>;
-  refreshStreamList: () => Promise<void>;
+  refreshStreamList: (signal?: AbortSignal) => Promise<void>;
 }
 
 const RETRY_CONFIG = {
@@ -54,6 +56,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     lastModified: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const wakuManagerRef = useRef<WakuStreamManager | null>(null);
@@ -273,65 +276,92 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     [node, channelManager, messageReceiveMode, shouldUseWaku],
   );
 
-  const refreshStreamList = useCallback(async () => {
-    setIsLoading(true);
+  const refreshStreamList = useCallback(
+    async (signal?: AbortSignal) => {
+      if (signal?.aborted) {
+        return;
+      }
 
-    try {
-      if (shouldUseWaku && wakuManagerRef.current) {
-        const wakuPromise = wakuManagerRef.current.waitForStreamListChange(streamList, 10000);
+      setIsRefreshing(true);
 
-        const fallbackPromise = new Promise<StateArrayWithTimestamp | null>((resolve) => {
-          setTimeout(async () => {
-            const data = await fetchAppState();
-            resolve(data);
-          }, 3500);
-        });
+      try {
+        if (shouldUseWaku && wakuManagerRef.current) {
+          const wakuPromise = wakuManagerRef.current.waitForStreamListChange(streamList, 10000);
 
-        const freshData = await Promise.race([wakuPromise, fallbackPromise]);
+          const fallbackPromise = new Promise<StateArrayWithTimestamp | null>((resolve) => {
+            setTimeout(async () => {
+              if (signal?.aborted) {
+                resolve(null);
+                return;
+              }
+              const data = await fetchAppState();
+              resolve(data);
+            }, 3500);
+          });
 
-        if (freshData) {
-          setNewStreamList(freshData);
-          queryClient.setQueryData(['app-state'], cloneDeep(freshData));
-        } else {
-          console.warn('No stream list change detected within timeout');
-        }
-      } else {
-        let changeDetected = false;
-        const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
+          const freshData = await Promise.race([wakuPromise, fallbackPromise]);
 
-        for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
-          if (attempt > 0) {
-            await new Promise((resolve) => setTimeout(resolve, RETRY_CONFIG.retryDelay));
+          if (signal?.aborted) {
+            return;
           }
-
-          const freshData = await fetchAppState();
 
           if (freshData) {
-            changeDetected = !isEqual(currentStateSnapshot, freshData);
+            setNewStreamList(freshData);
+            queryClient.setQueryData(['app-state'], cloneDeep(freshData));
+          } else {
+            console.warn('No stream list change detected within timeout');
+          }
+        } else {
+          let changeDetected = false;
+          const currentStateSnapshot = streamList ? cloneDeep(streamList) : null;
 
-            if (changeDetected) {
-              setNewStreamList(freshData);
-              queryClient.setQueryData(['app-state'], cloneDeep(freshData));
-              break;
+          for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
+            if (signal?.aborted) {
+              return;
+            }
+
+            if (attempt > 0) {
+              await sleep(RETRY_CONFIG.retryDelay);
+            }
+
+            if (signal?.aborted) {
+              return;
+            }
+
+            const freshData = await fetchAppState();
+
+            if (freshData) {
+              changeDetected = !isEqual(currentStateSnapshot, freshData);
+
+              if (changeDetected) {
+                setNewStreamList(freshData);
+                queryClient.setQueryData(['app-state'], cloneDeep(freshData));
+                break;
+              }
             }
           }
-        }
 
-        if (!changeDetected) {
-          console.warn('No changes detected after maximum retries');
+          if (!changeDetected && !signal?.aborted) {
+            console.warn('No changes detected after maximum retries');
+          }
         }
+      } catch (error) {
+        if (signal?.aborted) {
+          return;
+        }
+        console.error('Error refreshing stream list:', error);
+        setError(error instanceof Error ? error : new Error('Failed to refresh'));
+      } finally {
+        setIsRefreshing(false);
       }
-    } catch (error) {
-      console.error('Error refreshing stream list:', error);
-      setError(error instanceof Error ? error : new Error('Failed to refresh'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchAppState, setNewStreamList, streamList, queryClient, shouldUseWaku]);
+    },
+    [fetchAppState, setNewStreamList, streamList, queryClient, shouldUseWaku],
+  );
 
   const contextValue: AppContextState = {
     streamList: streamList.entries,
     isLoading,
+    isRefreshing,
     error,
     messageReceiveMode,
     setNewStreamList,

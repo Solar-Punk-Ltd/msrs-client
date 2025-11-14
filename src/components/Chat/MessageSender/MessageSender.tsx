@@ -14,23 +14,23 @@ interface MessageSenderProps {
 
 export function MessageSender({ onSend, disabled = false }: MessageSenderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const prevLoadingRef = useRef(false);
+  const prevSendingRef = useRef(false);
 
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    const isCurrentlyLoading = sending || disabled;
-    const wasLoading = prevLoadingRef.current;
+    const wasSending = prevSendingRef.current;
 
-    if (wasLoading && !isCurrentlyLoading) {
+    // Only auto-focus after a message was sent
+    if (wasSending && !sending) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 0);
     }
 
-    prevLoadingRef.current = isCurrentlyLoading;
-  }, [sending, disabled]);
+    prevSendingRef.current = sending;
+  }, [sending]);
 
   const handleEmojiSelect = (emoji: string) => {
     setInput((prev) => prev + emoji);

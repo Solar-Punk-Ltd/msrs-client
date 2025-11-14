@@ -170,6 +170,7 @@ vi.mock('@/providers/App/App', async () => {
       streamList: mockStreamList,
       refreshStreamList: mockRefreshStreamList,
       isLoading: false,
+      isRefreshing: false,
       error: null,
       messageReceiveMode: MessageReceiveMode.SWARM,
       setNewStreamList: vi.fn(),
