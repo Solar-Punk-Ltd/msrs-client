@@ -14,22 +14,19 @@ interface MessageSenderProps {
 
 export function MessageSender({ onSend, disabled = false }: MessageSenderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const prevSendingRef = useRef(false);
+  const shouldRefocusRef = useRef(false);
 
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    const wasSending = prevSendingRef.current;
-
-    // Only auto-focus after a message was sent
-    if (wasSending && !sending) {
+    // Only auto-focus if we explicitly set the flag during message send
+    if (!sending && shouldRefocusRef.current) {
+      shouldRefocusRef.current = false;
       setTimeout(() => {
         inputRef.current?.focus();
       }, 0);
     }
-
-    prevSendingRef.current = sending;
   }, [sending]);
 
   const handleEmojiSelect = (emoji: string) => {
@@ -41,6 +38,7 @@ export function MessageSender({ onSend, disabled = false }: MessageSenderProps) 
 
     try {
       setSending(true);
+      shouldRefocusRef.current = true; // Set flag to refocus after send
       await onSend?.(input.trim());
       setInput('');
     } finally {
