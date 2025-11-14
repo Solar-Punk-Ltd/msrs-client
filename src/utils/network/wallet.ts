@@ -2,6 +2,7 @@ import { PrivateKey } from '@ethersphere/bee-js';
 import { ethers, keccak256 } from 'ethers';
 
 import type { EthereumProvider } from '@/types/global';
+import { sleep } from '@/utils/shared/async';
 
 interface WalletConnection {
   provider: ethers.BrowserProvider;
@@ -244,7 +245,7 @@ export class WalletService {
         });
 
         // Wait a bit for the switch to complete
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await sleep(1500);
 
         const newNetwork = await this.provider.getNetwork();
         if (newNetwork.chainId !== BigInt(GNOSIS_CHAIN_ID)) {

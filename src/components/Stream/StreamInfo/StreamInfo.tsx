@@ -40,15 +40,29 @@ interface StreamInfoProps {
   tags?: string[];
   scheduledStartTime?: string;
   isScheduled: boolean;
+  onExpandChange?: (isExpanded: boolean) => void;
 }
 
-export function StreamInfo({ title, description, tags, scheduledStartTime, isScheduled }: StreamInfoProps) {
+export function StreamInfo({
+  title,
+  description,
+  tags,
+  scheduledStartTime,
+  isScheduled,
+  onExpandChange,
+}: StreamInfoProps) {
   const [isExpanded, setIsExpanded] = useState(isScheduled);
+
+  const handleToggle = () => {
+    const newExpandedState = !isExpanded;
+    setIsExpanded(newExpandedState);
+    onExpandChange?.(newExpandedState);
+  };
 
   return (
     <div className={`stream-info-container ${isExpanded ? 'expanded' : 'collapsed'} ${isScheduled ? 'scheduled' : ''}`}>
       {!isScheduled && (
-        <button className="stream-info-toggle" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+        <button className="stream-info-toggle" onClick={handleToggle} aria-expanded={isExpanded}>
           <div className="toggle-header">
             <div className="toggle-title">
               <span className="stream-title">{title}</span>

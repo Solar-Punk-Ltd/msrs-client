@@ -1,6 +1,7 @@
 import Hls, { Events } from 'hls.js';
 
 import { MediaType, StateType } from '@/types/stream';
+import { sleep } from '@/utils/shared/async';
 import { fetchThumbnail } from '@/utils/stream/stream';
 
 const THUMBNAIL_CONFIG = {
@@ -93,11 +94,11 @@ class ThumbnailCache {
 
         try {
           await video.play();
-          await new Promise((r) => setTimeout(r, 250));
+          await sleep(450);
 
           if (video.duration > 1) {
-            video.currentTime = 1;
-            await new Promise((r) => setTimeout(r, 100));
+            video.currentTime = 1.25;
+            await sleep(150);
           }
 
           video.pause();

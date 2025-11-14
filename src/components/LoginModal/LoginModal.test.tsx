@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { sleep } from '@/utils/shared/async';
+
 import { LoginModal } from './LoginModal';
 
 vi.mock('@/components/Button/Button', () => ({
@@ -55,7 +57,7 @@ describe('LoginModal', () => {
       fireEvent.click(screen.getByText('OK'));
 
       // Wait for async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await sleep(0);
     });
 
     expect(loginAsUser).toHaveBeenCalledWith('NewNick');
@@ -99,7 +101,7 @@ describe('LoginModal', () => {
 
     await act(async () => {
       fireEvent.click(screen.getByText('Login'));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await sleep(0);
     });
 
     expect(screen.getByText(/Please enter both username and password/i)).toBeInTheDocument();
@@ -113,7 +115,7 @@ describe('LoginModal', () => {
     await act(async () => {
       fireEvent.change(input, { target: { value: '' } });
       fireEvent.click(screen.getByText('OK'));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await sleep(0);
     });
 
     expect(screen.getByText(/Username must be between 1 and 20 characters/i)).toBeInTheDocument();

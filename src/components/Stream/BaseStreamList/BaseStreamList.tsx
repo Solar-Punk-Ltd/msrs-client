@@ -33,7 +33,7 @@ export function BaseStreamList({
   renderFooter,
   enableSearch = false,
 }: BaseStreamListProps) {
-  const { streamList, isLoading } = useAppContext();
+  const { streamList, isLoading, isRefreshing } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -118,8 +118,8 @@ export function BaseStreamList({
   }
 
   return (
-    <div className={`${className} ${isLoading ? 'loading-overlay' : ''}`}>
-      {isLoading && (
+    <div className={`${className} ${isRefreshing ? 'loading-overlay' : ''}`}>
+      {isRefreshing && (
         <div className="base-stream-list-loading-overlay">
           <InputLoading />
         </div>

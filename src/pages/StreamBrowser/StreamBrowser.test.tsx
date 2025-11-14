@@ -17,6 +17,7 @@ vi.mock('@/providers/App/App', () => ({
     fetchAppState,
     setNewStreamList,
     isLoading,
+    isRefreshing: false,
     streamList: [],
     error: null,
     messageReceiveMode: MessageReceiveMode.SWARM,
