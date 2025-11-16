@@ -94,7 +94,7 @@ class ThumbnailCache {
 
         try {
           await video.play();
-          await sleep(450);
+          await sleep(1000);
 
           if (video.duration > 1) {
             await new Promise<void>((resolveSeek) => {
