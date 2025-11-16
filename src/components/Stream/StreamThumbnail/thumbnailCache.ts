@@ -97,8 +97,15 @@ class ThumbnailCache {
           await sleep(450);
 
           if (video.duration > 1) {
-            video.currentTime = 1.25;
-            await sleep(150);
+            await new Promise<void>((resolveSeek) => {
+              const onSeeked = () => {
+                video.removeEventListener('seeked', onSeeked);
+                resolveSeek();
+              };
+              video.addEventListener('seeked', onSeeked);
+              video.currentTime = 1.25;
+            });
+            await sleep(300);
           }
 
           video.pause();
