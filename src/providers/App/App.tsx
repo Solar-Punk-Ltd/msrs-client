@@ -30,7 +30,7 @@ interface AppContextState {
 
 const RETRY_CONFIG = {
   maxRetries: 3,
-  retryDelay: 4000,
+  retryDelay: 3000,
 } as const;
 
 const AppContext = createContext<AppContextState | undefined>(undefined);
@@ -71,7 +71,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       setError(null);
       const topic = Topic.fromString(config.streamStateTopic);
 
-      const response = await fetch(`${config.readerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`);
+      const response = await fetch(`${config.writerBeeUrl}/feeds/${config.streamStateOwner}/${topic.toString()}`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.statusText}`);
@@ -108,7 +108,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       const nextIndex = currentIndexRef.current.next();
       const nextId = makeFeedIdentifier(topic, nextIndex);
 
-      const response = await fetch(`${config.readerBeeUrl}/soc/${config.streamStateOwner}/${nextId.toString()}`, {
+      const response = await fetch(`${config.writerBeeUrl}/soc/${config.streamStateOwner}/${nextId.toString()}`, {
         signal: controller.signal,
       });
 
