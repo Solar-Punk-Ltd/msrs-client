@@ -165,7 +165,7 @@ export const useSwarmChat = ({ user, infra }: ChatSettings) => {
 
       const updatedInfra = {
         ...infra,
-        pollingInterval: 1500,
+        pollingInterval: 2500,
         enableFallbackPolling: shouldUsePolling,
       };
 

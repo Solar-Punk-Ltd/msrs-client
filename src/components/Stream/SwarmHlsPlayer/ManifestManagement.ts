@@ -252,7 +252,7 @@ export class ManifestFetcher {
     const nextId = this.generateNextId(topic);
     const hexTopic = topic.toString();
 
-    this.fetchResource(`soc/${owner}/${nextId}`, { abortEnabled: true, timeout: 6000 })
+    this.fetchResource(`soc/${owner}/${nextId}`, { abortEnabled: true, timeout: 5000 })
       .then((res) => {
         manifestQueue.add(async () => {
           const manifest = await res.text();
