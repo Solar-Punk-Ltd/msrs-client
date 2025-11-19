@@ -14,20 +14,23 @@ interface MessageSenderProps {
 
 export function MessageSender({ onSend, disabled = false }: MessageSenderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const shouldRefocusRef = useRef(false);
+  const prevLoadingRef = useRef(false);
 
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    // Only auto-focus if we explicitly set the flag during message send
-    if (!sending && shouldRefocusRef.current) {
-      shouldRefocusRef.current = false;
+    const isCurrentlyLoading = sending || disabled;
+    const wasLoading = prevLoadingRef.current;
+
+    if (wasLoading && !isCurrentlyLoading) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 0);
     }
-  }, [sending]);
+
+    prevLoadingRef.current = isCurrentlyLoading;
+  }, [sending, disabled]);
 
   const handleEmojiSelect = (emoji: string) => {
     setInput((prev) => prev + emoji);
@@ -38,7 +41,6 @@ export function MessageSender({ onSend, disabled = false }: MessageSenderProps) 
 
     try {
       setSending(true);
-      shouldRefocusRef.current = true; // Set flag to refocus after send
       await onSend?.(input.trim());
       setInput('');
     } finally {
