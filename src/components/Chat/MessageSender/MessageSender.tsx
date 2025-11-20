@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { SendMessageIcon } from '@/components/Icons/SendMessageIcon';
 import { InputLoading } from '@/components/InputLoading/InputLoading';
@@ -14,25 +14,13 @@ interface MessageSenderProps {
 
 export function MessageSender({ onSend, disabled = false }: MessageSenderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const prevLoadingRef = useRef(false);
+  const hasUserInteractedRef = useRef(false);
 
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    const isCurrentlyLoading = sending || disabled;
-    const wasLoading = prevLoadingRef.current;
-
-    if (wasLoading && !isCurrentlyLoading) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
-    }
-
-    prevLoadingRef.current = isCurrentlyLoading;
-  }, [sending, disabled]);
-
   const handleEmojiSelect = (emoji: string) => {
+    hasUserInteractedRef.current = true;
     setInput((prev) => prev + emoji);
   };
 
@@ -43,6 +31,13 @@ export function MessageSender({ onSend, disabled = false }: MessageSenderProps) 
       setSending(true);
       await onSend?.(input.trim());
       setInput('');
+
+      // Refocus only if user has interacted before
+      if (hasUserInteractedRef.current) {
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 0);
+      }
     } finally {
       setSending(false);
     }
@@ -52,6 +47,11 @@ export function MessageSender({ onSend, disabled = false }: MessageSenderProps) 
     if (e.key === 'Enter') {
       sendMessage();
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    hasUserInteractedRef.current = true;
+    setInput(e.target.value);
   };
 
   return (
@@ -70,7 +70,7 @@ export function MessageSender({ onSend, disabled = false }: MessageSenderProps) 
                 type="text"
                 name="message"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={handleInputChange}
                 placeholder="Type a message"
                 onKeyDown={handleKeyDown}
                 className="message-sender-input"
