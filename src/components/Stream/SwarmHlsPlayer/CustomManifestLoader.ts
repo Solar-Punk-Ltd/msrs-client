@@ -10,8 +10,8 @@ export function setStreamMetadata(topicId: string, metadata: StreamMetadata): vo
   stateManager.setStreamMetadata(topicId, metadata);
 }
 
-export function clearStreamMetadata(topicId?: string): void {
-  stateManager.clearStreamMetadata(topicId);
+export function clearTopicState(topicId: string): void {
+  stateManager.clearTopicState(topicId);
 }
 
 const PlaylistLoader = Hls.DefaultConfig.loader as unknown as {

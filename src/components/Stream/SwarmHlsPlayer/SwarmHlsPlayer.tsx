@@ -5,7 +5,7 @@ import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { MediaType, StateType } from '@/types/stream';
 
-import { clearStreamMetadata, CustomManifestLoader, setStreamMetadata } from './CustomManifestLoader';
+import { clearTopicState, CustomManifestLoader, setStreamMetadata } from './CustomManifestLoader';
 
 import './SwarmHlsPlayer.scss';
 
@@ -161,7 +161,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
 
     return () => {
       const hexTopic = Topic.fromString(topic).toString();
-      clearStreamMetadata(hexTopic);
+      clearTopicState(hexTopic);
 
       if (hls) {
         hls.destroy();

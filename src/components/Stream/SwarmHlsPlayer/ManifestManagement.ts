@@ -8,6 +8,7 @@ import { config } from '@/utils/shared/config';
 interface TopicState {
   index: FeedIndex | null;
   manifest: string;
+  metadata?: StreamMetadata;
 }
 
 export interface StreamMetadata {
@@ -23,7 +24,6 @@ const manifestQueue = new Pqueue({
 export class ManifestStateManager {
   private static instance: ManifestStateManager;
   private topics: Map<string, TopicState> = new Map();
-  private streamMetadata: Map<string, StreamMetadata> = new Map();
 
   private constructor() {}
 
@@ -35,19 +35,16 @@ export class ManifestStateManager {
   }
 
   setStreamMetadata(topicId: string, metadata: StreamMetadata): void {
-    this.streamMetadata.set(topicId, metadata);
+    const topicState = this.getOrCreateTopicState(topicId);
+    topicState.metadata = metadata;
   }
 
   getStreamMetadata(topicId: string): StreamMetadata | undefined {
-    return this.streamMetadata.get(topicId);
+    return this.topics.get(topicId)?.metadata;
   }
 
-  clearStreamMetadata(topicId?: string): void {
-    if (topicId) {
-      this.streamMetadata.delete(topicId);
-    } else {
-      this.streamMetadata.clear();
-    }
+  clearTopicState(topicId: string): void {
+    this.topics.delete(topicId);
   }
 
   getIndex(topicId: string): FeedIndex | null {
@@ -124,7 +121,7 @@ export class ManifestStateManager {
 
   private getOrCreateTopicState(topicId: string): TopicState {
     if (!this.topics.has(topicId)) {
-      this.topics.set(topicId, { index: null, manifest: '' });
+      this.topics.set(topicId, { index: null, manifest: '', metadata: undefined });
     }
     return this.topics.get(topicId)!;
   }
