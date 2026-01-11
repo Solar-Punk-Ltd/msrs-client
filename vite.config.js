@@ -1,3 +1,4 @@
+import basicSsl from '@vitejs/plugin-basic-ssl';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
@@ -22,9 +23,13 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
+    server: {
+      host: true,
+    },
     plugins: [
       nodePolyfills(),
       react(),
+      basicSsl(),
       htmlPlugin(),
       // Add bundle analyzer (only in analyze mode)
       // eslint-disable-next-line no-undef
