@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
@@ -18,7 +18,8 @@ import './StreamManager.scss';
 export function StreamManager() {
   const navigate = useNavigate();
   const { session } = useUserContext();
-  const { fetchAppState, setNewStreamList, refreshStreamList, isLoading, messageReceiveMode } = useAppContext();
+  const { fetchAppState, fetchInitialAppState, setNewStreamList, refreshStreamList, isLoading, messageReceiveMode } =
+    useAppContext();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [streamToDelete, setStreamToDelete] = useState<StateEntry | null>(null);
@@ -26,15 +27,26 @@ export function StreamManager() {
   const [tokenModalOpen, setTokenModalOpen] = useState(false);
   const [displayToken, setDisplayToken] = useState<string>('');
   const [tokenCopiedToClipboard, setTokenCopiedToClipboard] = useState<boolean>(false);
+  const isWindowFocusRefetch = useRef(false);
 
   const { data } = useQuery({
     queryKey: ['app-state'],
-    queryFn: fetchAppState,
+    queryFn: async () => {
+      if (isWindowFocusRefetch.current) {
+        isWindowFocusRefetch.current = false;
+        return fetchInitialAppState();
+      }
+      return fetchAppState();
+    },
     refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 1000,
     retry: true,
     enabled: !isLoading,
     staleTime: 0,
     gcTime: Infinity,
+    refetchOnWindowFocus: () => {
+      isWindowFocusRefetch.current = true;
+      return true;
+    },
   });
 
   useEffect(() => {
