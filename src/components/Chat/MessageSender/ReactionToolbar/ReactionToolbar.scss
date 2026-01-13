@@ -6,31 +6,31 @@
   &.expanded {
     .EmojiPickerReact {
       position: absolute;
-      bottom: 100%;
+      bottom: calc(100% - 50px);
       right: 0;
       z-index: 1000;
       max-width: calc(100vw - 32px);
-      max-height: calc(100vh - 100px);
+      max-height: calc(100vh - 150px);
     }
 
     @media (max-width: 640px) {
       .EmojiPickerReact {
         right: -16px;
         max-width: calc(100vw - 16px);
-        max-height: calc(100vh - 80px);
+        max-height: calc(100vh - 120px);
       }
     }
 
     .close-picker-button {
       position: absolute;
-      top: 5px;
+      bottom: calc(100% - 80px);
       right: 0px;
       z-index: 1001;
       background: rgba(28, 28, 28, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 50%;
-      width: 25px;
-      height: 25px;
+      width: 24px;
+      height: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
