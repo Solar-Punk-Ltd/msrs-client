@@ -33,7 +33,6 @@ if (typeof global.TextDecoder === 'undefined') {
   disconnect() {}
 };
 
-// Mock localStorage
 const localStorageMock = {
   store: {} as Record<string, string>,
   getItem(key: string) {

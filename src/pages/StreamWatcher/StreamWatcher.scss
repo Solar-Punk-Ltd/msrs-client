@@ -50,7 +50,7 @@
   backdrop-filter: none !important;
   width: fit-content !important;
   padding: var(--spacing-xs) 0 !important;
-  font-weight: 200 !important;
+  font-weight: 700 !important;
 
   @include theme.mobile-only {
     font-size: var(--back-button-font-size-mobile, var(--font-size-sm)) !important;

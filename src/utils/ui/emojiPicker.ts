@@ -9,6 +9,7 @@ export const EMOJI_PICKER_CONFIG = {
   searchDisabled: false,
   skinTonesDisabled: true,
   emojiStyle: EmojiStyle.NATIVE,
+  autoFocusSearch: false,
 } as const;
 
 export const BREAKPOINTS = {
