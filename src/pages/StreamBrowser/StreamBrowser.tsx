@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { StreamList } from '@/components/Stream';
@@ -8,16 +8,27 @@ import { MessageReceiveMode } from '@/types/messaging';
 import './StreamBrowser.scss';
 
 export function StreamBrowser() {
-  const { fetchAppState, setNewStreamList, isLoading, messageReceiveMode } = useAppContext();
+  const { fetchAppState, fetchInitialAppState, setNewStreamList, isLoading, messageReceiveMode } = useAppContext();
+  const isWindowFocusRefetch = useRef(false);
 
   const { data } = useQuery({
     queryKey: ['app-state'],
-    queryFn: fetchAppState,
+    queryFn: async () => {
+      if (isWindowFocusRefetch.current) {
+        isWindowFocusRefetch.current = false;
+        return fetchInitialAppState();
+      }
+      return fetchAppState();
+    },
     refetchInterval: messageReceiveMode !== MessageReceiveMode.SWARM ? 5000 : 1000,
     retry: true,
     enabled: !isLoading,
     staleTime: 0,
     gcTime: Infinity,
+    refetchOnWindowFocus: () => {
+      isWindowFocusRefetch.current = true;
+      return true;
+    },
   });
 
   useEffect(() => {
