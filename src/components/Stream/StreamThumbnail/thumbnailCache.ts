@@ -57,14 +57,23 @@ class ThumbnailCache {
   }
 
   private async captureFromHls(manifestUrl: string): Promise<string | null> {
+    if (!Hls.isSupported()) {
+      console.warn('HLS.js is not supported in this browser, skipping thumbnail capture');
+      return null;
+    }
+
     const video = document.createElement('video');
     video.muted = true;
     video.playsInline = true;
+    video.crossOrigin = 'anonymous';
     video.style.position = 'fixed';
-    video.style.top = '-9999px';
-    video.style.left = '-9999px';
+    video.style.top = '0';
+    video.style.left = '0';
     video.style.width = '320px';
     video.style.height = '180px';
+    video.style.opacity = '0';
+    video.style.pointerEvents = 'none';
+    video.style.zIndex = '-1';
     document.body.appendChild(video);
 
     return new Promise<string | null>((resolve) => {
@@ -84,7 +93,6 @@ class ThumbnailCache {
       };
 
       const timeoutId = setTimeout(() => {
-        console.error('HLS capture timeout for', manifestUrl);
         cleanup();
         resolve(null);
       }, THUMBNAIL_CONFIG.VIDEO_LOAD_TIMEOUT_MS);
@@ -137,7 +145,7 @@ class ThumbnailCache {
         if (!dataLoaded && !resolved) {
           dataLoaded = true;
           setTimeout(() => {
-            if (!resolved && video.readyState >= 2) {
+            if (!resolved) {
               captureAndResolve();
             }
           }, THUMBNAIL_CONFIG.CAPTURE_DELAY_MS);
@@ -146,7 +154,6 @@ class ThumbnailCache {
 
       hls.on(Events.ERROR, (_event: Events.ERROR, data: any) => {
         if (data.fatal) {
-          console.error('HLS fatal error:', data);
           clearTimeout(timeoutId);
           cleanup();
           resolve(null);
@@ -185,7 +192,6 @@ class ThumbnailCache {
     const shouldReload =
       existing &&
       !existing.loading &&
-      // Was scheduled but now is not, and we don't have a valid frame
       existing.state === StateType.SCHEDULED &&
       props.state !== StateType.SCHEDULED &&
       !existing.hasValidFrame &&
@@ -239,7 +245,7 @@ class ThumbnailCache {
         try {
           const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
           if (url) {
-            entry.hasValidFrame = false; // This is not a captured frame
+            entry.hasValidFrame = false;
           }
           return url || null;
         } catch (error) {
@@ -249,7 +255,6 @@ class ThumbnailCache {
       return null;
     }
 
-    // For video: try fetched thumbnail first
     if (thumbnailRef) {
       try {
         const url = (await fetchThumbnail(thumbnailRef, { url: true })) as string;
@@ -262,7 +267,6 @@ class ThumbnailCache {
       }
     }
 
-    // Fallback to HLS capture for video
     if (mediaType === MediaType.VIDEO && manifestUrl) {
       const capturedUrl = await this.captureFromHls(manifestUrl);
       if (capturedUrl) {
