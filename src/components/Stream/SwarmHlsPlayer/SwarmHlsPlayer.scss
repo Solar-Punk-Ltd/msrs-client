@@ -2,19 +2,6 @@
 
 .swarm-hls-player-audio {
   width: 100%;
-
-  // Hide the timeline/seek bar for live streams - is this required for audio?
-  &.swarm-hls-player-live::-webkit-media-controls-timeline {
-    display: none;
-  }
-
-  &.swarm-hls-player-live::-webkit-media-controls-current-time-display {
-    display: none;
-  }
-
-  &.swarm-hls-player-live::-webkit-media-controls-time-remaining-display {
-    display: none;
-  }
 }
 
 .swarm-hls-player-video {
@@ -23,19 +10,6 @@
   aspect-ratio: 16 / 9;
   background-color: #000;
   object-fit: contain;
-
-  // Hide the timeline/seek bar for live streams
-  &.swarm-hls-player-live::-webkit-media-controls-timeline {
-    display: none;
-  }
-
-  &.swarm-hls-player-live::-webkit-media-controls-current-time-display {
-    display: none;
-  }
-
-  &.swarm-hls-player-live::-webkit-media-controls-time-remaining-display {
-    display: none;
-  }
 }
 
 .swarm-hls-player-loading {
