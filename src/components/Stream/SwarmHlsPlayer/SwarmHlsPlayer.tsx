@@ -32,7 +32,6 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
   const [restartTrigger, setRestartTrigger] = useState(0);
   const [hasFatalError, setHasFatalError] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const [isVod, setIsVod] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 3;
@@ -41,7 +40,6 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
     retryCountRef.current = 0;
     setHasFatalError(false);
     setIsReady(false);
-    setIsVod(false);
   }, [owner, topic]);
 
   useEffect(() => {
@@ -130,29 +128,15 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       hls.attachMedia(video);
       hls.loadSource(`${owner}/${topic}`);
 
-      hls.on(Events.MANIFEST_PARSED, (_event, data) => {
+      hls.on(Events.MANIFEST_PARSED, () => {
         retryCountRef.current = 0;
         setHasFatalError(false);
         setIsReady(true);
-
-        // Check if the stream is VOD by checking if the playlist has an end tag
-        // For live streams, levels[0].details.live will be true
-        const isLive = data.levels?.[0]?.details?.live ?? true;
-        setIsVod(!isLive);
 
         if (autoPlay) {
           video.play().catch((err) => {
             console.warn('Auto-play failed:', err);
           });
-        }
-      });
-
-      // Listen for level updates to detect when stream becomes VOD
-      hls.on(Events.LEVEL_UPDATED, (_event, data) => {
-        // Check if playlist has ended (VOD marker)
-        const hasEnded = data.details?.live === false;
-        if (hasEnded) {
-          setIsVod(true);
         }
       });
     } else {
@@ -189,7 +173,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
       )}
       {mediaType === MediaType.VIDEO ? (
         <video
-          className={`swarm-hls-player-video ${!isVod ? 'swarm-hls-player-live' : ''}`}
+          className="swarm-hls-player-video"
           ref={videoRef}
           controls={controls}
           autoPlay={autoPlay}
@@ -202,7 +186,7 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
         />
       ) : (
         <audio
-          className={`swarm-hls-player-audio ${!isVod ? 'swarm-hls-player-live' : ''}`}
+          className="swarm-hls-player-audio"
           ref={videoRef}
           controls={controls}
           autoPlay={autoPlay}
