@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button, ButtonVariant } from '@/components/Button/Button';
@@ -122,6 +122,7 @@ function StreamEditForm({
   onError,
   isInitializing,
   streamState,
+  formContentRef,
 }: {
   metadata: StreamMetadata;
   error: string | null;
@@ -131,6 +132,7 @@ function StreamEditForm({
   onError: (error: string) => void;
   isInitializing: boolean;
   streamState?: StateType;
+  formContentRef?: React.RefObject<HTMLDivElement>;
 }) {
   if (isInitializing) {
     return <InputLoading />;
@@ -140,7 +142,7 @@ function StreamEditForm({
 
   return (
     <div className="stream-form-form">
-      <div className="stream-form-content">
+      <div className="stream-form-content" ref={formContentRef}>
         <ErrorMessage error={error} />
 
         <div className="stream-form-section">
@@ -207,6 +209,8 @@ export function StreamForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [scrollToError, setScrollToError] = useState(0);
+  const formContentRef = useRef<HTMLDivElement>(null);
 
   const isEditMode = !!(params.owner && params.topic);
   const editOwner = params.owner;
@@ -223,6 +227,12 @@ export function StreamForm() {
     }
   }, [isEditMode, streamToEdit, initializeFromStream]);
 
+  useEffect(() => {
+    if (scrollToError > 0 && formContentRef.current && typeof formContentRef.current.scrollTo === 'function') {
+      formContentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [scrollToError]);
+
   const handleCancel = () => {
     // Check if there's previous history by checking if we can go back
     if (window.history.length > 1) {
@@ -237,6 +247,7 @@ export function StreamForm() {
     const validationError = validateForm(isExistingStream);
     if (validationError) {
       setError(validationError);
+      setScrollToError((prev) => prev + 1);
       return;
     }
     setError(null);
@@ -296,6 +307,7 @@ export function StreamForm() {
             onError={setError}
             isInitializing={isInitializing}
             streamState={streamToEdit?.state}
+            formContentRef={formContentRef}
           />
         )}
       </div>
