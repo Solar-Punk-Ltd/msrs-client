@@ -2,7 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
 import { loadStampInfo as loadStampInfoFromContract, StampInfo as ContractStampInfo } from '@/utils/network/stampInfo';
-import { fetchGatewayNodes, NodeType, PrivateWriterNode, PublicWriterNode, StampInfo } from '@/utils/stream/node';
+import {
+  CustomPrivateWriterNode,
+  fetchGatewayNodes,
+  NodeType,
+  PrivateWriterNode,
+  PublicWriterNode,
+  StampInfo,
+} from '@/utils/stream/node';
 
 export interface StampWithInfo {
   stampId: string;
@@ -11,6 +18,7 @@ export interface StampWithInfo {
   nodeInfo: StampInfo;
   port: string;
   isLoading?: boolean;
+  tags?: string[];
 }
 
 export interface StreamGroup {
@@ -22,6 +30,7 @@ interface StampsState {
   pinnedStreams: StreamGroup[];
   privateStamps: StampWithInfo[];
   publicStamps: StampWithInfo[];
+  customPrivateStamps: StampWithInfo[];
   isLoading: boolean;
   error: string | null;
 }
@@ -31,6 +40,7 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
     pinnedStreams: [],
     privateStamps: [],
     publicStamps: [],
+    customPrivateStamps: [],
     isLoading: true,
     error: null,
   });
@@ -51,6 +61,7 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         pinnedStreams: updateStampInStreams(prev.pinnedStreams),
         privateStamps: updateStampInArray(prev.privateStamps),
         publicStamps: updateStampInArray(prev.publicStamps),
+        customPrivateStamps: updateStampInArray(prev.customPrivateStamps),
       };
     });
   }, []);
@@ -83,6 +94,7 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         pinnedStreams: [],
         privateStamps: [],
         publicStamps: [],
+        customPrivateStamps: [],
       }));
       return;
     }
@@ -92,7 +104,12 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
     try {
       const response = await fetchGatewayNodes({ adminSecret });
 
-      const loadStampInfo = async (stampId: string, stampInfo: StampInfo, port: string): Promise<StampWithInfo> => {
+      const loadStampInfo = async (
+        stampId: string,
+        stampInfo: StampInfo,
+        port: string,
+        tags?: string[],
+      ): Promise<StampWithInfo> => {
         try {
           const contractStampInfo = await loadStampInfoFromContract(stampId);
           return {
@@ -100,12 +117,14 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
             stampInfo: contractStampInfo,
             nodeInfo: stampInfo,
             port,
+            tags,
           };
         } catch (error) {
           return {
             stampId,
             nodeInfo: stampInfo,
             port,
+            tags,
             error: error instanceof Error ? error.message : 'Failed to load stamp info',
           };
         }
@@ -122,9 +141,16 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         return loadStampInfo(node.stamp, stampInfo, node.port);
       });
 
-      const [privateResults, publicResults] = await Promise.all([
+      // Custom private writers have stamps with tags
+      const customPrivateStampPromises = response.nodes.custom_private_writers.flatMap(
+        (node: CustomPrivateWriterNode) =>
+          node.stamps.map((stampInfo) => loadStampInfo(stampInfo.stamp, stampInfo, node.port, stampInfo.tags)),
+      );
+
+      const [privateResults, publicResults, customPrivateResults] = await Promise.all([
         Promise.allSettled(privateStampPromises),
         Promise.allSettled(publicStampPromises),
+        Promise.allSettled(customPrivateStampPromises),
       ]);
 
       const privateStampsWithInfo = privateResults
@@ -140,6 +166,15 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         .filter((result): result is PromiseFulfilledResult<StampWithInfo> => {
           if (result.status === 'rejected') {
             console.error('Unexpected promise rejection loading public stamp:', result.reason);
+          }
+          return result.status === 'fulfilled';
+        })
+        .map((result) => result.value);
+
+      const customPrivateStampsWithInfo = customPrivateResults
+        .filter((result): result is PromiseFulfilledResult<StampWithInfo> => {
+          if (result.status === 'rejected') {
+            console.error('Unexpected promise rejection loading custom private stamp:', result.reason);
           }
           return result.status === 'fulfilled';
         })
@@ -175,6 +210,7 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         pinnedStreams,
         privateStamps: unpinnedPrivateStamps,
         publicStamps: publicStampsWithInfo,
+        customPrivateStamps: customPrivateStampsWithInfo,
         isLoading: false,
       }));
     } catch (error) {

@@ -19,7 +19,7 @@ interface StampCardProps {
 }
 
 export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
-  const { stampId, stampInfo, error } = stamp;
+  const { stampId, stampInfo, error, tags } = stamp;
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -82,7 +82,7 @@ export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
 
   return (
     <div className={`stamp-card ${isActive ? 'stamp-active' : 'stamp-expired'}`}>
-      <StampHeader stampId={stampId} isActive={isActive} />
+      <StampHeader stampId={stampId} isActive={isActive} tags={tags} />
       <StampDetails financialStatus={financialStatus} />
       {signer && isActive && (
         <StampActions stampId={stampId} signer={signer} onTopUp={handleTopUp} isLoading={isTopUpLoading} />
@@ -95,13 +95,24 @@ export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
   );
 }
 
-function StampHeader({ stampId, isActive }: { stampId: string; isActive: boolean }) {
+function StampHeader({ stampId, isActive, tags }: { stampId: string; isActive: boolean; tags?: string[] }) {
   return (
     <div className="stamp-header">
-      <h3 className="stamp-id" title={stampId}>
-        {formatStampId(stampId)}
-      </h3>
-      <span className={`stamp-status ${isActive ? 'active' : 'expired'}`}>{isActive ? 'ACTIVE' : 'EXPIRED'}</span>
+      <div className="stamp-header-top">
+        <h3 className="stamp-id" title={stampId}>
+          {formatStampId(stampId)}
+        </h3>
+        <span className={`stamp-status ${isActive ? 'active' : 'expired'}`}>{isActive ? 'ACTIVE' : 'EXPIRED'}</span>
+      </div>
+      {tags && tags.length > 0 && (
+        <div className="stamp-tags">
+          {tags.map((tag) => (
+            <span key={tag} className="stamp-tag">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

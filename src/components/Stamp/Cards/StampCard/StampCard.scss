@@ -67,11 +67,29 @@
 
 .stamp-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--spacing-sm);
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-base);
   border-bottom: 1px solid var(--color-border-primary);
+}
+
+.stamp-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stamp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.stamp-tag {
+  font-size: var(--font-size-xs);
+  text-transform: lowercase;
+  color: var(--color-text-primary);
 }
 
 .stamp-id {
