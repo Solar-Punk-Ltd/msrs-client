@@ -1,7 +1,7 @@
 @use '@/styles/themes/base' as theme;
 @use '@/styles/mixins' as mixins;
 
-.batch-progress {
+.bulk-stamp-progress {
   @include mixins.flex-column;
   gap: var(--spacing-base);
   padding: var(--spacing-base);
@@ -10,13 +10,13 @@
   border: 1px solid var(--color-border-badge);
 }
 
-.batch-progress-status {
+.bulk-stamp-progress-status {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
 }
 
-.batch-progress-text {
+.bulk-stamp-progress-text {
   color: var(--color-text-inverse);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-base);
@@ -26,7 +26,7 @@
   }
 }
 
-.batch-progress-bar-container {
+.bulk-stamp-progress-bar-container {
   width: 100%;
   height: 6px;
   background: var(--color-background-scrollbar-track);
@@ -34,36 +34,36 @@
   overflow: hidden;
 }
 
-.batch-progress-bar {
+.bulk-stamp-progress-bar {
   height: 100%;
   background: var(--gradient-accent);
   border-radius: var(--border-radius-2xs);
   transition: width var(--duration-base) var(--easing-ease-out);
 }
 
-.batch-progress-result {
+.bulk-stamp-progress-result {
   @include mixins.flex-column;
   gap: var(--spacing-sm);
 }
 
-.batch-progress-success {
+.bulk-stamp-progress-success {
   color: var(--color-success-light);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-base);
 }
 
-.batch-progress-failures {
+.bulk-stamp-progress-failures {
   @include mixins.flex-column;
   gap: var(--spacing-xs);
 }
 
-.batch-progress-fail-count {
+.bulk-stamp-progress-fail-count {
   color: var(--color-error-light);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-base);
 }
 
-.batch-progress-fail-list {
+.bulk-stamp-progress-fail-list {
   margin: 0;
   padding-left: var(--spacing-lg);
   color: var(--color-text-secondary);

@@ -10,7 +10,7 @@ import {
   GNOSIS_BLOCK_TIME,
   hasSufficientBalance,
 } from './contracts';
-import { getRemainingBalancePerChunk, loadBatchExpirations } from './stampInfo';
+import { getRemainingBalancePerChunk, loadBulkStampExpirations } from './stampInfo';
 
 export interface ExtensionCalculation {
   duration: Duration;
@@ -24,7 +24,7 @@ export interface ExtensionDaysCalculation {
   costString: string;
 }
 
-export interface BatchTopUpStampDetail {
+export interface BulkStampTopUpDetail {
   stampId: string;
   depth: number;
   currentRemainingPerChunk: bigint;
@@ -32,9 +32,9 @@ export interface BatchTopUpStampDetail {
   costPlur: bigint;
 }
 
-export interface BatchTopUpPlan {
-  stamps: BatchTopUpStampDetail[];
-  stampsNeedingTopUp: BatchTopUpStampDetail[];
+export interface BulkStampTopUpPlan {
+  stamps: BulkStampTopUpDetail[];
+  stampsNeedingTopUp: BulkStampTopUpDetail[];
   targetRemainingPerChunk: bigint;
   totalCostPlur: bigint;
   totalCostBzz: BZZ;
@@ -42,7 +42,7 @@ export interface BatchTopUpPlan {
   preTopUpDrift: number;
 }
 
-export interface BatchTopUpResult {
+export interface BulkStampTopUpResult {
   successful: { stampId: string; receipt: ethers.ContractTransactionReceipt }[];
   failed: { stampId: string; error: string }[];
 }
@@ -56,7 +56,7 @@ export const TOPUP_STATUS = {
 
 export type TopUpStatus = (typeof TOPUP_STATUS)[keyof typeof TOPUP_STATUS];
 
-export type BatchTopUpProgressCallback = (
+export type BulkStampTopUpProgressCallback = (
   status: TopUpStatus,
   detail: { stampId?: string; index?: number; total?: number; error?: string },
 ) => void;
@@ -128,7 +128,7 @@ export async function calculateCostForDays(
 }
 
 /**
- * Calculates an equalizing batch topUp plan that converges all stamps to the
+ * Calculates an equalizing bulk topUp plan that converges all stamps to the
  * same expiry date.
  *
  * Anchors the target to the latest expiring stamp + additionalDays. Behind
@@ -146,8 +146,11 @@ export async function calculateCostForDays(
  * stamps show a high current balance → small gap → minimum topUp or filtered
  * out by stampsNeedingTopUp.
  */
-export async function calculateBatchTopUpPlan(stampIds: string[], additionalDays: number): Promise<BatchTopUpPlan> {
-  const expirationResult = await loadBatchExpirations(stampIds);
+export async function calculateBulkStampTopUpPlan(
+  stampIds: string[],
+  additionalDays: number,
+): Promise<BulkStampTopUpPlan> {
+  const expirationResult = await loadBulkStampExpirations(stampIds);
   const { contractState } = expirationResult;
 
   // Anchor to the latest expiring stamp so every other stamp catches up to it
@@ -164,7 +167,7 @@ export async function calculateBatchTopUpPlan(stampIds: string[], additionalDays
   const additionalPerChunk = getAmountForDuration(duration, contractState.lastPrice);
   const targetRemainingPerChunk = maxRemainingPerChunk + additionalPerChunk;
 
-  const stamps: BatchTopUpStampDetail[] = expirationResult.entries.map((entry) => {
+  const stamps: BulkStampTopUpDetail[] = expirationResult.entries.map((entry) => {
     const currentRemainingPerChunk = getRemainingBalancePerChunk(entry.batchData, contractState);
     const gap = targetRemainingPerChunk - currentRemainingPerChunk;
     // Behind stamps get the full gap; stamps already near target get the flat minimum
@@ -194,16 +197,16 @@ export async function calculateBatchTopUpPlan(stampIds: string[], additionalDays
   };
 }
 
-export async function extendBatchStampDuration(
+export async function extendBulkStampDuration(
   signer: ethers.Signer,
   stampIds: string[],
   additionalDays: number,
-  onProgress?: BatchTopUpProgressCallback,
-): Promise<BatchTopUpResult> {
+  onProgress?: BulkStampTopUpProgressCallback,
+): Promise<BulkStampTopUpResult> {
   const provider = signer.provider;
   if (!provider) throw new Error('No provider available');
 
-  const plan = await calculateBatchTopUpPlan(stampIds, additionalDays);
+  const plan = await calculateBulkStampTopUpPlan(stampIds, additionalDays);
 
   if (plan.stampsNeedingTopUp.length === 0) {
     onProgress?.(TOPUP_STATUS.DONE, { total: 0 });
@@ -225,7 +228,7 @@ export async function extendBatchStampDuration(
   }
 
   // Execute topUps sequentially, stop on first failure
-  const result: BatchTopUpResult = { successful: [], failed: [] };
+  const result: BulkStampTopUpResult = { successful: [], failed: [] };
 
   for (let i = 0; i < plan.stampsNeedingTopUp.length; i++) {
     const stamp = plan.stampsNeedingTopUp[i];

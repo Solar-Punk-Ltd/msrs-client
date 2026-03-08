@@ -3,22 +3,22 @@ import { ethers } from 'ethers';
 
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import {
-  BatchTopUpPlan,
-  BatchTopUpResult,
-  calculateBatchTopUpPlan,
-  extendBatchStampDuration,
+  BulkStampTopUpPlan,
+  BulkStampTopUpResult,
+  calculateBulkStampTopUpPlan,
+  extendBulkStampDuration,
   TOPUP_STATUS,
   TopUpStatus,
 } from '@/utils/network/stampTopup';
 import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
 import { formatBzzAmount, formatDays } from '@/utils/ui/format';
 
-import { BatchProgressDisplay } from '../../Panels/BatchProgressDisplay/BatchProgressDisplay';
+import { BulkStampProgressDisplay } from '../../Panels/BulkStampProgressDisplay/BulkStampProgressDisplay';
 import { DaysSlider } from '../DaysSlider/DaysSlider';
 
-import './BatchTopUpControls.scss';
+import './BulkStampTopUpControls.scss';
 
-interface BatchTopUpControlsProps {
+interface BulkStampTopUpControlsProps {
   stampIds: string[];
   signer: ethers.Signer | null;
   onComplete: () => void;
@@ -32,13 +32,13 @@ interface ProgressState {
   error?: string;
 }
 
-export function BatchTopUpControls({ stampIds, signer, onComplete }: BatchTopUpControlsProps) {
+export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkStampTopUpControlsProps) {
   const [selectedDays, setSelectedDays] = useState(30);
-  const [plan, setPlan] = useState<BatchTopUpPlan | null>(null);
+  const [plan, setPlan] = useState<BulkStampTopUpPlan | null>(null);
   const [isPlanLoading, setIsPlanLoading] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [progressState, setProgressState] = useState<ProgressState | null>(null);
-  const [result, setResult] = useState<BatchTopUpResult | null>(null);
+  const [result, setResult] = useState<BulkStampTopUpResult | null>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -57,14 +57,14 @@ export function BatchTopUpControls({ stampIds, signer, onComplete }: BatchTopUpC
       setIsPlanLoading(true);
 
       try {
-        const newPlan = await calculateBatchTopUpPlan(stampIds, selectedDays);
+        const newPlan = await calculateBulkStampTopUpPlan(stampIds, selectedDays);
         if (fetchId === planFetchRef.current) {
           setPlan(newPlan);
         }
       } catch (err) {
         if (fetchId === planFetchRef.current) {
           setPlan(null);
-          console.error('Failed to calculate batch plan:', err);
+          console.error('Failed to calculate bulk stamp plan:', err);
         }
       } finally {
         if (fetchId === planFetchRef.current) {
@@ -91,7 +91,7 @@ export function BatchTopUpControls({ stampIds, signer, onComplete }: BatchTopUpC
     setProgressState(null);
 
     try {
-      const batchResult = await extendBatchStampDuration(signer, stampIds, selectedDays, (status, detail) => {
+      const bulkResult = await extendBulkStampDuration(signer, stampIds, selectedDays, (status, detail) => {
         setProgressState({
           status,
           stampId: detail.stampId,
@@ -101,9 +101,9 @@ export function BatchTopUpControls({ stampIds, signer, onComplete }: BatchTopUpC
         });
       });
 
-      setResult(batchResult);
+      setResult(bulkResult);
 
-      if (batchResult.failed.length === 0) {
+      if (bulkResult.failed.length === 0) {
         onComplete();
       }
     } catch (err) {
@@ -118,10 +118,10 @@ export function BatchTopUpControls({ stampIds, signer, onComplete }: BatchTopUpC
   const costDisplay = plan ? formatBzzAmount(plan.totalCostBzz.toDecimalString()) : null;
 
   return (
-    <div className="batch-topup-controls">
-      <DaysSlider value={selectedDays} onChange={setSelectedDays} min={1} max={365} variant="batch" />
+    <div className="bulk-stamp-topup-controls">
+      <DaysSlider value={selectedDays} onChange={setSelectedDays} min={1} max={365} variant="bulk-stamp" />
 
-      <div className="batch-topup-cost-display">
+      <div className="bulk-stamp-topup-cost-display">
         {isPlanLoading ? (
           <span className="calculating">Calculating cost...</span>
         ) : plan ? (
@@ -143,7 +143,7 @@ export function BatchTopUpControls({ stampIds, signer, onComplete }: BatchTopUpC
 
       {!isExecuting && !progressState && (
         <button
-          className="batch-topup-button"
+          className="bulk-stamp-topup-button"
           onClick={handleExecute}
           disabled={isPlanLoading || !plan || stampIds.length === 0}
           type="button"
@@ -152,7 +152,7 @@ export function BatchTopUpControls({ stampIds, signer, onComplete }: BatchTopUpC
         </button>
       )}
 
-      <BatchProgressDisplay
+      <BulkStampProgressDisplay
         status={progressState?.status ?? null}
         currentStampId={progressState?.stampId}
         currentIndex={progressState?.index}

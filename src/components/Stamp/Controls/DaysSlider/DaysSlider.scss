@@ -96,7 +96,7 @@
   );
 }
 
-.batch-days-slider {
+.bulk-stamp-days-slider {
   @include days-slider-variant(
     $margin-bottom: var(--spacing-base),
     $label-margin: var(--spacing-sm),

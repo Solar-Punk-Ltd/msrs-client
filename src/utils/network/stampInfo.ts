@@ -72,7 +72,7 @@ export interface StampExpirationEntry {
   isValid: boolean;
 }
 
-export interface BatchExpirationResult {
+export interface BulkStampExpirationResult {
   entries: StampExpirationEntry[];
   contractState: ContractState;
   soonestExpiry: StampExpirationEntry | null;
@@ -251,7 +251,7 @@ const decodeStampEntries = (
  */
 const aggregateEntries = (
   entries: StampExpirationEntry[],
-): Pick<BatchExpirationResult, 'entries' | 'soonestExpiry' | 'maxDriftDays' | 'isConsistent'> => {
+): Pick<BulkStampExpirationResult, 'entries' | 'soonestExpiry' | 'maxDriftDays' | 'isConsistent'> => {
   const sorted = [...entries].sort((a, b) => {
     const aDays = a.financialStatus.isActive ? a.financialStatus.remainingDays : -1;
     const bDays = b.financialStatus.isActive ? b.financialStatus.remainingDays : -1;
@@ -304,7 +304,7 @@ export const loadStampInfo = async (stampId: string): Promise<StampInfo> => {
   };
 };
 
-export const loadBatchExpirations = async (stampIds: string[]): Promise<BatchExpirationResult> => {
+export const loadBulkStampExpirations = async (stampIds: string[]): Promise<BulkStampExpirationResult> => {
   if (stampIds.length === 0) {
     return {
       entries: [],

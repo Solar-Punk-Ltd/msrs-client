@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { STAMP_TAB, type StampViewTab, TabBar } from '@/components/Stamp/Controls/TabBar/TabBar';
-import { BatchManager } from '@/components/Stamp/Manager/BatchManager';
+import { BulkStampManager } from '@/components/Stamp/Manager/BulkStampManager';
 import { StampManager } from '@/components/Stamp/Manager/StampManager';
 import { StampManagerHeader } from '@/components/Stamp/Manager/StampManagerHeader';
 import { StampInfoPanel } from '@/components/Stamp/Panels/StampInfoPanel/StampInfoPanel';
@@ -16,7 +16,7 @@ export function StampDashboard() {
   const { session } = useUserContext();
   const stamps = useStamps(session?.serverKeys.nginx, provider);
 
-  const [activeTab, setActiveTab] = useState<StampViewTab>(STAMP_TAB.BATCH);
+  const [activeTab, setActiveTab] = useState<StampViewTab>(STAMP_TAB.BULK_STAMP);
   const [showInfo, setShowInfo] = useState(false);
 
   return (
@@ -29,8 +29,8 @@ export function StampDashboard() {
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
         <div className="stamp-dashboard-content">
-          {activeTab === STAMP_TAB.BATCH ? (
-            <BatchManager stamps={stamps} signer={signer} />
+          {activeTab === STAMP_TAB.BULK_STAMP ? (
+            <BulkStampManager stamps={stamps} signer={signer} />
           ) : (
             <StampManager stamps={stamps} signer={signer} />
           )}

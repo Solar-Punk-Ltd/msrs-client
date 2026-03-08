@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { BatchExpirationResult, loadBatchExpirations } from '@/utils/network/stampInfo';
+import { BulkStampExpirationResult, loadBulkStampExpirations } from '@/utils/network/stampInfo';
 
-interface UseBatchExpirationReturn {
-  data: BatchExpirationResult | null;
+interface UseBulkStampExpirationReturn {
+  data: BulkStampExpirationResult | null;
   isLoading: boolean;
   error: string | null;
   refresh: () => void;
 }
 
-export function useBatchExpiration(stampIds: string[]): UseBatchExpirationReturn {
-  const [data, setData] = useState<BatchExpirationResult | null>(null);
+export function useBulkStampExpiration(stampIds: string[]): UseBulkStampExpirationReturn {
+  const [data, setData] = useState<BulkStampExpirationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,13 +33,13 @@ export function useBatchExpiration(stampIds: string[]): UseBatchExpirationReturn
     setError(null);
 
     try {
-      const result = await loadBatchExpirations(stableStampIds);
+      const result = await loadBulkStampExpirations(stableStampIds);
       if (fetchId === fetchRef.current) {
         setData(result);
       }
     } catch (err) {
       if (fetchId === fetchRef.current) {
-        setError(err instanceof Error ? err.message : 'Failed to load batch expirations');
+        setError(err instanceof Error ? err.message : 'Failed to load bulk stamp expirations');
       }
     } finally {
       if (fetchId === fetchRef.current) {

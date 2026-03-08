@@ -1,7 +1,7 @@
 import './TabBar.scss';
 
 export const STAMP_TAB = {
-  BATCH: 'batch',
+  BULK_STAMP: 'bulk-stamp',
   SOLO: 'solo',
 } as const;
 
@@ -16,11 +16,11 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
   return (
     <div className="stamp-tab-bar">
       <button
-        className={`stamp-tab ${activeTab === STAMP_TAB.BATCH ? 'stamp-tab--active' : ''}`}
-        onClick={() => onTabChange(STAMP_TAB.BATCH)}
+        className={`stamp-tab ${activeTab === STAMP_TAB.BULK_STAMP ? 'stamp-tab--active' : ''}`}
+        onClick={() => onTabChange(STAMP_TAB.BULK_STAMP)}
         type="button"
       >
-        Batch
+        Bulk
       </button>
       <button
         className={`stamp-tab ${activeTab === STAMP_TAB.SOLO ? 'stamp-tab--active' : ''}`}

@@ -1,7 +1,7 @@
 @use '@/styles/themes/base' as theme;
 @use '@/styles/mixins' as mixins;
 
-.batch-manager {
+.bulk-stamp-manager {
   @include mixins.flex-column;
   gap: var(--spacing-lg);
   padding: var(--spacing-xl);

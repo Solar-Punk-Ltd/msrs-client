@@ -2,7 +2,7 @@
 @use '@/styles/mixins' as mixins;
 @use '../../_stamp-mixins' as stamp;
 
-.batch-topup-controls {
+.bulk-stamp-topup-controls {
   @include mixins.flex-column;
   gap: var(--spacing-base);
   padding: var(--spacing-lg);
@@ -12,7 +12,7 @@
   backdrop-filter: blur(var(--blur-xl));
 }
 
-.batch-topup-cost-display {
+.bulk-stamp-topup-cost-display {
   @include stamp.cost-display-variant(
     $margin-bottom: 0,
     $padding: var(--spacing-md),
@@ -28,7 +28,7 @@
   }
 }
 
-.batch-topup-button {
+.bulk-stamp-topup-button {
   width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
   background: var(--gradient-accent);

@@ -1,26 +1,26 @@
 import { CircleLoader } from '@/components/CircleLoader/CircleLoader';
-import { type BatchTopUpResult, TOPUP_STATUS, type TopUpStatus } from '@/utils/network/stampTopup';
+import { type BulkStampTopUpResult, TOPUP_STATUS, type TopUpStatus } from '@/utils/network/stampTopup';
 import { formatStampId } from '@/utils/ui/format';
 
-import './BatchProgressDisplay.scss';
+import './BulkStampProgressDisplay.scss';
 
-interface BatchProgressDisplayProps {
+interface BulkStampProgressDisplayProps {
   status: TopUpStatus | null;
   currentStampId?: string;
   currentIndex?: number;
   totalStamps: number;
-  result: BatchTopUpResult | null;
+  result: BulkStampTopUpResult | null;
   error?: string;
 }
 
-export function BatchProgressDisplay({
+export function BulkStampProgressDisplay({
   status,
   currentStampId,
   currentIndex,
   totalStamps,
   result,
   error,
-}: BatchProgressDisplayProps) {
+}: BulkStampProgressDisplayProps) {
   if (!status) return null;
 
   const isProcessing = status === TOPUP_STATUS.APPROVING || status === TOPUP_STATUS.TOPUP;
@@ -31,10 +31,10 @@ export function BatchProgressDisplay({
     totalStamps > 0 && currentIndex !== undefined ? Math.round(((currentIndex + 1) / totalStamps) * 100) : 0;
 
   return (
-    <div className="batch-progress">
-      <div className="batch-progress-status">
+    <div className="bulk-stamp-progress">
+      <div className="bulk-stamp-progress-status">
         {isProcessing && <CircleLoader size="small" />}
-        <span className={`batch-progress-text ${isError ? 'batch-progress-text--error' : ''}`}>
+        <span className={`bulk-stamp-progress-text ${isError ? 'bulk-stamp-progress-text--error' : ''}`}>
           {status === TOPUP_STATUS.APPROVING && 'Approving BZZ...'}
           {status === TOPUP_STATUS.TOPUP &&
             currentStampId &&
@@ -45,20 +45,22 @@ export function BatchProgressDisplay({
       </div>
 
       {(status === TOPUP_STATUS.TOPUP || isDone || isError) && totalStamps > 0 && (
-        <div className="batch-progress-bar-container">
-          <div className="batch-progress-bar" style={{ width: `${isDone ? 100 : progressPercent}%` }} />
+        <div className="bulk-stamp-progress-bar-container">
+          <div className="bulk-stamp-progress-bar" style={{ width: `${isDone ? 100 : progressPercent}%` }} />
         </div>
       )}
 
       {(isDone || isError) && result && (
-        <div className="batch-progress-result">
+        <div className="bulk-stamp-progress-result">
           {result.successful.length > 0 && (
-            <span className="batch-progress-success">{result.successful.length} stamps topped up successfully</span>
+            <span className="bulk-stamp-progress-success">
+              {result.successful.length} stamps topped up successfully
+            </span>
           )}
           {result.failed.length > 0 && (
-            <div className="batch-progress-failures">
-              <span className="batch-progress-fail-count">{result.failed.length} failed:</span>
-              <ul className="batch-progress-fail-list">
+            <div className="bulk-stamp-progress-failures">
+              <span className="bulk-stamp-progress-fail-count">{result.failed.length} failed:</span>
+              <ul className="bulk-stamp-progress-fail-list">
                 {result.failed.map((f) => (
                   <li key={f.stampId}>
                     {formatStampId(f.stampId)} &mdash; {f.error}

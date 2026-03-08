@@ -1,21 +1,21 @@
 import { useCallback, useMemo } from 'react';
 import { ethers } from 'ethers';
 
-import { useBatchExpiration } from '@/hooks/useBatchExpiration';
+import { useBulkStampExpiration } from '@/hooks/useBulkStampExpiration';
 
-import { BatchSummaryCard } from '../Cards/BatchSummaryCard/BatchSummaryCard';
-import { BatchTopUpControls } from '../Controls/BatchTopUpControls/BatchTopUpControls';
+import { BulkStampSummaryCard } from '../Cards/BulkStampSummaryCard/BulkStampSummaryCard';
+import { BulkStampTopUpControls } from '../Controls/BulkStampTopUpControls/BulkStampTopUpControls';
 import { EmptyState, ErrorState, LoadingState } from '../StateDisplay/StateDisplay';
 import { StampsData } from '../types';
 
-import './BatchManager.scss';
+import './BulkStampManager.scss';
 
-interface BatchManagerProps {
+interface BulkStampManagerProps {
   stamps: StampsData;
   signer: ethers.Signer | null;
 }
 
-export function BatchManager({ stamps, signer }: BatchManagerProps) {
+export function BulkStampManager({ stamps, signer }: BulkStampManagerProps) {
   const allStampIds = useMemo(() => {
     const ids: string[] = [];
 
@@ -29,12 +29,12 @@ export function BatchManager({ stamps, signer }: BatchManagerProps) {
     return ids;
   }, [stamps.pinnedStreams, stamps.privateStamps, stamps.publicStamps, stamps.customPrivateStamps]);
 
-  const batchExpiration = useBatchExpiration(allStampIds);
+  const bulkStampExpiration = useBulkStampExpiration(allStampIds);
 
   const handleComplete = useCallback(() => {
-    batchExpiration.refresh();
+    bulkStampExpiration.refresh();
     stamps.refreshAll();
-  }, [batchExpiration, stamps]);
+  }, [bulkStampExpiration, stamps]);
 
   if (stamps.isLoading) {
     return <LoadingState message="Loading stamps..." />;
@@ -49,9 +49,9 @@ export function BatchManager({ stamps, signer }: BatchManagerProps) {
   }
 
   return (
-    <div className="batch-manager">
-      <BatchSummaryCard expirationData={batchExpiration.data} isLoading={batchExpiration.isLoading} />
-      <BatchTopUpControls stampIds={allStampIds} signer={signer} onComplete={handleComplete} />
+    <div className="bulk-stamp-manager">
+      <BulkStampSummaryCard expirationData={bulkStampExpiration.data} isLoading={bulkStampExpiration.isLoading} />
+      <BulkStampTopUpControls stampIds={allStampIds} signer={signer} onComplete={handleComplete} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import './DaysSlider.scss';
 
-export type DaysSliderVariant = 'default' | 'stream' | 'batch';
+export type DaysSliderVariant = 'default' | 'stream' | 'bulk-stamp';
 
 interface DaysSliderProps {
   value: number;
@@ -14,7 +14,7 @@ export function DaysSlider({ value, onChange, min = 1, max = 365, variant = 'def
   const variantPrefix: Record<DaysSliderVariant, string> = {
     default: 'days',
     stream: 'stream-days',
-    batch: 'batch-days',
+    'bulk-stamp': 'bulk-stamp-days',
   };
   const classPrefix = variantPrefix[variant];
 
