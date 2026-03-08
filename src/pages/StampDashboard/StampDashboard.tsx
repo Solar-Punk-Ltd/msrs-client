@@ -1,11 +1,41 @@
+import { useState } from 'react';
+
+import { STAMP_TAB, type StampViewTab, TabBar } from '@/components/Stamp/Controls/TabBar/TabBar';
+import { BatchManager } from '@/components/Stamp/Manager/BatchManager';
 import { StampManager } from '@/components/Stamp/Manager/StampManager';
+import { StampManagerHeader } from '@/components/Stamp/Manager/StampManagerHeader';
+import { StampInfoPanel } from '@/components/Stamp/Panels/StampInfoPanel/StampInfoPanel';
+import { useStamps } from '@/hooks/useStamps';
+import { useUserContext } from '@/providers/User';
+import { useWallet } from '@/providers/Wallet';
 
 import './StampDashboard.scss';
 
 export function StampDashboard() {
+  const { provider, signer } = useWallet();
+  const { session } = useUserContext();
+  const stamps = useStamps(session?.serverKeys.nginx, provider);
+
+  const [activeTab, setActiveTab] = useState<StampViewTab>(STAMP_TAB.BATCH);
+  const [showInfo, setShowInfo] = useState(false);
+
   return (
     <div className="stamp-dashboard">
-      <StampManager />
+      <div className="stamp-dashboard-inner">
+        <StampManagerHeader showInfo={showInfo} onToggleInfo={() => setShowInfo(!showInfo)} />
+
+        {showInfo && activeTab === STAMP_TAB.SOLO && <StampInfoPanel />}
+
+        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+
+        <div className="stamp-dashboard-content">
+          {activeTab === STAMP_TAB.BATCH ? (
+            <BatchManager stamps={stamps} signer={signer} />
+          ) : (
+            <StampManager stamps={stamps} signer={signer} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

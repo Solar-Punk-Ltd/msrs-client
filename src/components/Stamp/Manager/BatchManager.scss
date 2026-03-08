@@ -1,0 +1,13 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+
+.batch-manager {
+  @include mixins.flex-column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+
+  @include theme.mobile-only {
+    padding: var(--spacing-xs);
+    gap: var(--spacing-base);
+  }
+}

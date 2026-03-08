@@ -1,0 +1,67 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+@use '../../_stamp-mixins' as stamp;
+
+.batch-topup-controls {
+  @include mixins.flex-column;
+  gap: var(--spacing-base);
+  padding: var(--spacing-lg);
+  background: var(--gradient-secondary);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(var(--blur-xl));
+}
+
+.batch-topup-cost-display {
+  @include stamp.cost-display-variant(
+    $margin-bottom: 0,
+    $padding: var(--spacing-md),
+    $font-size: var(--font-size-sm)
+  );
+  @include mixins.flex-column;
+  gap: var(--spacing-sm);
+
+  .drift-info {
+    color: var(--color-warning);
+    font-size: var(--font-size-xs);
+    font-style: italic;
+  }
+}
+
+.batch-topup-button {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--gradient-accent);
+  color: var(--color-text-primary);
+  border: none;
+  border-radius: var(--border-radius-base);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all var(--duration-base) var(--easing-ease-out);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-disabled-light);
+  }
+
+  @include theme.mobile-only {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-sm);
+  }
+}

@@ -1,0 +1,78 @@
+@use '@/styles/mixins' as mixins;
+
+@mixin stamp-actions-variant($margin-top, $padding-top, $border-color) {
+  margin-top: $margin-top;
+  padding-top: $padding-top;
+  border-top: 1px solid $border-color;
+  @include mixins.flex-column;
+  gap: 0;
+}
+
+@mixin stamp-toggle-variant($font-size, $padding, $font-family: null) {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  font-size: $font-size;
+  cursor: pointer;
+  padding: $padding;
+  transition: color var(--duration-fast) var(--easing-ease-out);
+
+  @if $font-family {
+    font-family: $font-family;
+  }
+
+  &:hover {
+    color: var(--color-text-inverse);
+  }
+}
+
+@mixin cost-display-variant(
+  $margin-bottom,
+  $padding,
+  $font-size,
+  $font-family: null,
+  $strong-font: null
+) {
+  margin-bottom: $margin-bottom;
+  padding: $padding;
+  background: var(--color-background-stamp-cost);
+  border-radius: var(--border-radius-sm);
+  text-align: center;
+
+  .cost {
+    color: var(--color-text-inverse);
+    font-size: $font-size;
+
+    @if $font-family {
+      font-family: $font-family;
+    }
+
+    strong {
+      color: var(--color-warning);
+
+      @if $strong-font {
+        font-family: $strong-font;
+      }
+    }
+  }
+
+  .calculating {
+    color: var(--color-text-tertiary);
+    font-size: $font-size;
+    font-style: italic;
+
+    @if $font-family {
+      font-family: $font-family;
+    }
+  }
+
+  .cost-error {
+    color: var(--color-error-light);
+    font-size: $font-size;
+
+    @if $font-family {
+      font-family: $font-family;
+    }
+  }
+}
