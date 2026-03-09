@@ -13,10 +13,10 @@ import './StampDashboard.scss';
 
 export function StampDashboard() {
   const { provider, signer } = useWallet();
-  const { session } = useUserContext();
+  const { session, isSolarpunkAdmin } = useUserContext();
   const stamps = useStamps(session?.serverKeys.nginx, provider);
 
-  const [activeTab, setActiveTab] = useState<StampViewTab>(STAMP_TAB.BULK_STAMP);
+  const [activeTab, setActiveTab] = useState<StampViewTab>(isSolarpunkAdmin ? STAMP_TAB.BULK_STAMP : STAMP_TAB.SOLO);
   const [showInfo, setShowInfo] = useState(false);
 
   return (
@@ -30,7 +30,7 @@ export function StampDashboard() {
 
         {showInfo && activeTab === STAMP_TAB.SOLO && <StampInfoPanel />}
 
-        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        {isSolarpunkAdmin && <TabBar activeTab={activeTab} onTabChange={setActiveTab} />}
 
         <div className="stamp-dashboard-content">
           {activeTab === STAMP_TAB.BULK_STAMP ? (
