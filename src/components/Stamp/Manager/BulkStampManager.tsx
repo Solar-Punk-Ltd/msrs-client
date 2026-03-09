@@ -2,12 +2,12 @@ import { useCallback, useMemo } from 'react';
 import { ethers } from 'ethers';
 
 import { useBulkStampExpiration } from '@/hooks/useBulkStampExpiration';
+import { StampsData } from '@/types/stamp';
 
 import { BulkStampSummaryCard } from '../Cards/BulkStampSummaryCard/BulkStampSummaryCard';
 import { BulkStampSyncControls } from '../Controls/BulkStampSyncControls/BulkStampSyncControls';
 import { BulkStampTopUpControls } from '../Controls/BulkStampTopUpControls/BulkStampTopUpControls';
 import { EmptyState, ErrorState, LoadingState } from '../StateDisplay/StateDisplay';
-import { StampsData } from '../types';
 
 import './BulkStampManager.scss';
 

@@ -3,9 +3,9 @@ import { ethers } from 'ethers';
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
 import { useStampTopUp } from '@/hooks/useStampTopUp';
+import { isStampActive } from '@/utils/network/stampInfo';
 import { formatStampId } from '@/utils/ui/format';
 
-import { isStampActive } from '../../types';
 import { StampActions } from '../Shared/StampActions';
 import { TTLDisplay } from '../Shared/TTLDisplay';
 
@@ -54,16 +54,16 @@ export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
     );
   }
 
-  const active = isStampActive(stampInfo);
+  const isActive = isStampActive(stampInfo);
   const { financialStatus } = stampInfo;
 
   return (
-    <div className={`stamp-card ${active ? 'stamp-active' : 'stamp-expired'}`}>
-      <StampHeader stampId={stampId} isActive={active} tags={tags} />
+    <div className={`stamp-card ${isActive ? 'stamp-active' : 'stamp-expired'}`}>
+      <StampHeader stampId={stampId} isActive={isActive} tags={tags} />
       <div className="stamp-details">
         <TTLDisplay financialStatus={financialStatus} classPrefix="stamp" />
       </div>
-      {signer && active && (
+      {signer && isActive && (
         <StampActions stampId={stampId} signer={signer} onTopUp={handleTopUp} isLoading={isTopUpLoading} />
       )}
 

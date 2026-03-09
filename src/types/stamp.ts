@@ -1,5 +1,4 @@
 import { type StampWithInfo, type StreamGroup } from '@/hooks/useStamps';
-import { StampInfo } from '@/utils/network/stampInfo';
 
 export interface StampsData {
   pinnedStreams: StreamGroup[];
@@ -10,8 +9,4 @@ export interface StampsData {
   error: string | null;
   refresh: (stampId: string) => Promise<void>;
   refreshAll: () => void;
-}
-
-export function isStampActive(stampInfo: StampInfo): boolean {
-  return stampInfo.isValid && stampInfo.financialStatus.isActive;
 }

@@ -3,9 +3,9 @@ import { ethers } from 'ethers';
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
 import { useStampTopUp } from '@/hooks/useStampTopUp';
+import { isStampActive } from '@/utils/network/stampInfo';
 import { formatStampId } from '@/utils/ui/format';
 
-import { isStampActive } from '../../types';
 import { StampActions } from '../Shared/StampActions';
 import { TTLDisplay } from '../Shared/TTLDisplay';
 
@@ -62,13 +62,13 @@ export function StreamStampCard({
     );
   }
 
-  const active = isStampActive(stampInfo);
+  const isActive = isStampActive(stampInfo);
   const { financialStatus } = stampInfo;
 
   return (
     <div
       className={`stream-stamp-card ${
-        active ? 'stream-stamp-active' : 'stream-stamp-expired'
+        isActive ? 'stream-stamp-active' : 'stream-stamp-expired'
       } stream-stamp-type-${stampType}`}
     >
       <div className="stream-stamp-header">
@@ -80,14 +80,16 @@ export function StreamStampCard({
           </h4>
         </div>
 
-        <span className={`stream-stamp-status ${active ? 'active' : 'expired'}`}>{active ? 'ACTIVE' : 'EXPIRED'}</span>
+        <span className={`stream-stamp-status ${isActive ? 'active' : 'expired'}`}>
+          {isActive ? 'ACTIVE' : 'EXPIRED'}
+        </span>
       </div>
 
       <div className="stream-stamp-details">
         <TTLDisplay financialStatus={financialStatus} classPrefix="stream-stamp" />
       </div>
 
-      {signer && active && (
+      {signer && isActive && (
         <StampActions
           stampId={stamp.stampId}
           signer={signer}

@@ -1,9 +1,10 @@
 import { ethers } from 'ethers';
 
+import { StampsData } from '@/types/stamp';
+
 import { PinnedStreamGrid } from '../Grids/PinnedStampGrid/PinnedStampGrid';
 import { StampGrid } from '../Grids/StampGrid/StampGrid';
 import { EmptyState, ErrorState, LoadingState } from '../StateDisplay/StateDisplay';
-import { StampsData } from '../types';
 
 import './StampManager.scss';
 

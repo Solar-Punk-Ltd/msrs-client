@@ -137,6 +137,10 @@ export const isValidStamp = (batchData: BatchData): boolean => {
   return batchData.owner !== '0x0000000000000000000000000000000000000000';
 };
 
+export const isStampActive = (stampInfo: StampInfo): boolean => {
+  return stampInfo.isValid && stampInfo.financialStatus.isActive;
+};
+
 export const getRemainingBalancePerChunk = (batchData: BatchData, contractState: ContractState): bigint => {
   return batchData.normalisedBalance > contractState.currentTotalOutPayment
     ? batchData.normalisedBalance - contractState.currentTotalOutPayment
