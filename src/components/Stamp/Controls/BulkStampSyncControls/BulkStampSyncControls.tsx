@@ -111,8 +111,7 @@ export function BulkStampSyncControls({ stampIds, signer, maxDriftDays, onComple
         <span className="bulk-stamp-sync-title">Stamps out of sync</span>
         <p className="bulk-stamp-sync-description">
           Your stamps have a {formatDays(maxDriftDays)} expiration gap. Some stamps will expire before others, which can
-          cause data loss if an expired stamp stops serving its content. Sync now to extend the behind stamps so all
-          stamps expire at the same time.
+          cause data loss and unexpected behaviour. Sync now to extend the behind stamps.
         </p>
       </div>
 

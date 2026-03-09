@@ -10,7 +10,6 @@
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(var(--blur-xl));
-  border-left: 3px solid var(--color-warning);
 }
 
 .bulk-stamp-sync-info {
@@ -34,11 +33,7 @@
 }
 
 .bulk-stamp-sync-cost-display {
-  @include stamp.cost-display-variant(
-    $margin-bottom: 0,
-    $padding: var(--spacing-md),
-    $font-size: var(--font-size-sm)
-  );
+  @include stamp.cost-display-variant($margin-bottom: 0, $padding: var(--spacing-md), $font-size: var(--font-size-sm));
 }
 
 .bulk-stamp-sync-button {
