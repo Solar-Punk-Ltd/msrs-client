@@ -33,9 +33,8 @@ export function BulkStampManager({ stamps, signer }: BulkStampManagerProps) {
   const bulkStampExpiration = useBulkStampExpiration(allStampIds);
 
   const handleComplete = useCallback(() => {
-    bulkStampExpiration.refresh();
     stamps.refreshAll();
-  }, [bulkStampExpiration, stamps]);
+  }, [stamps]);
 
   if (stamps.isLoading) {
     return <LoadingState message="Loading stamps..." />;
