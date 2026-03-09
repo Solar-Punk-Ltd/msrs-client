@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import { useBulkStampExpiration } from '@/hooks/useBulkStampExpiration';
 
 import { BulkStampSummaryCard } from '../Cards/BulkStampSummaryCard/BulkStampSummaryCard';
+import { BulkStampSyncControls } from '../Controls/BulkStampSyncControls/BulkStampSyncControls';
 import { BulkStampTopUpControls } from '../Controls/BulkStampTopUpControls/BulkStampTopUpControls';
 import { EmptyState, ErrorState, LoadingState } from '../StateDisplay/StateDisplay';
 import { StampsData } from '../types';
@@ -51,7 +52,17 @@ export function BulkStampManager({ stamps, signer }: BulkStampManagerProps) {
   return (
     <div className="bulk-stamp-manager">
       <BulkStampSummaryCard expirationData={bulkStampExpiration.data} isLoading={bulkStampExpiration.isLoading} />
-      <BulkStampTopUpControls stampIds={allStampIds} signer={signer} onComplete={handleComplete} />
+
+      {bulkStampExpiration.data && !bulkStampExpiration.data.isConsistent ? (
+        <BulkStampSyncControls
+          stampIds={allStampIds}
+          signer={signer}
+          maxDriftDays={bulkStampExpiration.data.maxDriftDays}
+          onComplete={handleComplete}
+        />
+      ) : (
+        <BulkStampTopUpControls stampIds={allStampIds} signer={signer} onComplete={handleComplete} />
+      )}
     </div>
   );
 }

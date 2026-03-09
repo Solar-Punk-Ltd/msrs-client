@@ -11,16 +11,16 @@ import {
   TopUpStatus,
 } from '@/utils/network/stampTopup';
 import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
-import { formatBzzAmount } from '@/utils/ui/format';
+import { formatBzzAmount, formatDays } from '@/utils/ui/format';
 
 import { BulkStampProgressDisplay } from '../../Panels/BulkStampProgressDisplay/BulkStampProgressDisplay';
-import { DaysSlider } from '../DaysSlider/DaysSlider';
 
-import './BulkStampTopUpControls.scss';
+import './BulkStampSyncControls.scss';
 
-interface BulkStampTopUpControlsProps {
+interface BulkStampSyncControlsProps {
   stampIds: string[];
   signer: ethers.Signer | null;
+  maxDriftDays: number;
   onComplete: () => void;
 }
 
@@ -32,55 +32,42 @@ interface ProgressState {
   error?: string;
 }
 
-export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkStampTopUpControlsProps) {
-  const [selectedDays, setSelectedDays] = useState(30);
-  const [plan, setPlan] = useState<BulkStampTopUpPlan | null>(null);
+export function BulkStampSyncControls({ stampIds, signer, maxDriftDays, onComplete }: BulkStampSyncControlsProps) {
+  const [syncPlan, setSyncPlan] = useState<BulkStampTopUpPlan | null>(null);
   const [isPlanLoading, setIsPlanLoading] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [progressState, setProgressState] = useState<ProgressState | null>(null);
   const [result, setResult] = useState<BulkStampTopUpResult | null>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const planFetchRef = useRef(0);
 
-  // Debounced plan calculation when selectedDays changes
   useEffect(() => {
     if (stampIds.length === 0) return;
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+    const fetchId = ++planFetchRef.current;
+    setIsPlanLoading(true);
 
-    debounceRef.current = setTimeout(async () => {
-      const fetchId = ++planFetchRef.current;
-      setIsPlanLoading(true);
-
-      try {
-        const newPlan = await calculateBulkStampTopUpPlan(stampIds, selectedDays);
+    calculateBulkStampTopUpPlan(stampIds, 0)
+      .then((plan) => {
         if (fetchId === planFetchRef.current) {
-          setPlan(newPlan);
+          setSyncPlan(plan);
         }
-      } catch (err) {
+      })
+      .catch((err) => {
         if (fetchId === planFetchRef.current) {
-          setPlan(null);
-          console.error('Failed to calculate bulk stamp plan:', err);
+          setSyncPlan(null);
+          console.error('Failed to calculate sync plan:', err);
         }
-      } finally {
+      })
+      .finally(() => {
         if (fetchId === planFetchRef.current) {
           setIsPlanLoading(false);
         }
-      }
-    }, 300);
+      });
+  }, [stampIds]);
 
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, [stampIds, selectedDays]);
-
-  const handleExecute = useCallback(async () => {
+  const handleSync = useCallback(async () => {
     if (!signer) {
       setErrorModal('Please connect your wallet first.');
       return;
@@ -91,7 +78,7 @@ export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkSta
     setProgressState(null);
 
     try {
-      const bulkResult = await extendBulkStampDuration(signer, stampIds, selectedDays, (status, detail) => {
+      const syncResult = await extendBulkStampDuration(signer, stampIds, 0, (status, detail) => {
         setProgressState({
           status,
           stampId: detail.stampId,
@@ -101,9 +88,9 @@ export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkSta
         });
       });
 
-      setResult(bulkResult);
+      setResult(syncResult);
 
-      if (bulkResult.failed.length === 0) {
+      if (syncResult.failed.length === 0) {
         onComplete();
       }
     } catch (err) {
@@ -113,37 +100,42 @@ export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkSta
     } finally {
       setIsExecuting(false);
     }
-  }, [signer, stampIds, selectedDays, onComplete]);
+  }, [signer, stampIds, onComplete]);
 
-  const costDisplay = plan ? formatBzzAmount(plan.totalCostBzz.toDecimalString()) : null;
+  const costDisplay = syncPlan ? formatBzzAmount(syncPlan.totalCostBzz.toDecimalString()) : null;
+  const stampsToSync = syncPlan?.stampsNeedingTopUp.length ?? 0;
 
   return (
-    <div className="bulk-stamp-topup-controls">
-      <DaysSlider value={selectedDays} onChange={setSelectedDays} min={1} max={365} variant="bulk-stamp" />
+    <div className="bulk-stamp-sync-controls">
+      <div className="bulk-stamp-sync-info">
+        <span className="bulk-stamp-sync-title">Stamps out of sync</span>
+        <p className="bulk-stamp-sync-description">
+          Your stamps have a {formatDays(maxDriftDays)} expiration gap. Some stamps will expire before others, which can
+          cause data loss if an expired stamp stops serving its content. Sync now to extend the behind stamps so all
+          stamps expire at the same time.
+        </p>
+      </div>
 
-      <div className="bulk-stamp-topup-cost-display">
+      <div className="bulk-stamp-sync-cost-display">
         {isPlanLoading ? (
-          <span className="calculating">Calculating cost...</span>
-        ) : plan ? (
-          <>
-            <span className="cost">
-              Cost: <strong>{costDisplay} BZZ</strong> for {plan.stampsNeedingTopUp.length} stamps
-            </span>
-            <span className="drift-info">Adds {selectedDays} days to all stamps</span>
-          </>
+          <span className="calculating">Calculating sync cost...</span>
+        ) : syncPlan ? (
+          <span className="cost">
+            Sync cost: <strong>{costDisplay} BZZ</strong> for {stampsToSync} stamp{stampsToSync !== 1 ? 's' : ''}
+          </span>
         ) : (
-          <span className="cost-error">Error calculating cost</span>
+          <span className="cost-error">Error calculating sync cost</span>
         )}
       </div>
 
       {!isExecuting && !progressState && (
         <button
-          className="bulk-stamp-topup-button"
-          onClick={handleExecute}
-          disabled={isPlanLoading || !plan || stampIds.length === 0}
+          className="bulk-stamp-sync-button"
+          onClick={handleSync}
+          disabled={isPlanLoading || !syncPlan || stampIds.length === 0}
           type="button"
         >
-          {`Top Up All (${selectedDays} Days)`}
+          Sync All Stamps
         </button>
       )}
 
@@ -156,7 +148,7 @@ export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkSta
         error={progressState?.error}
       />
 
-      <SimpleModal isOpen={!!errorModal} title="Top Up Error" onClose={() => setErrorModal(null)}>
+      <SimpleModal isOpen={!!errorModal} title="Sync Error" onClose={() => setErrorModal(null)}>
         <p>{errorModal}</p>
       </SimpleModal>
     </div>

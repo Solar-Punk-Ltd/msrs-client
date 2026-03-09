@@ -22,7 +22,11 @@ export function StampDashboard() {
   return (
     <div className="stamp-dashboard">
       <div className="stamp-dashboard-inner">
-        <StampManagerHeader showInfo={showInfo} onToggleInfo={() => setShowInfo(!showInfo)} />
+        <StampManagerHeader
+          showInfo={showInfo}
+          onToggleInfo={() => setShowInfo(!showInfo)}
+          showInfoButton={activeTab === STAMP_TAB.SOLO}
+        />
 
         {showInfo && activeTab === STAMP_TAB.SOLO && <StampInfoPanel />}
 

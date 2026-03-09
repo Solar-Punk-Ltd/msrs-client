@@ -1,6 +1,8 @@
 import { BZZ, Duration } from '@ethersphere/bee-js';
 import { ethers } from 'ethers';
 
+import { getUserFriendlyErrorMessage } from '../shared/errorHandling';
+
 import {
   createContract,
   ensureBzzApproval,
@@ -163,15 +165,16 @@ export async function calculateBulkStampTopUpPlan(
   }
 
   // Target = latest stamp's balance + additionalDays, so all stamps land here
-  const duration = Duration.fromDays(additionalDays);
-  const additionalPerChunk = getAmountForDuration(duration, contractState.lastPrice);
+  // Sync only mode: only close the gap, no extra duration added
+  const additionalPerChunk =
+    additionalDays > 0 ? getAmountForDuration(Duration.fromDays(additionalDays), contractState.lastPrice) : 0n;
   const targetRemainingPerChunk = maxRemainingPerChunk + additionalPerChunk;
 
   const stamps: BulkStampTopUpDetail[] = expirationResult.entries.map((entry) => {
     const currentRemainingPerChunk = getRemainingBalancePerChunk(entry.batchData, contractState);
     const gap = targetRemainingPerChunk - currentRemainingPerChunk;
-    // Behind stamps get the full gap; stamps already near target get the flat minimum
-    const neededTopUpPerChunk = gap > additionalPerChunk ? gap : additionalPerChunk;
+    // Behind stamps get the full gap, in topUp mode stamps near target get the flat minimum
+    const neededTopUpPerChunk = additionalDays > 0 ? (gap > additionalPerChunk ? gap : additionalPerChunk) : gap;
     const costPlur = neededTopUpPerChunk * 2n ** BigInt(entry.batchData.depth);
 
     return {
@@ -242,7 +245,7 @@ export async function extendBulkStampDuration(
       const receipt = await executeTopup(signer, stamp.stampId, stamp.neededTopUpPerChunk);
       result.successful.push({ stampId: stamp.stampId, receipt });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'TopUp failed';
+      const errorMessage = getUserFriendlyErrorMessage(error);
       result.failed.push({ stampId: stamp.stampId, error: errorMessage });
       onProgress?.(TOPUP_STATUS.ERROR, {
         stampId: stamp.stampId,

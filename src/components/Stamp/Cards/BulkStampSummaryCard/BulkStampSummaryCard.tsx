@@ -53,12 +53,6 @@ export function BulkStampSummaryCard({ expirationData, isLoading }: BulkStampSum
           </span>
         </div>
       )}
-
-      {!expirationData.isConsistent && (
-        <div className="bulk-stamp-summary-drift">
-          Stamps are out of sync by {formatDays(expirationData.maxDriftDays)}. Bulk top up will realign them.
-        </div>
-      )}
     </div>
   );
 }

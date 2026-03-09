@@ -63,6 +63,46 @@
   font-family: var(--font-family-base);
 }
 
+.bulk-stamp-progress-details-toggle {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--duration-fast) var(--easing-ease-out);
+
+  &:hover {
+    color: var(--color-text-inverse);
+  }
+}
+
+.bulk-stamp-progress-reload {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--gradient-accent);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--border-radius-base);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-ease-out);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
 .bulk-stamp-progress-fail-list {
   margin: 0;
   padding-left: var(--spacing-lg);
