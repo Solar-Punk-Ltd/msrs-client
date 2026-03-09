@@ -16,7 +16,7 @@ export function StampDashboard() {
   const { session, isSolarpunkAdmin } = useUserContext();
   const stamps = useStamps(session?.serverKeys.nginx, provider);
 
-  const [activeTab, setActiveTab] = useState<StampViewTab>(isSolarpunkAdmin ? STAMP_TAB.BULK_STAMP : STAMP_TAB.SOLO);
+  const [activeTab, setActiveTab] = useState<StampViewTab>(STAMP_TAB.BULK_STAMP);
   const [showInfo, setShowInfo] = useState(false);
 
   return (
