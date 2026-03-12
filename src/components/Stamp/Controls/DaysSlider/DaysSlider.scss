@@ -1,0 +1,110 @@
+@mixin days-slider-variant(
+  $margin-bottom,
+  $label-margin,
+  $label-size,
+  $track-height,
+  $track-margin,
+  $thumb-size,
+  $thumb-shadow,
+  $range-size,
+  $range-color: var(--color-text-tertiary),
+  $label-font: null,
+  $range-font: null
+) {
+  margin-bottom: $margin-bottom;
+
+  .slider-label {
+    display: block;
+    margin-bottom: $label-margin;
+    font-size: $label-size;
+    color: var(--color-text-inverse);
+    font-weight: var(--font-weight-medium);
+
+    @if $label-font {
+      font-family: $label-font;
+    }
+  }
+
+  .slider-input {
+    width: 100%;
+    height: $track-height;
+    background: var(--color-background-scrollbar-track);
+    border-radius: var(--border-radius-2xs);
+    outline: none;
+    margin-bottom: $track-margin;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      appearance: none;
+      width: $thumb-size;
+      height: $thumb-size;
+      background: var(--color-text-inverse);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: $thumb-shadow;
+    }
+
+    &::-moz-range-thumb {
+      width: $thumb-size;
+      height: $thumb-size;
+      background: var(--color-text-inverse);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      box-shadow: $thumb-shadow;
+    }
+  }
+
+  .slider-range {
+    display: flex;
+    justify-content: space-between;
+    font-size: $range-size;
+    color: $range-color;
+
+    @if $range-font {
+      font-family: $range-font;
+    }
+  }
+}
+
+.days-slider {
+  @include days-slider-variant(
+    $margin-bottom: var(--spacing-base),
+    $label-margin: var(--spacing-sm),
+    $label-size: var(--font-size-sm),
+    $track-height: 6px,
+    $track-margin: var(--spacing-sm),
+    $thumb-size: 20px,
+    $thumb-shadow: var(--shadow-sm),
+    $range-size: var(--font-size-xs)
+  );
+}
+
+.stream-days-slider {
+  @include days-slider-variant(
+    $margin-bottom: var(--spacing-md),
+    $label-margin: var(--spacing-xs),
+    $label-size: var(--font-size-xs),
+    $track-height: 4px,
+    $track-margin: var(--spacing-xs),
+    $thumb-size: 16px,
+    $thumb-shadow: var(--shadow-sm),
+    $range-size: var(--font-size-2xs),
+    $range-color: var(--color-text-placeholder),
+    $label-font: var(--font-family-base),
+    $range-font: var(--font-family-mono)
+  );
+}
+
+.bulk-stamp-days-slider {
+  @include days-slider-variant(
+    $margin-bottom: var(--spacing-base),
+    $label-margin: var(--spacing-sm),
+    $label-size: var(--font-size-base),
+    $track-height: 8px,
+    $track-margin: var(--spacing-sm),
+    $thumb-size: 22px,
+    $thumb-shadow: var(--shadow-md),
+    $range-size: var(--font-size-sm)
+  );
+}

@@ -1,0 +1,40 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+
+.stamp-tab-bar {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+
+  @include theme.mobile-only {
+    padding: var(--spacing-sm) var(--spacing-xs);
+  }
+}
+
+.stamp-tab {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-base);
+  border: 1px solid var(--color-border-badge);
+  border-radius: var(--border-radius-base);
+  background: var(--color-background-badge);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-ease-out);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover:not(.stamp-tab--active) {
+    color: var(--color-text-inverse);
+    border-color: var(--color-border-focus);
+  }
+
+  &--active {
+    background: var(--gradient-accent);
+    color: var(--color-text-inverse);
+    border-color: transparent;
+    box-shadow: var(--shadow-sm);
+  }
+}

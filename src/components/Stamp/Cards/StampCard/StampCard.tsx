@@ -1,14 +1,13 @@
-import { useState } from 'react';
 import { ethers } from 'ethers';
 
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
-import { StampInfo } from '@/utils/network/stampInfo';
-import { extendStampDuration } from '@/utils/network/stampTopup';
-import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
-import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/ui/format';
+import { useStampTopUp } from '@/hooks/useStampTopUp';
+import { isStampActive } from '@/utils/network/stampInfo';
+import { formatStampId } from '@/utils/ui/format';
 
 import { StampActions } from '../Shared/StampActions';
+import { TTLDisplay } from '../Shared/TTLDisplay';
 
 import './StampCard.scss';
 
@@ -20,33 +19,11 @@ interface StampCardProps {
 
 export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
   const { stampId, stampInfo, error, tags } = stamp;
-  const [isTopUpLoading, setIsTopUpLoading] = useState(false);
-  const [errorModalOpen, setErrorModalOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleTopUp = async (days: number) => {
-    if (!signer) {
-      setErrorMessage('Please connect your wallet first');
-      setErrorModalOpen(true);
-      return;
-    }
-
-    setIsTopUpLoading(true);
-    try {
-      await extendStampDuration(signer, stampId, days);
-      console.log(`Successfully topped up stamp for ${days} days`);
-      if (onStampRefresh) {
-        await onStampRefresh(stampId);
-      }
-    } catch (error) {
-      console.error('Top-up failed:', error);
-      const friendlyErrorMessage = getUserFriendlyErrorMessage(error);
-      setErrorMessage(`Top-up failed: ${friendlyErrorMessage}`);
-      setErrorModalOpen(true);
-    } finally {
-      setIsTopUpLoading(false);
-    }
-  };
+  const { isTopUpLoading, errorModalOpen, errorMessage, handleTopUp, closeErrorModal } = useStampTopUp(
+    signer,
+    stampId,
+    onStampRefresh,
+  );
 
   if (stamp.isLoading) {
     return (
@@ -77,18 +54,20 @@ export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
     );
   }
 
-  const isActive = stampInfo.isValid && stampInfo.financialStatus.isActive;
+  const isActive = isStampActive(stampInfo);
   const { financialStatus } = stampInfo;
 
   return (
     <div className={`stamp-card ${isActive ? 'stamp-active' : 'stamp-expired'}`}>
       <StampHeader stampId={stampId} isActive={isActive} tags={tags} />
-      <StampDetails financialStatus={financialStatus} />
+      <div className="stamp-details">
+        <TTLDisplay financialStatus={financialStatus} classPrefix="stamp" />
+      </div>
       {signer && isActive && (
         <StampActions stampId={stampId} signer={signer} onTopUp={handleTopUp} isLoading={isTopUpLoading} />
       )}
 
-      <SimpleModal isOpen={errorModalOpen} title="Error" onClose={() => setErrorModalOpen(false)} closeText="OK">
+      <SimpleModal isOpen={errorModalOpen} title="Error" onClose={closeErrorModal} closeText="OK">
         <p>{errorMessage}</p>
       </SimpleModal>
     </div>
@@ -113,22 +92,6 @@ function StampHeader({ stampId, isActive, tags }: { stampId: string; isActive: b
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function StampDetails({ financialStatus }: { financialStatus: StampInfo['financialStatus'] }) {
-  return (
-    <div className="stamp-details">
-      <div className="stamp-row">
-        <span className="stamp-label">TTL:</span>
-        <span className="stamp-value">
-          {financialStatus.isActive ? formatDays(financialStatus.remainingDays) : 'Expired'}
-          {financialStatus.expirationDate && (
-            <span className="stamp-subtitle">({formatStampExpirationDate(financialStatus.expirationDate)})</span>
-          )}
-        </span>
-      </div>
     </div>
   );
 }

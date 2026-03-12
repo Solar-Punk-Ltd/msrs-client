@@ -14,6 +14,7 @@ interface ContextInterface {
   nickname: string;
   isUserLoggedIn: boolean;
   isAdmin: boolean;
+  isSolarpunkAdmin: boolean;
   instanceId: string;
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (isLoginModalOpen: boolean) => void;
@@ -32,6 +33,7 @@ const initialValues: ContextInterface = {
   nickname: '',
   isUserLoggedIn: false,
   isAdmin: false,
+  isSolarpunkAdmin: false,
   instanceId: '',
   isLoginModalOpen: false,
   setIsLoginModalOpen: () => {},
@@ -101,6 +103,8 @@ export function Provider({ children }: Props): ReactElement {
 
   const isAdmin = useMemo(() => !!session?.instanceId, [session]);
 
+  const isSolarpunkAdmin = useMemo(() => isAdmin && session?.instanceId === 'solarpunk', [isAdmin, session]);
+
   const instanceId = useMemo(() => session?.instanceId || '', [session]);
 
   const keys = useMemo(() => {
@@ -124,6 +128,7 @@ export function Provider({ children }: Props): ReactElement {
         nickname,
         isUserLoggedIn,
         isAdmin,
+        isSolarpunkAdmin,
         instanceId,
         isLoginModalOpen,
         setIsLoginModalOpen,
