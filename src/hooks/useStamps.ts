@@ -131,18 +131,18 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
       };
 
       // Flatten all private writer stamps (each port can have multiple stamps)
-      const privateStampPromises = response.nodes.private_writers.flatMap((node: PrivateWriterNode) =>
+      const privateStampPromises = (response.nodes.private_writers ?? []).flatMap((node: PrivateWriterNode) =>
         node.stamps.map((stampInfo) => loadStampInfo(stampInfo.stamp, stampInfo, node.port)),
       );
 
       // Public writers have one stamp per port
-      const publicStampPromises = response.nodes.public_writers.map((node: PublicWriterNode) => {
+      const publicStampPromises = (response.nodes.public_writers ?? []).map((node: PublicWriterNode) => {
         const stampInfo: StampInfo = { stamp: node.stamp, state: 'free' };
         return loadStampInfo(node.stamp, stampInfo, node.port);
       });
 
       // Custom private writers have stamps with tags
-      const customPrivateStampPromises = response.nodes.custom_private_writers.flatMap(
+      const customPrivateStampPromises = (response.nodes.custom_private_writers ?? []).flatMap(
         (node: CustomPrivateWriterNode) =>
           node.stamps.map((stampInfo) => loadStampInfo(stampInfo.stamp, stampInfo, node.port, stampInfo.tags)),
       );
