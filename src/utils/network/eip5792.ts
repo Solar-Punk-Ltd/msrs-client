@@ -12,10 +12,6 @@ import {
 } from './stampTopup';
 import { GNOSIS_CHAIN_HEX, GNOSIS_RPC_URL } from './wallet';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 interface WalletCapabilities {
   [chainIdHex: string]: {
     atomicBatch?: { supported: boolean };
@@ -33,19 +29,7 @@ interface CallsStatusResponse {
   }>;
 }
 
-// ---------------------------------------------------------------------------
-// Capability cache (module-level, keyed by address)
-// ---------------------------------------------------------------------------
-
-let cachedSupport: boolean | null = null;
-let cachedForAddress: string | null = null;
-
-export function clearAtomicBatchCache(): void {
-  cachedSupport = null;
-  cachedForAddress = null;
-}
-
-async function checkAtomicBatchSupport(ethereum: EthereumProvider, userAddress: string): Promise<boolean> {
+async function isAtomicBatchAvailable(ethereum: EthereumProvider, userAddress: string): Promise<boolean> {
   try {
     const capabilities = (await ethereum.request({
       method: 'wallet_getCapabilities',
@@ -58,24 +42,6 @@ async function checkAtomicBatchSupport(ethereum: EthereumProvider, userAddress: 
     return false;
   }
 }
-
-async function isAtomicBatchAvailable(ethereum: EthereumProvider, userAddress: string): Promise<boolean> {
-  const normalizedAddress = userAddress.toLowerCase();
-
-  if (cachedForAddress === normalizedAddress && cachedSupport !== null) {
-    return cachedSupport;
-  }
-
-  const supported = await checkAtomicBatchSupport(ethereum, userAddress);
-  cachedSupport = supported;
-  cachedForAddress = normalizedAddress;
-
-  return supported;
-}
-
-// ---------------------------------------------------------------------------
-// Calldata encoding
-// ---------------------------------------------------------------------------
 
 const bzzIface = new ethers.Interface(BZZ_TOKEN_ABI);
 const stampIface = new ethers.Interface(POSTAGE_STAMP_ABI);
@@ -114,10 +80,6 @@ async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan): P
   return calls;
 }
 
-// ---------------------------------------------------------------------------
-// Batch status polling
-// ---------------------------------------------------------------------------
-
 const POLL_INTERVAL_MS = 3_000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1_000; // 5 minutes
 
@@ -139,10 +101,6 @@ async function pollBatchStatus(ethereum: EthereumProvider, batchId: string): Pro
 
   throw new Error('Batch transaction timed out after 5 minutes');
 }
-
-// ---------------------------------------------------------------------------
-// Batch execution
-// ---------------------------------------------------------------------------
 
 async function executeBatchTopUp(
   ethereum: EthereumProvider,
@@ -201,10 +159,6 @@ async function executeBatchTopUp(
     })),
   };
 }
-
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
 
 /**
  * Attempts to execute the bulk top-up as a single EIP-5792 atomic batch.
