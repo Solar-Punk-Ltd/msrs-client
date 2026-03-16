@@ -62,13 +62,11 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
         return { successful: [], failed: [] } as BulkStampTopUpResult;
       }
 
-      // Check balance (shared by both paths)
       const hasBalance = await hasSufficientBalance(provider, userAddress, plan.totalCostPlur);
       if (!hasBalance) {
         throw new Error(`Insufficient BZZ balance. Need ${plan.totalCostBzz.toDecimalString()} BZZ`);
       }
 
-      // Try EIP-5792 atomic batch first
       const ethereum = getWalletService().getEthereum();
       if (ethereum) {
         const batchResult = await tryBatchTopUp(ethereum, userAddress, plan, progressCallback);
@@ -77,7 +75,6 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
         }
       }
 
-      // Fallback to sequential execution
       return extendBulkStampDuration(signer, stampIds, additionalDays, progressCallback);
     },
     onSuccess: (result) => {

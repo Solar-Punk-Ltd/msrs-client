@@ -14,8 +14,8 @@ import { GNOSIS_CHAIN_HEX, GNOSIS_RPC_URL } from './wallet';
 
 interface WalletCapabilities {
   [chainIdHex: string]: {
-    atomic?: { status: string }; // "supported" | "ready"
-    atomicBatch?: { supported: boolean }; // older wallets
+    atomic?: { status: string };
+    atomicBatch?: { supported: boolean };
   };
 }
 
@@ -60,7 +60,6 @@ interface BatchCall {
 async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan): Promise<BatchCall[]> {
   const calls: BatchCall[] = [];
 
-  // Check if approval is already sufficient
   const publicProvider = new ethers.JsonRpcProvider(GNOSIS_RPC_URL);
   const bzzContract = new ethers.Contract(BZZ_TOKEN_ADDRESS, BZZ_TOKEN_ABI, publicProvider);
   const currentAllowance: bigint = await bzzContract.allowance(userAddress, POSTAGE_STAMP_CONTRACT);
@@ -73,7 +72,6 @@ async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan): P
     });
   }
 
-  // Encode each topUp call
   for (const stamp of plan.stampsNeedingTopUp) {
     calls.push({
       to: POSTAGE_STAMP_CONTRACT,
@@ -117,7 +115,6 @@ async function executeBatchTopUp(
 
   const calls = await buildBatchCalls(userAddress, plan);
 
-  // Submit batch
   const sendResult = await ethereum.request({
     method: 'wallet_sendCalls',
     params: [
@@ -131,15 +128,12 @@ async function executeBatchTopUp(
     ],
   });
 
-  // wallet_sendCalls may return a string or an object with an id field
   const batchId = typeof sendResult === 'string' ? sendResult : (sendResult as { id: string }).id;
 
-  // Poll for completion
   onProgress?.(TOPUP_STATUS.BATCH_PENDING, { total: plan.stampsNeedingTopUp.length });
 
   const statusResponse = await pollBatchStatus(ethereum, batchId);
 
-  // Atomic batch: all succeed or all fail
   const allReceipts = statusResponse.receipts ?? [];
   const batchSucceeded = allReceipts.length > 0 && allReceipts.every((r) => r.status === '0x1');
 
@@ -155,7 +149,6 @@ async function executeBatchTopUp(
     };
   }
 
-  // Batch failed
   const errorMessage = 'Batch transaction reverted on-chain';
   onProgress?.(TOPUP_STATUS.ERROR, { error: errorMessage });
 
