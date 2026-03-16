@@ -4,6 +4,8 @@ import { ethers } from 'ethers';
 import { calculateCostForDays, ExtensionDaysCalculation } from '@/utils/network/stampTopup';
 import { formatBzzAmount } from '@/utils/ui/format';
 
+import { DaysSlider } from '../../Controls/DaysSlider/DaysSlider';
+
 import './StampActions.scss';
 
 interface StampActionsProps {
@@ -53,7 +55,7 @@ export function StampActions({
   const handleTopUpClick = async () => {
     try {
       await onTopUp(selectedDays);
-      // Close the expansion after successful top-up
+      // Close the expansion after successful topUp
       if (onToggleExpanded && isExpanded) {
         onToggleExpanded();
       } else if (!onToggleExpanded && internalExpanded) {
@@ -69,7 +71,7 @@ export function StampActions({
   return (
     <div className={`${classPrefix}-actions`}>
       <button className={`${classPrefix}-toggle-link`} onClick={handleToggle} type="button">
-        {isExpanded ? 'Cancel top-up' : 'Top-up'}
+        {isExpanded ? 'Cancel top up' : 'Top up'}
       </button>
 
       {isExpanded && (
@@ -98,40 +100,6 @@ export function StampActions({
           </button>
         </div>
       )}
-    </div>
-  );
-}
-
-interface DaysSliderProps {
-  value: number;
-  onChange: (value: number) => void;
-  min: number;
-  max: number;
-  variant: 'default' | 'stream';
-}
-
-function DaysSlider({ value, onChange, min, max, variant }: DaysSliderProps) {
-  const classPrefix = variant === 'stream' ? 'stream-days' : 'days';
-
-  return (
-    <div className={`${classPrefix}-slider`}>
-      <label className="slider-label">
-        Extension: <strong>{value} days</strong>
-      </label>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="slider-input"
-      />
-      <div className="slider-range">
-        <span>
-          {min} day{min !== 1 ? 's' : ''}
-        </span>
-        <span>{max} days</span>
-      </div>
     </div>
   );
 }

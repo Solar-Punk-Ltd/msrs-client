@@ -130,21 +130,26 @@ export function useStamps(adminSecret: string | undefined, _provider: ethers.Pro
         }
       };
 
+      const privateWriters = Array.isArray(response.nodes.private_writers) ? response.nodes.private_writers : [];
+      const publicWriters = Array.isArray(response.nodes.public_writers) ? response.nodes.public_writers : [];
+      const customPrivateWriters = Array.isArray(response.nodes.custom_private_writers)
+        ? response.nodes.custom_private_writers
+        : [];
+
       // Flatten all private writer stamps (each port can have multiple stamps)
-      const privateStampPromises = response.nodes.private_writers.flatMap((node: PrivateWriterNode) =>
+      const privateStampPromises = privateWriters.flatMap((node: PrivateWriterNode) =>
         node.stamps.map((stampInfo) => loadStampInfo(stampInfo.stamp, stampInfo, node.port)),
       );
 
       // Public writers have one stamp per port
-      const publicStampPromises = response.nodes.public_writers.map((node: PublicWriterNode) => {
+      const publicStampPromises = publicWriters.map((node: PublicWriterNode) => {
         const stampInfo: StampInfo = { stamp: node.stamp, state: 'free' };
         return loadStampInfo(node.stamp, stampInfo, node.port);
       });
 
       // Custom private writers have stamps with tags
-      const customPrivateStampPromises = response.nodes.custom_private_writers.flatMap(
-        (node: CustomPrivateWriterNode) =>
-          node.stamps.map((stampInfo) => loadStampInfo(stampInfo.stamp, stampInfo, node.port, stampInfo.tags)),
+      const customPrivateStampPromises = customPrivateWriters.flatMap((node: CustomPrivateWriterNode) =>
+        node.stamps.map((stampInfo) => loadStampInfo(stampInfo.stamp, stampInfo, node.port, stampInfo.tags)),
       );
 
       const [privateResults, publicResults, customPrivateResults] = await Promise.all([

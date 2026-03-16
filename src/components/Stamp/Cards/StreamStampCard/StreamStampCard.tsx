@@ -1,13 +1,13 @@
-import { useState } from 'react';
 import { ethers } from 'ethers';
 
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
-import { extendStampDuration } from '@/utils/network/stampTopup';
-import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
-import { formatDays, formatStampExpirationDate, formatStampId } from '@/utils/ui/format';
+import { useStampTopUp } from '@/hooks/useStampTopUp';
+import { isStampActive } from '@/utils/network/stampInfo';
+import { formatStampId } from '@/utils/ui/format';
 
 import { StampActions } from '../Shared/StampActions';
+import { TTLDisplay } from '../Shared/TTLDisplay';
 
 import './StreamStampCard.scss';
 
@@ -26,35 +26,13 @@ export function StreamStampCard({
   onToggleExpanded,
   onStampRefresh,
 }: StreamStampCardProps) {
-  const [isTopUpLoading, setIsTopUpLoading] = useState(false);
-  const [errorModalOpen, setErrorModalOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const { isTopUpLoading, errorModalOpen, errorMessage, handleTopUp, closeErrorModal } = useStampTopUp(
+    signer,
+    stamp.stampId,
+    onStampRefresh,
+  );
   const { stampInfo, error, nodeInfo } = stamp;
   const stampType = nodeInfo.history?.type || 'unknown';
-
-  const handleTopUp = async (days: number) => {
-    if (!signer) {
-      setErrorMessage('Please connect your wallet first');
-      setErrorModalOpen(true);
-      return;
-    }
-
-    setIsTopUpLoading(true);
-    try {
-      await extendStampDuration(signer, stamp.stampId, days);
-      console.log(`Successfully topped up stamp for ${days} days`);
-      if (onStampRefresh) {
-        await onStampRefresh(stamp.stampId);
-      }
-    } catch (error) {
-      console.error('Top-up failed:', error);
-      const friendlyErrorMessage = getUserFriendlyErrorMessage(error);
-      setErrorMessage(`Top-up failed: ${friendlyErrorMessage}`);
-      setErrorModalOpen(true);
-    } finally {
-      setIsTopUpLoading(false);
-    }
-  };
 
   if (stamp.isLoading) {
     return (
@@ -84,7 +62,7 @@ export function StreamStampCard({
     );
   }
 
-  const isActive = stampInfo.isValid && stampInfo.financialStatus.isActive;
+  const isActive = isStampActive(stampInfo);
   const { financialStatus } = stampInfo;
 
   return (
@@ -108,17 +86,7 @@ export function StreamStampCard({
       </div>
 
       <div className="stream-stamp-details">
-        <div className="stream-stamp-row">
-          <span className="stream-stamp-label">TTL:</span>
-          <span className="stream-stamp-value">
-            {financialStatus.isActive ? formatDays(financialStatus.remainingDays) : 'Expired'}
-            {financialStatus.expirationDate && (
-              <span className="stream-stamp-subtitle">
-                ({formatStampExpirationDate(financialStatus.expirationDate)})
-              </span>
-            )}
-          </span>
-        </div>
+        <TTLDisplay financialStatus={financialStatus} classPrefix="stream-stamp" />
       </div>
 
       {signer && isActive && (
@@ -133,7 +101,7 @@ export function StreamStampCard({
         />
       )}
 
-      <SimpleModal isOpen={errorModalOpen} title="Error" onClose={() => setErrorModalOpen(false)} closeText="OK">
+      <SimpleModal isOpen={errorModalOpen} title="Error" onClose={closeErrorModal} closeText="OK">
         <p>{errorMessage}</p>
       </SimpleModal>
     </div>
