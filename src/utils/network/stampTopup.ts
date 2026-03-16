@@ -52,6 +52,7 @@ export interface BulkStampTopUpResult {
 export const TOPUP_STATUS = {
   APPROVING: 'approving',
   TOPUP: 'topup',
+  BATCH_PENDING: 'batch_pending',
   DONE: 'done',
   ERROR: 'error',
 } as const;

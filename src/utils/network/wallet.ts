@@ -4,6 +4,8 @@ import { ethers, keccak256 } from 'ethers';
 import type { EthereumProvider } from '@/types/global';
 import { sleep } from '@/utils/shared/async';
 
+import { clearAtomicBatchCache } from './eip5792';
+
 interface WalletConnection {
   provider: ethers.BrowserProvider;
   signer: ethers.Signer;
@@ -160,6 +162,7 @@ export class WalletService {
         // Account switched
         const oldAccount = this.account;
         this.account = accounts[0];
+        clearAtomicBatchCache();
 
         if (this.provider) {
           try {
@@ -287,6 +290,7 @@ export class WalletService {
 
   disconnect(): void {
     this.cleanup();
+    clearAtomicBatchCache();
     this.provider = null;
     this.signer = null;
     this.account = null;
@@ -312,6 +316,10 @@ export class WalletService {
 
   getPublicProvider(): ethers.JsonRpcProvider {
     return new ethers.JsonRpcProvider(GNOSIS_RPC_URL);
+  }
+
+  getEthereum(): EthereumProvider | null {
+    return this.ethereum;
   }
 
   on(event: string, callback: (...args: any[]) => void): void {

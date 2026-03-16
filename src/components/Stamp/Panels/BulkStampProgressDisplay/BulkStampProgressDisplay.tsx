@@ -27,7 +27,8 @@ export function BulkStampProgressDisplay({
 
   if (!status) return null;
 
-  const isProcessing = status === TOPUP_STATUS.APPROVING || status === TOPUP_STATUS.TOPUP;
+  const isProcessing =
+    status === TOPUP_STATUS.APPROVING || status === TOPUP_STATUS.TOPUP || status === TOPUP_STATUS.BATCH_PENDING;
   const isDone = status === TOPUP_STATUS.DONE;
   const isError = status === TOPUP_STATUS.ERROR;
 
@@ -42,6 +43,7 @@ export function BulkStampProgressDisplay({
         {isProcessing && <CircleLoader size="small" />}
         <span className={`bulk-stamp-progress-text ${isError ? 'bulk-stamp-progress-text--error' : ''}`}>
           {status === TOPUP_STATUS.APPROVING && 'Approving BZZ...'}
+          {status === TOPUP_STATUS.BATCH_PENDING && 'Confirming batch transaction...'}
           {status === TOPUP_STATUS.TOPUP &&
             currentStampId &&
             `Processing stamp ${(currentIndex ?? 0) + 1} of ${totalStamps}...`}
@@ -50,11 +52,17 @@ export function BulkStampProgressDisplay({
         </span>
       </div>
 
-      {(status === TOPUP_STATUS.TOPUP || isDone || isError) && totalStamps > 0 && (
-        <div className="bulk-stamp-progress-bar-container">
-          <div className="bulk-stamp-progress-bar" style={{ width: `${isDone ? 100 : progressPercent}%` }} />
-        </div>
-      )}
+      {(status === TOPUP_STATUS.BATCH_PENDING || status === TOPUP_STATUS.TOPUP || isDone || isError) &&
+        totalStamps > 0 && (
+          <div className="bulk-stamp-progress-bar-container">
+            <div
+              className={`bulk-stamp-progress-bar${
+                status === TOPUP_STATUS.BATCH_PENDING ? ' bulk-stamp-progress-bar--indeterminate' : ''
+              }`}
+              style={{ width: `${isDone || status === TOPUP_STATUS.BATCH_PENDING ? 100 : progressPercent}%` }}
+            />
+          </div>
+        )}
 
       {(isDone || isError) && result && (
         <div className="bulk-stamp-progress-result">

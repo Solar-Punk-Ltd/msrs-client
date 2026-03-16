@@ -2,7 +2,17 @@ import { useCallback, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ethers } from 'ethers';
 
-import { BulkStampTopUpResult, extendBulkStampDuration, TOPUP_STATUS, TopUpStatus } from '@/utils/network/stampTopup';
+import { hasSufficientBalance } from '@/utils/network/contracts';
+import { tryBatchTopUp } from '@/utils/network/eip5792';
+import {
+  BulkStampTopUpProgressCallback,
+  BulkStampTopUpResult,
+  calculateBulkStampTopUpPlan,
+  extendBulkStampDuration,
+  TOPUP_STATUS,
+  TopUpStatus,
+} from '@/utils/network/stampTopup';
+import { getWalletService } from '@/utils/network/wallet';
 import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
 
 export interface ProgressState {
@@ -32,7 +42,7 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
       stampIds: string[];
       additionalDays: number;
     }) => {
-      return extendBulkStampDuration(signer, stampIds, additionalDays, (status, detail) => {
+      const progressCallback: BulkStampTopUpProgressCallback = (status, detail) => {
         setProgressState({
           status,
           stampId: detail.stampId,
@@ -40,7 +50,35 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
           total: detail.total,
           error: detail.error,
         });
-      });
+      };
+
+      const provider = signer.provider;
+      if (!provider) throw new Error('No provider available');
+
+      const userAddress = await signer.getAddress();
+      const plan = await calculateBulkStampTopUpPlan(stampIds, additionalDays);
+
+      if (plan.stampsNeedingTopUp.length === 0) {
+        return { successful: [], failed: [] } as BulkStampTopUpResult;
+      }
+
+      // Check balance (shared by both paths)
+      const hasBalance = await hasSufficientBalance(provider, userAddress, plan.totalCostPlur);
+      if (!hasBalance) {
+        throw new Error(`Insufficient BZZ balance. Need ${plan.totalCostBzz.toDecimalString()} BZZ`);
+      }
+
+      // Try EIP-5792 atomic batch first
+      const ethereum = getWalletService().getEthereum();
+      if (ethereum) {
+        const batchResult = await tryBatchTopUp(ethereum, userAddress, plan, progressCallback);
+        if (batchResult) {
+          return batchResult;
+        }
+      }
+
+      // Fallback to sequential execution
+      return extendBulkStampDuration(signer, stampIds, additionalDays, progressCallback);
     },
     onSuccess: (result) => {
       if (result.failed.length === 0) {
