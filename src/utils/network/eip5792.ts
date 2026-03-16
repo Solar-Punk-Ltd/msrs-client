@@ -14,7 +14,8 @@ import { GNOSIS_CHAIN_HEX, GNOSIS_RPC_URL } from './wallet';
 
 interface WalletCapabilities {
   [chainIdHex: string]: {
-    atomicBatch?: { supported: boolean };
+    atomic?: { status: string }; // "supported" | "ready"
+    atomicBatch?: { supported: boolean }; // older wallets
   };
 }
 
@@ -36,9 +37,13 @@ async function isAtomicBatchAvailable(ethereum: EthereumProvider, userAddress: s
       params: [userAddress],
     })) as WalletCapabilities;
 
-    return capabilities?.[GNOSIS_CHAIN_HEX]?.atomicBatch?.supported === true;
+    const chainCaps = capabilities?.[GNOSIS_CHAIN_HEX];
+    const supported =
+      chainCaps?.atomic?.status === 'supported' ||
+      chainCaps?.atomic?.status === 'ready' ||
+      chainCaps?.atomicBatch?.supported === true;
+    return supported;
   } catch {
-    // wallet_getCapabilities not supported — graceful fallback
     return false;
   }
 }
@@ -113,7 +118,7 @@ async function executeBatchTopUp(
   const calls = await buildBatchCalls(userAddress, plan);
 
   // Submit batch
-  const batchId = (await ethereum.request({
+  const sendResult = await ethereum.request({
     method: 'wallet_sendCalls',
     params: [
       {
@@ -124,7 +129,10 @@ async function executeBatchTopUp(
         calls,
       },
     ],
-  })) as string;
+  });
+
+  // wallet_sendCalls may return a string or an object with an id field
+  const batchId = typeof sendResult === 'string' ? sendResult : (sendResult as { id: string }).id;
 
   // Poll for completion
   onProgress?.(TOPUP_STATUS.BATCH_PENDING, { total: plan.stampsNeedingTopUp.length });
