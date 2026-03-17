@@ -92,6 +92,8 @@ export function BulkStampProgressDisplay({
 }: BulkStampProgressDisplayProps) {
   if (!status) return null;
 
+  const handleReload = () => window.location.reload();
+
   const isProcessing =
     status === TOPUP_STATUS.APPROVING || status === TOPUP_STATUS.TOPUP || status === TOPUP_STATUS.BATCH_PENDING;
   const isDone = status === TOPUP_STATUS.DONE;
@@ -129,7 +131,7 @@ export function BulkStampProgressDisplay({
       )}
 
       {isError && (
-        <button className="bulk-stamp-progress-reload" onClick={() => window.location.reload()} type="button">
+        <button className="bulk-stamp-progress-reload" onClick={handleReload} type="button">
           Reload page
         </button>
       )}
