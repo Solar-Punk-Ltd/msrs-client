@@ -45,7 +45,7 @@ export interface BulkStampTopUpPlan {
 }
 
 export interface BulkStampTopUpResult {
-  successful: { stampId: string; receipt: ethers.ContractTransactionReceipt }[];
+  successful: { stampId: string; receipt?: ethers.ContractTransactionReceipt }[];
   failed: { stampId: string; error: string }[];
 }
 

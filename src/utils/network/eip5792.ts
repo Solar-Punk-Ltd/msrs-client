@@ -23,7 +23,7 @@ interface CallsStatusResponse {
   status: number;
   receipts?: Array<{
     logs: Array<{ address: string; data: string; topics: string[] }>;
-    status: string; // "0x1" success
+    status: string;
     blockHash: string;
     blockNumber: string;
     transactionHash: string;
@@ -68,7 +68,7 @@ async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan): P
     calls.push({
       to: BZZ_TOKEN_ADDRESS,
       data: bzzIface.encodeFunctionData('approve', [POSTAGE_STAMP_CONTRACT, plan.totalCostPlur]),
-      value: '0x0',
+      value: HEX_ZERO,
     });
   }
 
@@ -76,7 +76,7 @@ async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan): P
     calls.push({
       to: POSTAGE_STAMP_CONTRACT,
       data: stampIface.encodeFunctionData('topUp', [padStampId(stamp.stampId), stamp.neededTopUpPerChunk]),
-      value: '0x0',
+      value: HEX_ZERO,
     });
   }
 
@@ -85,6 +85,9 @@ async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan): P
 
 const POLL_INTERVAL_MS = 3_000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1_000; // 5 minutes
+
+const HEX_ZERO = '0x0';
+const HEX_SUCCESS = '0x1';
 
 const BATCH_CALL_STATUS = {
   PENDING: 100,
@@ -123,7 +126,7 @@ async function pollBatchStatus(
     });
   }
 
-  throw new Error('Batch transaction timed out after 5 minutes');
+  throw new Error(`Batch transaction timed out after ${POLL_TIMEOUT_MS / 1_000}s`);
 }
 
 async function executeBatchTopUp(
@@ -157,7 +160,7 @@ async function executeBatchTopUp(
   const statusResponse = await pollBatchStatus(ethereum, batchId, signal);
 
   const allReceipts = statusResponse.receipts ?? [];
-  const batchSucceeded = allReceipts.length > 0 && allReceipts.every((r) => r.status === '0x1');
+  const batchSucceeded = allReceipts.length > 0 && allReceipts.every((r) => r.status === HEX_SUCCESS);
 
   if (batchSucceeded) {
     onProgress?.(TOPUP_STATUS.DONE, { total: plan.stampsNeedingTopUp.length });
@@ -165,7 +168,6 @@ async function executeBatchTopUp(
     return {
       successful: plan.stampsNeedingTopUp.map((stamp) => ({
         stampId: stamp.stampId,
-        receipt: null as unknown as ethers.ContractTransactionReceipt,
       })),
       failed: [],
     };
