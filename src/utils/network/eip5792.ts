@@ -20,7 +20,7 @@ interface WalletCapabilities {
 }
 
 interface CallsStatusResponse {
-  status: number; // 100 = pending, 200 = confirmed
+  status: number;
   receipts?: Array<{
     logs: Array<{ address: string; data: string; topics: string[] }>;
     status: string; // "0x1" success
@@ -86,20 +86,41 @@ async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan): P
 const POLL_INTERVAL_MS = 3_000;
 const POLL_TIMEOUT_MS = 5 * 60 * 1_000; // 5 minutes
 
-async function pollBatchStatus(ethereum: EthereumProvider, batchId: string): Promise<CallsStatusResponse> {
+const BATCH_CALL_STATUS = {
+  PENDING: 100,
+  CONFIRMED: 200,
+  FAILED_THRESHOLD: 300,
+} as const;
+
+async function pollBatchStatus(
+  ethereum: EthereumProvider,
+  batchId: string,
+  signal?: AbortSignal,
+): Promise<CallsStatusResponse> {
   const startTime = Date.now();
 
   while (Date.now() - startTime < POLL_TIMEOUT_MS) {
+    if (signal?.aborted) {
+      throw new DOMException('Batch polling aborted', 'AbortError');
+    }
+
     const response = (await ethereum.request({
       method: 'wallet_getCallsStatus',
       params: [batchId],
     })) as CallsStatusResponse;
 
-    if (response.status === 200) {
+    if (response.status === BATCH_CALL_STATUS.CONFIRMED) {
       return response;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    if (response.status >= BATCH_CALL_STATUS.FAILED_THRESHOLD) {
+      throw new Error(`Batch transaction failed with status ${response.status}`);
+    }
+
+    await new Promise((resolve) => {
+      const timer = setTimeout(resolve, POLL_INTERVAL_MS);
+      signal?.addEventListener('abort', () => clearTimeout(timer), { once: true });
+    });
   }
 
   throw new Error('Batch transaction timed out after 5 minutes');
@@ -110,6 +131,7 @@ async function executeBatchTopUp(
   userAddress: string,
   plan: BulkStampTopUpPlan,
   onProgress?: BulkStampTopUpProgressCallback,
+  signal?: AbortSignal,
 ): Promise<BulkStampTopUpResult> {
   onProgress?.(TOPUP_STATUS.APPROVING, { total: plan.stampsNeedingTopUp.length });
 
@@ -132,7 +154,7 @@ async function executeBatchTopUp(
 
   onProgress?.(TOPUP_STATUS.BATCH_PENDING, { total: plan.stampsNeedingTopUp.length });
 
-  const statusResponse = await pollBatchStatus(ethereum, batchId);
+  const statusResponse = await pollBatchStatus(ethereum, batchId, signal);
 
   const allReceipts = statusResponse.receipts ?? [];
   const batchSucceeded = allReceipts.length > 0 && allReceipts.every((r) => r.status === '0x1');
@@ -171,6 +193,7 @@ export async function tryBatchTopUp(
   userAddress: string,
   plan: BulkStampTopUpPlan,
   onProgress?: BulkStampTopUpProgressCallback,
+  signal?: AbortSignal,
 ): Promise<BulkStampTopUpResult | null> {
   const batchAvailable = await isAtomicBatchAvailable(ethereum, userAddress);
 
@@ -179,7 +202,7 @@ export async function tryBatchTopUp(
   }
 
   try {
-    return await executeBatchTopUp(ethereum, userAddress, plan, onProgress);
+    return await executeBatchTopUp(ethereum, userAddress, plan, onProgress, signal);
   } catch (error) {
     console.warn('EIP-5792 batch execution failed, falling back to sequential:', error);
     return null;

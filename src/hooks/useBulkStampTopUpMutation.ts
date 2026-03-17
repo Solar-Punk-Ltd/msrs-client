@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ethers } from 'ethers';
 
@@ -31,6 +31,13 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
   const queryClient = useQueryClient();
   const [progressState, setProgressState] = useState<ProgressState | null>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   const mutation = useMutation({
     mutationFn: async ({
@@ -69,7 +76,16 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
 
       const ethereum = getWalletService().getEthereum();
       if (ethereum) {
-        const batchResult = await tryBatchTopUp(ethereum, userAddress, plan, progressCallback);
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = new AbortController();
+
+        const batchResult = await tryBatchTopUp(
+          ethereum,
+          userAddress,
+          plan,
+          progressCallback,
+          abortControllerRef.current.signal,
+        );
         if (batchResult) {
           return batchResult;
         }

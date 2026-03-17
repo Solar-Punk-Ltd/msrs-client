@@ -59,7 +59,6 @@ export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkSta
 
       <BulkStampProgressDisplay
         status={progressState?.status ?? null}
-        currentStampId={progressState?.stampId}
         currentIndex={progressState?.index}
         totalStamps={progressState?.total ?? stampIds.length}
         result={result}
