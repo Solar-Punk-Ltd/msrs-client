@@ -188,7 +188,7 @@ export async function calculateBulkStampTopUpPlan(
   });
 
   const stampsNeedingTopUp = stamps.filter((s) => s.neededTopUpPerChunk > 0n);
-  const totalCostPlur = stamps.reduce((sum, s) => sum + s.costPlur, 0n);
+  const totalCostPlur = stampsNeedingTopUp.reduce((sum, s) => sum + s.costPlur, 0n);
 
   return {
     stamps,
