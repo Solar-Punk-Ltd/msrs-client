@@ -60,7 +60,6 @@ export function BulkStampSyncControls({ stampIds, signer, maxDriftDays, onComple
 
       <BulkStampProgressDisplay
         status={progressState?.status ?? null}
-        currentStampId={progressState?.stampId}
         currentIndex={progressState?.index}
         totalStamps={progressState?.total ?? stampIds.length}
         result={result}

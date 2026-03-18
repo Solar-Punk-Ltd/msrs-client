@@ -45,13 +45,14 @@ export interface BulkStampTopUpPlan {
 }
 
 export interface BulkStampTopUpResult {
-  successful: { stampId: string; receipt: ethers.ContractTransactionReceipt }[];
+  successful: { stampId: string; receipt?: ethers.ContractTransactionReceipt }[];
   failed: { stampId: string; error: string }[];
 }
 
 export const TOPUP_STATUS = {
   APPROVING: 'approving',
   TOPUP: 'topup',
+  BATCH_PENDING: 'batch_pending',
   DONE: 'done',
   ERROR: 'error',
 } as const;
@@ -187,7 +188,7 @@ export async function calculateBulkStampTopUpPlan(
   });
 
   const stampsNeedingTopUp = stamps.filter((s) => s.neededTopUpPerChunk > 0n);
-  const totalCostPlur = stamps.reduce((sum, s) => sum + s.costPlur, 0n);
+  const totalCostPlur = stampsNeedingTopUp.reduce((sum, s) => sum + s.costPlur, 0n);
 
   return {
     stamps,

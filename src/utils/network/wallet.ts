@@ -314,6 +314,10 @@ export class WalletService {
     return new ethers.JsonRpcProvider(GNOSIS_RPC_URL);
   }
 
+  getEthereum(): EthereumProvider | null {
+    return this.ethereum;
+  }
+
   on(event: string, callback: (...args: any[]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
