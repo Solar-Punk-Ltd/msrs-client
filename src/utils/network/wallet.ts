@@ -20,16 +20,53 @@ export function getSigner(input: string): PrivateKey {
   const privateKeyHex = hash.slice(2);
   return new PrivateKey(privateKeyHex);
 }
-
 export const GNOSIS_CHAIN_ID = 100;
 export const GNOSIS_CHAIN_HEX = '0x64';
 export const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
 export const GNOSIS_BLOCK_EXPLORER_URL = 'https://gnosisscan.io';
-const STORAGE_KEY = 'wallet_connected';
-const METAMASK_RDNS = 'io.metamask';
-const EIP6963_ANNOUNCE = 'eip6963:announceProvider';
-const EIP6963_REQUEST = 'eip6963:requestProvider';
 export const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
+
+const STORAGE_KEY = 'wallet_connected';
+const CHAIN_SWITCH_DELAY_MS = 1500;
+const CHAIN_NOT_ADDED_ERROR_CODE = 4902;
+
+const EIP6963 = {
+  ANNOUNCE: 'eip6963:announceProvider',
+  REQUEST: 'eip6963:requestProvider',
+  METAMASK_RDNS: 'io.metamask',
+} as const;
+
+const RPC_METHOD = {
+  ETH_ACCOUNTS: 'eth_accounts',
+  ETH_REQUEST_ACCOUNTS: 'eth_requestAccounts',
+  WALLET_SWITCH_CHAIN: 'wallet_switchEthereumChain',
+  WALLET_ADD_CHAIN: 'wallet_addEthereumChain',
+} as const;
+
+const PROVIDER_EVENT = {
+  ACCOUNTS_CHANGED: 'accountsChanged',
+  CHAIN_CHANGED: 'chainChanged',
+  DISCONNECT: 'disconnect',
+} as const;
+
+export const WALLET_EVENT = {
+  ACCOUNT_CHANGED: 'accountChanged',
+  DISCONNECTED: 'disconnected',
+  CHAIN_CHANGED: 'chainChanged',
+  ERROR: 'error',
+} as const;
+
+const GNOSIS_CHAIN_CONFIG = {
+  chainId: GNOSIS_CHAIN_HEX,
+  chainName: 'Gnosis',
+  nativeCurrency: {
+    name: 'XDAI',
+    symbol: 'XDAI',
+    decimals: 18,
+  },
+  rpcUrls: [GNOSIS_RPC_URL],
+  blockExplorerUrls: [GNOSIS_BLOCK_EXPLORER_URL],
+} as const;
 
 export class WalletService {
   private provider: ethers.BrowserProvider | null = null;
@@ -40,10 +77,10 @@ export class WalletService {
   private cleanupFunctions: Array<() => void> = [];
 
   constructor() {
-    this.listeners.set('accountChanged', new Set());
-    this.listeners.set('disconnected', new Set());
-    this.listeners.set('chainChanged', new Set());
-    this.listeners.set('error', new Set());
+    this.listeners.set(WALLET_EVENT.ACCOUNT_CHANGED, new Set());
+    this.listeners.set(WALLET_EVENT.DISCONNECTED, new Set());
+    this.listeners.set(WALLET_EVENT.CHAIN_CHANGED, new Set());
+    this.listeners.set(WALLET_EVENT.ERROR, new Set());
   }
 
   private getPreferredEthereum(): EthereumProvider {
@@ -53,11 +90,11 @@ export class WalletService {
       providers.push(event.detail);
     };
 
-    window.addEventListener(EIP6963_ANNOUNCE, handler);
-    window.dispatchEvent(new Event(EIP6963_REQUEST));
-    window.removeEventListener(EIP6963_ANNOUNCE, handler);
+    window.addEventListener(EIP6963.ANNOUNCE, handler);
+    window.dispatchEvent(new Event(EIP6963.REQUEST));
+    window.removeEventListener(EIP6963.ANNOUNCE, handler);
 
-    const metamask = providers.find((p) => p.info.rdns === METAMASK_RDNS);
+    const metamask = providers.find((p) => p.info.rdns === EIP6963.METAMASK_RDNS);
     if (metamask) {
       return metamask.provider;
     }
@@ -81,7 +118,7 @@ export class WalletService {
 
       // Check if we have permission already (eth_accounts doesn't prompt)
       const accounts = (await this.ethereum.request({
-        method: 'eth_accounts',
+        method: RPC_METHOD.ETH_ACCOUNTS,
       })) as string[];
 
       if (accounts.length === 0) {
@@ -98,7 +135,7 @@ export class WalletService {
       const network = await this.provider.getNetwork();
       if (network.chainId !== BigInt(GNOSIS_CHAIN_ID)) {
         this.disconnect();
-        this.emit('error', new Error('Please switch to Gnosis Chain'));
+        this.emit(WALLET_EVENT.ERROR, new Error('Please switch to Gnosis Chain'));
         return null;
       }
 
@@ -121,7 +158,7 @@ export class WalletService {
 
     try {
       const accounts = (await this.ethereum.request({
-        method: 'eth_requestAccounts',
+        method: RPC_METHOD.ETH_REQUEST_ACCOUNTS,
       })) as string[];
 
       if (accounts.length === 0) {
@@ -160,7 +197,7 @@ export class WalletService {
       if (accounts.length === 0) {
         // Wallet locked or permission revoked
         this.disconnect();
-        this.emit('disconnected', { reason: 'Wallet locked or permission revoked' });
+        this.emit(WALLET_EVENT.DISCONNECTED, { reason: 'Wallet locked or permission revoked' });
       } else if (accounts[0] !== this.account) {
         // Account switched
         const oldAccount = this.account;
@@ -169,14 +206,14 @@ export class WalletService {
         if (this.provider) {
           try {
             this.signer = await this.provider.getSigner();
-            this.emit('accountChanged', {
+            this.emit(WALLET_EVENT.ACCOUNT_CHANGED, {
               oldAccount,
               newAccount: this.account,
             });
           } catch (error) {
             console.error('Failed to update signer:', error);
             this.disconnect();
-            this.emit('error', error);
+            this.emit(WALLET_EVENT.ERROR, error);
           }
         }
       }
@@ -190,11 +227,11 @@ export class WalletService {
         // Wrong network, disconnect
         const error = new Error(`Wrong network. Please switch to Gnosis Chain (chainId: ${GNOSIS_CHAIN_ID})`);
         this.disconnect();
-        this.emit('chainChanged', {
+        this.emit(WALLET_EVENT.CHAIN_CHANGED, {
           chainId: chainIdNumber,
           error,
         });
-        this.emit('disconnected', {
+        this.emit(WALLET_EVENT.DISCONNECTED, {
           reason: 'Network changed to unsupported chain',
         });
       } else {
@@ -209,23 +246,23 @@ export class WalletService {
       const error = args[0];
       console.error('Wallet disconnected:', error);
       this.disconnect();
-      this.emit('disconnected', {
+      this.emit(WALLET_EVENT.DISCONNECTED, {
         reason: 'Wallet disconnected',
         error,
       });
     };
 
     if (this.ethereum?.on) {
-      this.ethereum.on('accountsChanged', accountsChangedHandler);
-      this.ethereum.on('chainChanged', chainChangedHandler);
-      this.ethereum.on('disconnect', disconnectHandler);
+      this.ethereum.on(PROVIDER_EVENT.ACCOUNTS_CHANGED, accountsChangedHandler);
+      this.ethereum.on(PROVIDER_EVENT.CHAIN_CHANGED, chainChangedHandler);
+      this.ethereum.on(PROVIDER_EVENT.DISCONNECT, disconnectHandler);
     }
 
     this.cleanupFunctions.push(() => {
       if (this.ethereum?.removeListener) {
-        this.ethereum.removeListener('accountsChanged', accountsChangedHandler);
-        this.ethereum.removeListener('chainChanged', chainChangedHandler);
-        this.ethereum.removeListener('disconnect', disconnectHandler);
+        this.ethereum.removeListener(PROVIDER_EVENT.ACCOUNTS_CHANGED, accountsChangedHandler);
+        this.ethereum.removeListener(PROVIDER_EVENT.CHAIN_CHANGED, chainChangedHandler);
+        this.ethereum.removeListener(PROVIDER_EVENT.DISCONNECT, disconnectHandler);
       }
     });
   }
@@ -245,23 +282,23 @@ export class WalletService {
     if (network.chainId !== BigInt(GNOSIS_CHAIN_ID)) {
       try {
         await this.ethereum!.request({
-          method: 'wallet_switchEthereumChain',
+          method: RPC_METHOD.WALLET_SWITCH_CHAIN,
           params: [{ chainId: GNOSIS_CHAIN_HEX }],
         });
 
         // Wait a bit for the switch to complete
-        await sleep(1500);
+        await sleep(CHAIN_SWITCH_DELAY_MS);
 
         const newNetwork = await this.provider.getNetwork();
         if (newNetwork.chainId !== BigInt(GNOSIS_CHAIN_ID)) {
           throw new Error('Failed to switch to Gnosis Chain');
         }
       } catch (switchError: unknown) {
-        if ((switchError as SwitchError).code === 4902) {
+        if ((switchError as SwitchError).code === CHAIN_NOT_ADDED_ERROR_CODE) {
           await this.addGnosisChain();
           // After adding, try switching again
           await this.ethereum!.request({
-            method: 'wallet_switchEthereumChain',
+            method: RPC_METHOD.WALLET_SWITCH_CHAIN,
             params: [{ chainId: GNOSIS_CHAIN_HEX }],
           });
         } else {
@@ -273,20 +310,8 @@ export class WalletService {
 
   async addGnosisChain(): Promise<void> {
     await this.ethereum!.request({
-      method: 'wallet_addEthereumChain',
-      params: [
-        {
-          chainId: GNOSIS_CHAIN_HEX,
-          chainName: 'Gnosis',
-          nativeCurrency: {
-            name: 'XDAI',
-            symbol: 'XDAI',
-            decimals: 18,
-          },
-          rpcUrls: [GNOSIS_RPC_URL],
-          blockExplorerUrls: [GNOSIS_BLOCK_EXPLORER_URL],
-        },
-      ],
+      method: RPC_METHOD.WALLET_ADD_CHAIN,
+      params: [GNOSIS_CHAIN_CONFIG],
     });
   }
 

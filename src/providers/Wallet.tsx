@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
-import { getWalletService } from '../utils/network/wallet';
+import { getWalletService, WALLET_EVENT } from '../utils/network/wallet';
 
 interface IWalletContext {
   account: string | null;
@@ -123,16 +123,16 @@ export function WalletProvider({ children }: WalletProviderProps) {
       }));
     };
 
-    walletService.on('accountChanged', handleAccountChanged);
-    walletService.on('disconnected', handleDisconnected);
-    walletService.on('chainChanged', handleChainChanged);
-    walletService.on('error', handleError);
+    walletService.on(WALLET_EVENT.ACCOUNT_CHANGED, handleAccountChanged);
+    walletService.on(WALLET_EVENT.DISCONNECTED, handleDisconnected);
+    walletService.on(WALLET_EVENT.CHAIN_CHANGED, handleChainChanged);
+    walletService.on(WALLET_EVENT.ERROR, handleError);
 
     return () => {
-      walletService.off('accountChanged', handleAccountChanged);
-      walletService.off('disconnected', handleDisconnected);
-      walletService.off('chainChanged', handleChainChanged);
-      walletService.off('error', handleError);
+      walletService.off(WALLET_EVENT.ACCOUNT_CHANGED, handleAccountChanged);
+      walletService.off(WALLET_EVENT.DISCONNECTED, handleDisconnected);
+      walletService.off(WALLET_EVENT.CHAIN_CHANGED, handleChainChanged);
+      walletService.off(WALLET_EVENT.ERROR, handleError);
     };
   }, [walletService]);
 
