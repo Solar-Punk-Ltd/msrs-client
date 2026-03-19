@@ -43,10 +43,10 @@ export function WalletConnection() {
 
       {error && !chainError && (
         <div className="error-message" role="alert">
-          {error}
+          <span className="error-message__text">{error}</span>
           {(error.includes('install MetaMask') || error.includes('outdated')) && (
-            <a href={METAMASK_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
-              {error.includes('outdated') ? 'Update MetaMask' : 'Install MetaMask'}
+            <a className="error-message__link" href={METAMASK_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
+              {error.includes('outdated') ? '↗ Update MetaMask' : '↗ Install MetaMask'}
             </a>
           )}
         </div>
