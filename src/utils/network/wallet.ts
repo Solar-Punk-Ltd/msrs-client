@@ -1,7 +1,7 @@
 import { PrivateKey } from '@ethersphere/bee-js';
 import { ethers, keccak256 } from 'ethers';
 
-import type { EthereumProvider } from '@/types/global';
+import type { EIP6963AnnounceProviderEvent, EIP6963ProviderDetail, EthereumProvider } from '@/types/global';
 import { sleep } from '@/utils/shared/async';
 
 interface WalletConnection {
@@ -26,6 +26,10 @@ export const GNOSIS_CHAIN_HEX = '0x64';
 export const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
 export const GNOSIS_BLOCK_EXPLORER_URL = 'https://gnosisscan.io';
 const STORAGE_KEY = 'wallet_connected';
+const METAMASK_RDNS = 'io.metamask';
+const EIP6963_ANNOUNCE = 'eip6963:announceProvider';
+const EIP6963_REQUEST = 'eip6963:requestProvider';
+export const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
 
 export class WalletService {
   private provider: ethers.BrowserProvider | null = null;
@@ -43,25 +47,26 @@ export class WalletService {
   }
 
   private getPreferredEthereum(): EthereumProvider {
-    if (!window.ethereum) {
-      throw new Error('MetaMask not installed. Please install MetaMask to continue.');
+    const providers: EIP6963ProviderDetail[] = [];
+
+    const handler = (event: EIP6963AnnounceProviderEvent) => {
+      providers.push(event.detail);
+    };
+
+    window.addEventListener(EIP6963_ANNOUNCE, handler);
+    window.dispatchEvent(new Event(EIP6963_REQUEST));
+    window.removeEventListener(EIP6963_ANNOUNCE, handler);
+
+    const metamask = providers.find((p) => p.info.rdns === METAMASK_RDNS);
+    if (metamask) {
+      return metamask.provider;
     }
 
-    // If multiple providers are available, look for MetaMask
-    if (window.ethereum.providers && window.ethereum.providers.length > 0) {
-      const metamask = window.ethereum.providers.find((provider) => provider.isMetaMask);
-      if (metamask) {
-        return metamask;
-      }
+    if (window.ethereum?.isMetaMask) {
+      throw new Error('MetaMask detected but outdated. Please update MetaMask to the latest version.');
     }
 
-    if (window.ethereum.isMetaMask) {
-      return window.ethereum;
-    }
-
-    throw new Error(
-      'MetaMask not found. Please install MetaMask or disable other wallet extensions that may interfere.',
-    );
+    throw new Error('MetaMask not found. Please install MetaMask to continue.');
   }
 
   async checkAndReconnect(): Promise<WalletConnection | null> {
