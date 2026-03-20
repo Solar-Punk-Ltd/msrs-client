@@ -7,9 +7,11 @@ import { padStampId } from '@/utils/ui/format';
 
 import {
   ATOMIC_CAPABILITY_STATUS,
+  BZZ_FN,
   BZZ_TOKEN_ABI,
   BZZ_TOKEN_ADDRESS,
   getDefaultPublicClient,
+  POSTAGE_FN,
   POSTAGE_STAMP_ABI,
   POSTAGE_STAMP_CONTRACT,
   TX_STATUS,
@@ -72,7 +74,7 @@ async function buildBatchCalls(userAddress: Address, plan: BulkStampTopUpPlan) {
   const currentAllowance = (await publicClient.readContract({
     address: BZZ_TOKEN_ADDRESS,
     abi: BZZ_TOKEN_ABI,
-    functionName: 'allowance',
+    functionName: BZZ_FN.ALLOWANCE,
     args: [userAddress, POSTAGE_STAMP_CONTRACT],
   })) as bigint;
 
@@ -80,7 +82,7 @@ async function buildBatchCalls(userAddress: Address, plan: BulkStampTopUpPlan) {
     calls.push({
       to: BZZ_TOKEN_ADDRESS,
       abi: BZZ_TOKEN_ABI,
-      functionName: 'approve',
+      functionName: BZZ_FN.APPROVE,
       args: [POSTAGE_STAMP_CONTRACT, plan.totalCostPlur],
     });
   }
@@ -89,7 +91,7 @@ async function buildBatchCalls(userAddress: Address, plan: BulkStampTopUpPlan) {
     calls.push({
       to: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
-      functionName: 'topUp',
+      functionName: POSTAGE_FN.TOP_UP,
       args: [padStampId(stamp.stampId), stamp.neededTopUpPerChunk],
     });
   }

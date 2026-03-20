@@ -2,7 +2,7 @@ import { type PublicClient, type WalletClient } from 'viem';
 
 import { padStampId } from '../../ui/format';
 
-import { POSTAGE_STAMP_ABI, POSTAGE_STAMP_CONTRACT, TX_STATUS } from './constants';
+import { POSTAGE_FN, POSTAGE_STAMP_ABI, POSTAGE_STAMP_CONTRACT, TX_STATUS } from './constants';
 
 export interface BatchData {
   owner: string;
@@ -22,7 +22,7 @@ export const fetchBatchData = async (publicClient: PublicClient, stampId: string
   const result = await publicClient.readContract({
     address: POSTAGE_STAMP_CONTRACT,
     abi: POSTAGE_STAMP_ABI,
-    functionName: 'batches',
+    functionName: POSTAGE_FN.BATCHES,
     args: [padStampId(stampId)],
   });
 
@@ -50,12 +50,12 @@ export const fetchContractState = async (publicClient: PublicClient): Promise<Co
     publicClient.readContract({
       address: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
-      functionName: 'currentTotalOutPayment',
+      functionName: POSTAGE_FN.CURRENT_TOTAL_OUT_PAYMENT,
     }) as Promise<bigint>,
     publicClient.readContract({
       address: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
-      functionName: 'lastPrice',
+      functionName: POSTAGE_FN.LAST_PRICE,
     }) as Promise<bigint>,
   ]);
 
@@ -71,7 +71,7 @@ export async function executeTopup(
   const hash = await walletClient.writeContract({
     address: POSTAGE_STAMP_CONTRACT,
     abi: POSTAGE_STAMP_ABI,
-    functionName: 'topUp',
+    functionName: POSTAGE_FN.TOP_UP,
     args: [padStampId(stampId), amountPerChunk],
     chain: walletClient.chain,
     account: walletClient.account!,

@@ -10,6 +10,7 @@ import {
   fetchContractState,
   getDefaultPublicClient,
   GNOSIS_BLOCK_TIME,
+  POSTAGE_FN,
   POSTAGE_STAMP_ABI,
   POSTAGE_STAMP_CONTRACT,
 } from './contracts';
@@ -198,7 +199,7 @@ export const loadBulkStampExpirations = async (
   const batchContracts = stampIds.map((id) => ({
     address: POSTAGE_STAMP_CONTRACT,
     abi: POSTAGE_STAMP_ABI,
-    functionName: 'batches' as const,
+    functionName: POSTAGE_FN.BATCHES,
     args: [padStampId(id)] as const,
   }));
 
@@ -206,12 +207,12 @@ export const loadBulkStampExpirations = async (
     {
       address: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
-      functionName: 'currentTotalOutPayment' as const,
+      functionName: POSTAGE_FN.CURRENT_TOTAL_OUT_PAYMENT,
     },
     {
       address: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
-      functionName: 'lastPrice' as const,
+      functionName: POSTAGE_FN.LAST_PRICE,
     },
   ];
 

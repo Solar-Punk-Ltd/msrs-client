@@ -113,6 +113,21 @@ export const BZZ_TOKEN_ABI = [
   },
 ] as const;
 
+// ── Contract function names ──────────────────────────────────────────────────
+
+export const POSTAGE_FN = {
+  BATCHES: 'batches',
+  CURRENT_TOTAL_OUT_PAYMENT: 'currentTotalOutPayment',
+  LAST_PRICE: 'lastPrice',
+  TOP_UP: 'topUp',
+} as const;
+
+export const BZZ_FN = {
+  APPROVE: 'approve',
+  ALLOWANCE: 'allowance',
+  BALANCE_OF: 'balanceOf',
+} as const;
+
 // ── Transaction status ───────────────────────────────────────────────────────
 
 export const TX_STATUS = {
