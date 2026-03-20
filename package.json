@@ -26,7 +26,6 @@
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
     "emoji-picker-react": "4.13.1",
-    "ethers": "^6.13.5",
     "hls.js": "^1.6.2",
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
