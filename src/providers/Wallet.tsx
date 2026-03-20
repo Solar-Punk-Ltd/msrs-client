@@ -1,5 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
-import { ethers } from 'ethers';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
 import { useAccount, useConnect, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
 import { gnosis } from 'wagmi/chains';
 import { metaMask } from 'wagmi/connectors';
@@ -15,8 +14,6 @@ export { METAMASK_DOWNLOAD_URL };
 
 interface IWalletContext {
   account: string | null;
-  provider: ethers.BrowserProvider | null;
-  signer: ethers.Signer | null;
   isConnecting: boolean;
   isReconnecting: boolean;
   error: string | null;
@@ -56,39 +53,10 @@ export function WalletProvider({ children }: WalletProviderProps) {
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
 
-  const [ethersProvider, setEthersProvider] = useState<ethers.BrowserProvider | null>(null);
-  const [ethersSigner, setEthersSigner] = useState<ethers.Signer | null>(null);
-
   const chainError = useMemo(() => {
     if (!isConnected || !walletClient) return false;
     return walletClient.chain.id !== gnosis.id;
   }, [isConnected, walletClient]);
-
-  // Build ethers shim from walletClient (temporary — removed in Phase 5)
-  useEffect(() => {
-    if (!walletClient) {
-      setEthersProvider(null);
-      setEthersSigner(null);
-      return;
-    }
-
-    const provider = new ethers.BrowserProvider(walletClient.transport, {
-      chainId: walletClient.chain.id,
-      name: walletClient.chain.name,
-    });
-
-    provider
-      .getSigner()
-      .then((signer) => {
-        setEthersProvider(provider);
-        setEthersSigner(signer);
-      })
-      .catch((err) => {
-        console.error('Failed to create ethers signer shim:', err);
-        setEthersProvider(null);
-        setEthersSigner(null);
-      });
-  }, [walletClient]);
 
   const connect = () => {
     wagmiConnect({ connector: metaMask() });
@@ -96,8 +64,6 @@ export function WalletProvider({ children }: WalletProviderProps) {
 
   const disconnect = () => {
     wagmiDisconnect();
-    setEthersProvider(null);
-    setEthersSigner(null);
   };
 
   const switchToGnosis = () => {
@@ -108,8 +74,6 @@ export function WalletProvider({ children }: WalletProviderProps) {
 
   const value: IWalletContext = {
     account: address ?? null,
-    provider: ethersProvider,
-    signer: ethersSigner,
     isConnecting: wagmiIsConnecting || isConnectPending,
     isReconnecting,
     error,

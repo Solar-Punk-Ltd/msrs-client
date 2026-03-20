@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ethers } from 'ethers';
 
 import { loadStampInfo as loadStampInfoFromContract, StampInfo as ContractStampInfo } from '@/utils/network/stampInfo';
 import {
@@ -35,7 +34,7 @@ interface StampsState {
   error: string | null;
 }
 
-export function useStamps(adminSecret: string | undefined, _provider: ethers.Provider | null) {
+export function useStamps(adminSecret: string | undefined) {
   const [state, setState] = useState<StampsState>({
     pinnedStreams: [],
     privateStamps: [],

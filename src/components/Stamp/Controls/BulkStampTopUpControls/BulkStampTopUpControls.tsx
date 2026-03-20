@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ethers } from 'ethers';
 
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { useBulkStampTopUpMutation } from '@/hooks/useBulkStampTopUpMutation';
@@ -13,11 +12,10 @@ import './BulkStampTopUpControls.scss';
 
 interface BulkStampTopUpControlsProps {
   stampIds: string[];
-  signer: ethers.Signer | null;
   onComplete: () => void;
 }
 
-export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkStampTopUpControlsProps) {
+export function BulkStampTopUpControls({ stampIds, onComplete }: BulkStampTopUpControlsProps) {
   const [selectedDays, setSelectedDays] = useState(30);
 
   const { plan, isPlanLoading } = useBulkStampTopUpPlan(stampIds, selectedDays);
@@ -49,7 +47,7 @@ export function BulkStampTopUpControls({ stampIds, signer, onComplete }: BulkSta
       {!isExecuting && !progressState && (
         <button
           className="bulk-stamp-topup-button"
-          onClick={() => execute(signer, stampIds, selectedDays)}
+          onClick={() => execute(stampIds, selectedDays)}
           disabled={isPlanLoading || !plan || stampIds.length === 0}
           type="button"
         >

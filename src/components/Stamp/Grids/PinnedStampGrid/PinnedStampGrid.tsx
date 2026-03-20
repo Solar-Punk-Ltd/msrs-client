@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ethers } from 'ethers';
 
 import { PortalTooltip } from '@/components/PortalTooltip/PortalTooltip';
 import { StreamGroup } from '@/hooks/useStamps';
@@ -13,7 +12,6 @@ import './PinnedStampGrid.scss';
 
 interface PinnedStreamGridProps {
   streams: StreamGroup[];
-  signer: ethers.Signer | null;
   onStampRefresh?: (stampId: string) => Promise<void>;
 }
 
@@ -24,7 +22,7 @@ interface StreamInfo {
   matchedStream?: StateEntry;
 }
 
-export function PinnedStreamGrid({ streams, signer, onStampRefresh }: PinnedStreamGridProps) {
+export function PinnedStreamGrid({ streams, onStampRefresh }: PinnedStreamGridProps) {
   const { streamList } = useAppContext();
   const navigate = useNavigate();
   const [expandedStreams, setExpandedStreams] = useState<Record<string, boolean>>({});
@@ -139,7 +137,6 @@ export function PinnedStreamGrid({ streams, signer, onStampRefresh }: PinnedStre
                   <StreamStampCard
                     key={stamp.stampId}
                     stamp={stamp}
-                    signer={signer || undefined}
                     sharedExpanded={isExpanded}
                     onToggleExpanded={() => handleToggleExpanded(stream.streamId)}
                     onStampRefresh={onStampRefresh}

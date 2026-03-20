@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ethers } from 'ethers';
+import { usePublicClient, useWalletClient } from 'wagmi';
 
 import { extendStampDuration } from '@/utils/network/stampTopup';
 import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
@@ -13,16 +13,18 @@ interface UseStampTopUpReturn {
 }
 
 export function useStampTopUp(
-  signer: ethers.Signer | undefined,
   stampId: string,
   onStampRefresh?: (stampId: string) => Promise<void>,
 ): UseStampTopUpReturn {
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
+
   const [isTopUpLoading, setIsTopUpLoading] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleTopUp = async (days: number) => {
-    if (!signer) {
+    if (!walletClient || !publicClient) {
       setErrorMessage('Please connect your wallet first');
       setErrorModalOpen(true);
       return;
@@ -30,7 +32,7 @@ export function useStampTopUp(
 
     setIsTopUpLoading(true);
     try {
-      await extendStampDuration(signer, stampId, days);
+      await extendStampDuration(walletClient, publicClient, stampId, days);
       console.log(`Successfully topped up stamp for ${days} days`);
       if (onStampRefresh) {
         await onStampRefresh(stampId);

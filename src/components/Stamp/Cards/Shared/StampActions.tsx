@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { usePublicClient } from 'wagmi';
 
 import { calculateCostForDays, ExtensionDaysCalculation } from '@/utils/network/stampTopup';
 import { formatBzzAmount } from '@/utils/ui/format';
@@ -10,7 +10,6 @@ import './StampActions.scss';
 
 interface StampActionsProps {
   stampId: string;
-  signer: ethers.Signer;
   onTopUp: (days: number) => Promise<void>;
   isLoading: boolean;
   variant?: 'default' | 'stream';
@@ -20,13 +19,14 @@ interface StampActionsProps {
 
 export function StampActions({
   stampId,
-  signer,
   onTopUp,
   isLoading,
   variant = 'default',
   externalExpanded,
   onToggleExpanded,
 }: StampActionsProps) {
+  const publicClient = usePublicClient();
+
   const [internalExpanded, setInternalExpanded] = useState(false);
   const [selectedDays, setSelectedDays] = useState(1);
 
@@ -43,14 +43,14 @@ export function StampActions({
   const [isCalculating, setIsCalculating] = useState(false);
 
   useEffect(() => {
-    if (isExpanded && signer.provider) {
+    if (isExpanded && publicClient) {
       setIsCalculating(true);
-      calculateCostForDays(signer.provider, stampId, selectedDays)
+      calculateCostForDays(publicClient, stampId, selectedDays)
         .then(setCostCalculation)
         .catch(console.error)
         .finally(() => setIsCalculating(false));
     }
-  }, [isExpanded, selectedDays, stampId, signer.provider]);
+  }, [isExpanded, selectedDays, stampId, publicClient]);
 
   const handleTopUpClick = async () => {
     try {
