@@ -27,30 +27,23 @@ interface AtomicCapability {
   status?: string;
 }
 
-interface AtomicBatchCapability {
-  supported?: boolean;
-}
-
 interface ChainCapabilities {
   atomic?: AtomicCapability;
-  atomicBatch?: AtomicBatchCapability;
 }
 
 async function isAtomicBatchAvailable(): Promise<boolean> {
   try {
-    const capabilities = await getCapabilities(wagmiConfig, {
+    // When chainId is passed, viem returns the capabilities for that chain
+    // directly (not wrapped in a { [chainId]: ... } map)
+    const chainCaps = (await getCapabilities(wagmiConfig, {
       chainId: gnosis.id,
-    });
+    })) as ChainCapabilities | undefined;
 
-    const chainCaps = capabilities?.[gnosis.id] as ChainCapabilities | undefined;
     if (!chainCaps) return false;
 
-    const { atomic, atomicBatch } = chainCaps;
-
     return (
-      atomic?.status === ATOMIC_CAPABILITY_STATUS.SUPPORTED ||
-      atomic?.status === ATOMIC_CAPABILITY_STATUS.READY ||
-      atomicBatch?.supported === true
+      chainCaps.atomic?.status === ATOMIC_CAPABILITY_STATUS.SUPPORTED ||
+      chainCaps.atomic?.status === ATOMIC_CAPABILITY_STATUS.READY
     );
   } catch {
     return false;

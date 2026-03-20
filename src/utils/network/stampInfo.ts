@@ -101,6 +101,7 @@ export const getStampEffectiveBytes = (depth: number): number => {
     return breakpoint[1] * BYTES_PER_GIGABYTE;
   }
 
+  // For depths above 34, use 90% of theoretical
   return Math.ceil(getStampTheoreticalBytes(depth) * MAX_UTILIZATION);
 };
 
@@ -147,6 +148,7 @@ const aggregateEntries = (
 
   const active = sorted.filter((e) => e.financialStatus.isActive);
   const soonestExpiry = active[0] ?? null;
+  // Drift is the gap between the longest- and shortest lived active stamps
   const maxDriftDays =
     active.length >= 2
       ? active[active.length - 1].financialStatus.remainingDays - active[0].financialStatus.remainingDays
