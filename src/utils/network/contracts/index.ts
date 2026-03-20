@@ -18,3 +18,5 @@ export {
 export { executeTopup, fetchBatchData, fetchContractState, type BatchData, type ContractState } from './postageStamp';
 
 export { ensureBzzApproval, hasSufficientBalance } from './bzzToken';
+
+export type { Hex } from 'viem';

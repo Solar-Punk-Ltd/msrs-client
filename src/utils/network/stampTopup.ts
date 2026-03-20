@@ -1,5 +1,5 @@
 import { BZZ, Duration } from '@ethersphere/bee-js';
-import { type PublicClient, type WalletClient } from 'viem';
+import { type Hex, type PublicClient, type WalletClient } from 'viem';
 
 import { getUserFriendlyErrorMessage } from '../shared/errorHandling';
 
@@ -44,7 +44,7 @@ export interface BulkStampTopUpPlan {
 }
 
 export interface BulkStampTopUpResult {
-  successful: { stampId: string; txHash?: `0x${string}` }[];
+  successful: { stampId: string; txHash?: Hex }[];
   failed: { stampId: string; error: string }[];
 }
 
@@ -81,7 +81,7 @@ export async function extendStampDuration(
   publicClient: PublicClient,
   stampId: string,
   additionalDays: number,
-): Promise<`0x${string}`> {
+): Promise<Hex> {
   const userAddress = walletClient.account!.address;
 
   const [batchData, contractState] = await Promise.all([
@@ -150,6 +150,7 @@ export async function calculateBulkStampTopUpPlan(
   const expirationResult = await loadBulkStampExpirations(stampIds);
   const { contractState } = expirationResult;
 
+  // Anchor to the latest expiring stamp so every other stamp catches up to it
   let maxRemainingPerChunk = 0n;
   for (const entry of expirationResult.entries) {
     const remaining = getRemainingBalancePerChunk(entry.batchData, contractState);
@@ -158,6 +159,8 @@ export async function calculateBulkStampTopUpPlan(
     }
   }
 
+  // Target = latest stamp's balance + additionalDays, so all stamps land here
+  // Sync only mode: only close the gap, no extra duration added
   const additionalPerChunk =
     additionalDays > 0 ? getAmountForDuration(Duration.fromDays(additionalDays), contractState.lastPrice) : 0n;
   const targetRemainingPerChunk = maxRemainingPerChunk + additionalPerChunk;
@@ -165,6 +168,7 @@ export async function calculateBulkStampTopUpPlan(
   const stamps: BulkStampTopUpDetail[] = expirationResult.entries.map((entry) => {
     const currentRemainingPerChunk = getRemainingBalancePerChunk(entry.batchData, contractState);
     const gap = targetRemainingPerChunk - currentRemainingPerChunk;
+    // Behind stamps get the full gap, in topUp mode stamps near target get the flat minimum
     const neededTopUpPerChunk = additionalDays > 0 ? (gap > additionalPerChunk ? gap : additionalPerChunk) : gap;
     const costPlur = neededTopUpPerChunk * 2n ** BigInt(entry.batchData.depth);
 
@@ -207,17 +211,20 @@ export async function extendBulkStampDuration(
     return { successful: [], failed: [] };
   }
 
+  // Check total BZZ balance
   const hasBalance = await hasSufficientBalance(publicClient, userAddress, plan.totalCostPlur);
   if (!hasBalance) {
     throw new Error(`Insufficient BZZ balance. Need ${plan.totalCostBzz.toDecimalString()} BZZ`);
   }
 
+  // Single approval for total amount
   onProgress?.(TOPUP_STATUS.APPROVING, { total: plan.stampsNeedingTopUp.length });
   const approved = await ensureBzzApproval(walletClient, publicClient, plan.totalCostPlur);
   if (!approved) {
     throw new Error('BZZ approval failed');
   }
 
+  // Execute topUps sequentially, stop on first failure
   const result: BulkStampTopUpResult = { successful: [], failed: [] };
 
   for (let i = 0; i < plan.stampsNeedingTopUp.length; i++) {

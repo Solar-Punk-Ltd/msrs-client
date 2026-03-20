@@ -1,4 +1,4 @@
-import { type PublicClient, type WalletClient } from 'viem';
+import { type Hex, type PublicClient, type WalletClient } from 'viem';
 
 import { padStampId } from '../../ui/format';
 
@@ -67,7 +67,7 @@ export async function executeTopup(
   publicClient: PublicClient,
   stampId: string,
   amountPerChunk: bigint,
-): Promise<`0x${string}`> {
+): Promise<Hex> {
   const hash = await walletClient.writeContract({
     address: POSTAGE_STAMP_CONTRACT,
     abi: POSTAGE_STAMP_ABI,
