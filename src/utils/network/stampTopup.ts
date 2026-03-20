@@ -1,10 +1,9 @@
 import { BZZ, Duration } from '@ethersphere/bee-js';
-import { ethers } from 'ethers';
+import { type PublicClient, type WalletClient } from 'viem';
 
 import { getUserFriendlyErrorMessage } from '../shared/errorHandling';
 
 import {
-  createContract,
   ensureBzzApproval,
   executeTopup,
   fetchBatchData,
@@ -45,7 +44,7 @@ export interface BulkStampTopUpPlan {
 }
 
 export interface BulkStampTopUpResult {
-  successful: { stampId: string; receipt?: ethers.ContractTransactionReceipt }[];
+  successful: { stampId: string; txHash?: `0x${string}` }[];
   failed: { stampId: string; error: string }[];
 }
 
@@ -78,47 +77,42 @@ function calculateExtensionCost(duration: Duration, depth: number, lastPrice: bi
 }
 
 export async function extendStampDuration(
-  signer: ethers.Signer,
+  walletClient: WalletClient,
+  publicClient: PublicClient,
   stampId: string,
   additionalDays: number,
-): Promise<ethers.ContractTransactionReceipt> {
-  const provider = signer.provider;
-  if (!provider) throw new Error('No provider available');
+): Promise<`0x${string}`> {
+  const userAddress = walletClient.account!.address;
 
-  const contract = createContract(provider);
   const [batchData, contractState] = await Promise.all([
-    fetchBatchData(contract, stampId),
-    fetchContractState(contract),
+    fetchBatchData(publicClient, stampId),
+    fetchContractState(publicClient),
   ]);
 
   const duration = Duration.fromDays(additionalDays);
   const calculation = calculateExtensionCost(duration, batchData.depth, contractState.lastPrice);
 
-  const userAddress = await signer.getAddress();
-  const hasBalance = await hasSufficientBalance(provider, userAddress, calculation.totalCostPlur);
-
+  const hasBalance = await hasSufficientBalance(publicClient, userAddress, calculation.totalCostPlur);
   if (!hasBalance) {
     throw new Error(`Insufficient BZZ balance. Need ${calculation.costBzz.toDecimalString()} BZZ`);
   }
 
-  const approved = await ensureBzzApproval(signer, calculation.totalCostPlur);
+  const approved = await ensureBzzApproval(walletClient, publicClient, calculation.totalCostPlur);
   if (!approved) {
     throw new Error('BZZ approval failed');
   }
 
-  return executeTopup(signer, stampId, calculation.amountPerChunk);
+  return executeTopup(walletClient, publicClient, stampId, calculation.amountPerChunk);
 }
 
 export async function calculateCostForDays(
-  provider: ethers.Provider,
+  publicClient: PublicClient,
   stampId: string,
   additionalDays: number,
 ): Promise<ExtensionDaysCalculation> {
-  const contract = createContract(provider);
-
   const [batchData, contractState] = await Promise.all([
-    fetchBatchData(contract, stampId),
-    fetchContractState(contract),
+    fetchBatchData(publicClient, stampId),
+    fetchContractState(publicClient),
   ]);
 
   const duration = Duration.fromDays(additionalDays);
@@ -130,25 +124,6 @@ export async function calculateCostForDays(
   };
 }
 
-/**
- * Calculates an equalizing bulk topUp plan that converges all stamps to the
- * same expiry date.
- *
- * Anchors the target to the latest expiring stamp + additionalDays. Behind
- * stamps receive a larger topUp to close the gap:
- *
- *   target = maxRemaining + additionalDays
- *   neededTopUp per stamp = max(target - current, additionalDays)
- *
- * Example with 30 additionalDays:
- *   Stamp A (2.0 days remaining) → needs 30.3 days of topUp → expires at 32.3
- *   Stamp B (2.3 days remaining) → needs 30.0 days of topUp → expires at 32.3
- *   Both converge to the same target. Existing drift is corrected.
- *
- * On retry after partial failure this is naturally idempotent: already toppedUp
- * stamps show a high current balance → small gap → minimum topUp or filtered
- * out by stampsNeedingTopUp.
- */
 export async function calculateBulkStampTopUpPlan(
   stampIds: string[],
   additionalDays: number,
@@ -156,7 +131,6 @@ export async function calculateBulkStampTopUpPlan(
   const expirationResult = await loadBulkStampExpirations(stampIds);
   const { contractState } = expirationResult;
 
-  // Anchor to the latest expiring stamp so every other stamp catches up to it
   let maxRemainingPerChunk = 0n;
   for (const entry of expirationResult.entries) {
     const remaining = getRemainingBalancePerChunk(entry.batchData, contractState);
@@ -165,8 +139,6 @@ export async function calculateBulkStampTopUpPlan(
     }
   }
 
-  // Target = latest stamp's balance + additionalDays, so all stamps land here
-  // Sync only mode: only close the gap, no extra duration added
   const additionalPerChunk =
     additionalDays > 0 ? getAmountForDuration(Duration.fromDays(additionalDays), contractState.lastPrice) : 0n;
   const targetRemainingPerChunk = maxRemainingPerChunk + additionalPerChunk;
@@ -174,7 +146,6 @@ export async function calculateBulkStampTopUpPlan(
   const stamps: BulkStampTopUpDetail[] = expirationResult.entries.map((entry) => {
     const currentRemainingPerChunk = getRemainingBalancePerChunk(entry.batchData, contractState);
     const gap = targetRemainingPerChunk - currentRemainingPerChunk;
-    // Behind stamps get the full gap, in topUp mode stamps near target get the flat minimum
     const neededTopUpPerChunk = additionalDays > 0 ? (gap > additionalPerChunk ? gap : additionalPerChunk) : gap;
     const costPlur = neededTopUpPerChunk * 2n ** BigInt(entry.batchData.depth);
 
@@ -202,13 +173,13 @@ export async function calculateBulkStampTopUpPlan(
 }
 
 export async function extendBulkStampDuration(
-  signer: ethers.Signer,
+  walletClient: WalletClient,
+  publicClient: PublicClient,
   stampIds: string[],
   additionalDays: number,
   onProgress?: BulkStampTopUpProgressCallback,
 ): Promise<BulkStampTopUpResult> {
-  const provider = signer.provider;
-  if (!provider) throw new Error('No provider available');
+  const userAddress = walletClient.account!.address;
 
   const plan = await calculateBulkStampTopUpPlan(stampIds, additionalDays);
 
@@ -217,21 +188,17 @@ export async function extendBulkStampDuration(
     return { successful: [], failed: [] };
   }
 
-  // Check total BZZ balance
-  const userAddress = await signer.getAddress();
-  const hasBalance = await hasSufficientBalance(provider, userAddress, plan.totalCostPlur);
+  const hasBalance = await hasSufficientBalance(publicClient, userAddress, plan.totalCostPlur);
   if (!hasBalance) {
     throw new Error(`Insufficient BZZ balance. Need ${plan.totalCostBzz.toDecimalString()} BZZ`);
   }
 
-  // Single approval for total amount
   onProgress?.(TOPUP_STATUS.APPROVING, { total: plan.stampsNeedingTopUp.length });
-  const approved = await ensureBzzApproval(signer, plan.totalCostPlur);
+  const approved = await ensureBzzApproval(walletClient, publicClient, plan.totalCostPlur);
   if (!approved) {
     throw new Error('BZZ approval failed');
   }
 
-  // Execute topUps sequentially, stop on first failure
   const result: BulkStampTopUpResult = { successful: [], failed: [] };
 
   for (let i = 0; i < plan.stampsNeedingTopUp.length; i++) {
@@ -243,8 +210,8 @@ export async function extendBulkStampDuration(
     });
 
     try {
-      const receipt = await executeTopup(signer, stamp.stampId, stamp.neededTopUpPerChunk);
-      result.successful.push({ stampId: stamp.stampId, receipt });
+      const txHash = await executeTopup(walletClient, publicClient, stamp.stampId, stamp.neededTopUpPerChunk);
+      result.successful.push({ stampId: stamp.stampId, txHash });
     } catch (error) {
       const errorMessage = getUserFriendlyErrorMessage(error);
       result.failed.push({ stampId: stamp.stampId, error: errorMessage });

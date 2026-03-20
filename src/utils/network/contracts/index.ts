@@ -9,14 +9,6 @@ export {
   POSTAGE_STAMP_CONTRACT,
 } from './constants';
 
-export {
-  createContract,
-  executeTopup,
-  fetchBatchData,
-  fetchContractState,
-  type BatchData,
-  type ContractState,
-  type PostageStampContract,
-} from './postageStamp';
+export { executeTopup, fetchBatchData, fetchContractState, type BatchData, type ContractState } from './postageStamp';
 
 export { ensureBzzApproval, hasSufficientBalance } from './bzzToken';
