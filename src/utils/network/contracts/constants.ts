@@ -1,8 +1,17 @@
-export const POSTAGE_STAMP_CONTRACT = '0x45a1502382541Cd610CC9068e88727426b696293' as const;
+import { type Address, createPublicClient, http, type PublicClient } from 'viem';
+import { gnosis } from 'viem/chains';
+
+// ── Network ──────────────────────────────────────────────────────────────────
+
+export const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
 export const GNOSIS_BLOCK_TIME = 5; // seconds
+
+// ── Contract addresses ───────────────────────────────────────────────────────
+
+export const POSTAGE_STAMP_CONTRACT: Address = '0x45a1502382541Cd610CC9068e88727426b696293';
 export const CONSISTENCY_THRESHOLD_DAYS = 1 / 24; // 1 hour
 
-export const MULTICALL3_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11' as const;
+export const MULTICALL3_ADDRESS: Address = '0xcA11bde05977b3631167028862bE2a173976CA11';
 export const MULTICALL3_ABI = [
   {
     name: 'aggregate3',
@@ -73,7 +82,7 @@ export const POSTAGE_STAMP_ABI = [
   },
 ] as const;
 
-export const BZZ_TOKEN_ADDRESS = '0xdBF3Ea6F5beE45c02255B2c26a16F300502F68da' as const;
+export const BZZ_TOKEN_ADDRESS: Address = '0xdBF3Ea6F5beE45c02255B2c26a16F300502F68da';
 export const BZZ_TOKEN_ABI = [
   {
     name: 'approve',
@@ -103,3 +112,26 @@ export const BZZ_TOKEN_ABI = [
     outputs: [{ name: '', type: 'uint256' }],
   },
 ] as const;
+
+// ── Transaction status ───────────────────────────────────────────────────────
+
+export const TX_STATUS = {
+  SUCCESS: 'success',
+  REVERTED: 'reverted',
+} as const;
+
+// ── EIP-5792 capability status ───────────────────────────────────────────────
+
+export const ATOMIC_CAPABILITY_STATUS = {
+  SUPPORTED: 'supported',
+  READY: 'ready',
+} as const;
+
+// ── Default public client ────────────────────────────────────────────────────
+
+export function getDefaultPublicClient(): PublicClient {
+  return createPublicClient({
+    chain: gnosis,
+    transport: http(GNOSIS_RPC_URL),
+  });
+}

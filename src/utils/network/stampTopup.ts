@@ -124,6 +124,25 @@ export async function calculateCostForDays(
   };
 }
 
+/**
+ * Calculates an equalizing bulk topUp plan that converges all stamps to the
+ * same expiry date.
+ *
+ * Anchors the target to the latest expiring stamp + additionalDays. Behind
+ * stamps receive a larger topUp to close the gap:
+ *
+ *   target = maxRemaining + additionalDays
+ *   neededTopUp per stamp = max(target - current, additionalDays)
+ *
+ * Example with 30 additionalDays:
+ *   Stamp A (2.0 days remaining) → needs 30.3 days of topUp → expires at 32.3
+ *   Stamp B (2.3 days remaining) → needs 30.0 days of topUp → expires at 32.3
+ *   Both converge to the same target. Existing drift is corrected.
+ *
+ * On retry after partial failure this is naturally idempotent: already toppedUp
+ * stamps show a high current balance → small gap → minimum topUp or filtered
+ * out by stampsNeedingTopUp.
+ */
 export async function calculateBulkStampTopUpPlan(
   stampIds: string[],
   additionalDays: number,

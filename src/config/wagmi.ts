@@ -2,7 +2,7 @@ import { createConfig, http } from 'wagmi';
 import { gnosis } from 'wagmi/chains';
 import { metaMask } from 'wagmi/connectors';
 
-const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
+import { GNOSIS_RPC_URL } from '@/utils/network/contracts';
 
 export const wagmiConfig = createConfig({
   chains: [gnosis],

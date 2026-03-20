@@ -1,6 +1,6 @@
 import { type Address, type PublicClient, type WalletClient } from 'viem';
 
-import { BZZ_TOKEN_ABI, BZZ_TOKEN_ADDRESS, POSTAGE_STAMP_CONTRACT } from './constants';
+import { BZZ_TOKEN_ABI, BZZ_TOKEN_ADDRESS, POSTAGE_STAMP_CONTRACT, TX_STATUS } from './constants';
 
 export async function hasSufficientBalance(
   publicClient: PublicClient,
@@ -8,7 +8,7 @@ export async function hasSufficientBalance(
   amountPlur: bigint,
 ): Promise<boolean> {
   const balance = (await publicClient.readContract({
-    address: BZZ_TOKEN_ADDRESS as Address,
+    address: BZZ_TOKEN_ADDRESS,
     abi: BZZ_TOKEN_ABI,
     functionName: 'balanceOf',
     args: [userAddress as Address],
@@ -25,10 +25,10 @@ export async function ensureBzzApproval(
   const userAddress = walletClient.account!.address;
 
   const currentAllowance = (await publicClient.readContract({
-    address: BZZ_TOKEN_ADDRESS as Address,
+    address: BZZ_TOKEN_ADDRESS,
     abi: BZZ_TOKEN_ABI,
     functionName: 'allowance',
-    args: [userAddress, POSTAGE_STAMP_CONTRACT as Address],
+    args: [userAddress, POSTAGE_STAMP_CONTRACT],
   })) as bigint;
 
   if (currentAllowance >= amountPlur) {
@@ -36,14 +36,14 @@ export async function ensureBzzApproval(
   }
 
   const hash = await walletClient.writeContract({
-    address: BZZ_TOKEN_ADDRESS as Address,
+    address: BZZ_TOKEN_ADDRESS,
     abi: BZZ_TOKEN_ABI,
     functionName: 'approve',
-    args: [POSTAGE_STAMP_CONTRACT as Address, amountPlur],
+    args: [POSTAGE_STAMP_CONTRACT, amountPlur],
     chain: walletClient.chain,
     account: walletClient.account!,
   });
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
-  return receipt.status === 'success';
+  return receipt.status === TX_STATUS.SUCCESS;
 }

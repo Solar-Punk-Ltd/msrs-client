@@ -1,8 +1,8 @@
-import { type Address, type PublicClient, type WalletClient } from 'viem';
+import { type PublicClient, type WalletClient } from 'viem';
 
 import { padStampId } from '../../ui/format';
 
-import { POSTAGE_STAMP_ABI, POSTAGE_STAMP_CONTRACT } from './constants';
+import { POSTAGE_STAMP_ABI, POSTAGE_STAMP_CONTRACT, TX_STATUS } from './constants';
 
 export interface BatchData {
   owner: string;
@@ -19,13 +19,11 @@ export interface ContractState {
 }
 
 export const fetchBatchData = async (publicClient: PublicClient, stampId: string): Promise<BatchData> => {
-  const formattedId = padStampId(stampId) as `0x${string}`;
-
   const result = await publicClient.readContract({
-    address: POSTAGE_STAMP_CONTRACT as Address,
+    address: POSTAGE_STAMP_CONTRACT,
     abi: POSTAGE_STAMP_ABI,
     functionName: 'batches',
-    args: [formattedId],
+    args: [padStampId(stampId)],
   });
 
   const [owner, depth, bucketDepth, immutableFlag, normalisedBalance, lastUpdatedBlockNumber] = result as [
@@ -50,12 +48,12 @@ export const fetchBatchData = async (publicClient: PublicClient, stampId: string
 export const fetchContractState = async (publicClient: PublicClient): Promise<ContractState> => {
   const [currentTotalOutPayment, lastPrice] = await Promise.all([
     publicClient.readContract({
-      address: POSTAGE_STAMP_CONTRACT as Address,
+      address: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
       functionName: 'currentTotalOutPayment',
     }) as Promise<bigint>,
     publicClient.readContract({
-      address: POSTAGE_STAMP_CONTRACT as Address,
+      address: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
       functionName: 'lastPrice',
     }) as Promise<bigint>,
@@ -70,20 +68,18 @@ export async function executeTopup(
   stampId: string,
   amountPerChunk: bigint,
 ): Promise<`0x${string}`> {
-  const batchId = padStampId(stampId) as `0x${string}`;
-
   const hash = await walletClient.writeContract({
-    address: POSTAGE_STAMP_CONTRACT as Address,
+    address: POSTAGE_STAMP_CONTRACT,
     abi: POSTAGE_STAMP_ABI,
     functionName: 'topUp',
-    args: [batchId, amountPerChunk],
+    args: [padStampId(stampId), amountPerChunk],
     chain: walletClient.chain,
     account: walletClient.account!,
   });
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
-  if (receipt.status === 'reverted') {
+  if (receipt.status === TX_STATUS.REVERTED) {
     throw new Error('TopUp transaction reverted');
   }
 

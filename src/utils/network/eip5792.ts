@@ -1,11 +1,19 @@
-import { type Address, createPublicClient, http } from 'viem';
+import { type Address } from 'viem';
 import { gnosis } from 'viem/chains';
 import { getCapabilities, sendCalls, waitForCallsStatus } from 'wagmi/actions';
 
 import { wagmiConfig } from '@/config/wagmi';
 import { padStampId } from '@/utils/ui/format';
 
-import { BZZ_TOKEN_ABI, BZZ_TOKEN_ADDRESS, POSTAGE_STAMP_ABI, POSTAGE_STAMP_CONTRACT } from './contracts/constants';
+import {
+  ATOMIC_CAPABILITY_STATUS,
+  BZZ_TOKEN_ABI,
+  BZZ_TOKEN_ADDRESS,
+  getDefaultPublicClient,
+  POSTAGE_STAMP_ABI,
+  POSTAGE_STAMP_CONTRACT,
+  TX_STATUS,
+} from './contracts';
 import {
   type BulkStampTopUpPlan,
   type BulkStampTopUpProgressCallback,
@@ -13,7 +21,20 @@ import {
   TOPUP_STATUS,
 } from './stampTopup';
 
-const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
+// ── EIP-5792 capability detection ────────────────────────────────────────────
+
+interface AtomicCapability {
+  status?: string;
+}
+
+interface AtomicBatchCapability {
+  supported?: boolean;
+}
+
+interface ChainCapabilities {
+  atomic?: AtomicCapability;
+  atomicBatch?: AtomicBatchCapability;
+}
 
 async function isAtomicBatchAvailable(): Promise<boolean> {
   try {
@@ -21,20 +42,24 @@ async function isAtomicBatchAvailable(): Promise<boolean> {
       chainId: gnosis.id,
     });
 
-    const chainCaps = capabilities?.[gnosis.id];
+    const chainCaps = capabilities?.[gnosis.id] as ChainCapabilities | undefined;
     if (!chainCaps) return false;
 
-    const caps = chainCaps as Record<string, unknown>;
-    const atomic = caps.atomic as { status?: string } | undefined;
-    const atomicBatch = caps.atomicBatch as { supported?: boolean } | undefined;
+    const { atomic, atomicBatch } = chainCaps;
 
-    return atomic?.status === 'supported' || atomic?.status === 'ready' || atomicBatch?.supported === true;
+    return (
+      atomic?.status === ATOMIC_CAPABILITY_STATUS.SUPPORTED ||
+      atomic?.status === ATOMIC_CAPABILITY_STATUS.READY ||
+      atomicBatch?.supported === true
+    );
   } catch {
     return false;
   }
 }
 
-async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan) {
+// ── Batch call building ──────────────────────────────────────────────────────
+
+async function buildBatchCalls(userAddress: Address, plan: BulkStampTopUpPlan) {
   const calls: Array<{
     to: Address;
     abi: typeof BZZ_TOKEN_ABI | typeof POSTAGE_STAMP_ABI;
@@ -42,41 +67,40 @@ async function buildBatchCalls(userAddress: string, plan: BulkStampTopUpPlan) {
     args: readonly unknown[];
   }> = [];
 
-  const publicClient = createPublicClient({
-    chain: gnosis,
-    transport: http(GNOSIS_RPC_URL),
-  });
+  const publicClient = getDefaultPublicClient();
 
   const currentAllowance = (await publicClient.readContract({
-    address: BZZ_TOKEN_ADDRESS as Address,
+    address: BZZ_TOKEN_ADDRESS,
     abi: BZZ_TOKEN_ABI,
     functionName: 'allowance',
-    args: [userAddress as Address, POSTAGE_STAMP_CONTRACT as Address],
+    args: [userAddress, POSTAGE_STAMP_CONTRACT],
   })) as bigint;
 
   if (currentAllowance < plan.totalCostPlur) {
     calls.push({
-      to: BZZ_TOKEN_ADDRESS as Address,
+      to: BZZ_TOKEN_ADDRESS,
       abi: BZZ_TOKEN_ABI,
       functionName: 'approve',
-      args: [POSTAGE_STAMP_CONTRACT as Address, plan.totalCostPlur],
+      args: [POSTAGE_STAMP_CONTRACT, plan.totalCostPlur],
     });
   }
 
   for (const stamp of plan.stampsNeedingTopUp) {
     calls.push({
-      to: POSTAGE_STAMP_CONTRACT as Address,
+      to: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
       functionName: 'topUp',
-      args: [padStampId(stamp.stampId) as `0x${string}`, stamp.neededTopUpPerChunk],
+      args: [padStampId(stamp.stampId), stamp.neededTopUpPerChunk],
     });
   }
 
   return calls;
 }
 
+// ── Batch execution ──────────────────────────────────────────────────────────
+
 async function executeBatchTopUp(
-  userAddress: string,
+  userAddress: Address,
   plan: BulkStampTopUpPlan,
   onProgress?: BulkStampTopUpProgressCallback,
 ): Promise<BulkStampTopUpResult> {
@@ -96,7 +120,7 @@ async function executeBatchTopUp(
     id: batchId,
   });
 
-  if (result.status === 'success') {
+  if (result.status === TX_STATUS.SUCCESS) {
     onProgress?.(TOPUP_STATUS.DONE, { total: plan.stampsNeedingTopUp.length });
 
     return {
@@ -119,8 +143,10 @@ async function executeBatchTopUp(
   };
 }
 
+// ── Public API ───────────────────────────────────────────────────────────────
+
 export async function tryBatchTopUp(
-  userAddress: string,
+  userAddress: Address,
   plan: BulkStampTopUpPlan,
   onProgress?: BulkStampTopUpProgressCallback,
 ): Promise<BulkStampTopUpResult | null> {
@@ -130,10 +156,9 @@ export async function tryBatchTopUp(
     return null;
   }
 
-  try {
-    return await executeBatchTopUp(userAddress, plan, onProgress);
-  } catch (error) {
-    console.warn('EIP-5792 batch execution failed, falling back to sequential:', error);
-    return null;
-  }
+  // Batch IS supported — never fall back to sequential from here.
+  // If executeBatchTopUp fails (timeout, user rejection, network error),
+  // we must let the error propagate. Falling back to sequential after
+  // sendCalls may have been submitted would risk double-spending.
+  return executeBatchTopUp(userAddress, plan, onProgress);
 }

@@ -1,5 +1,4 @@
-import { type Address, createPublicClient, http, type PublicClient } from 'viem';
-import { gnosis } from 'viem/chains';
+import { type PublicClient } from 'viem';
 
 import { padStampId } from '../ui/format';
 
@@ -9,12 +8,11 @@ import {
   type ContractState,
   fetchBatchData,
   fetchContractState,
+  getDefaultPublicClient,
   GNOSIS_BLOCK_TIME,
   POSTAGE_STAMP_ABI,
   POSTAGE_STAMP_CONTRACT,
 } from './contracts';
-
-const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
 
 const MAX_UTILIZATION = 0.9;
 const BYTES_PER_CHUNK = 4096;
@@ -154,13 +152,6 @@ const aggregateEntries = (
   };
 };
 
-function getDefaultPublicClient(): PublicClient {
-  return createPublicClient({
-    chain: gnosis,
-    transport: http(GNOSIS_RPC_URL),
-  });
-}
-
 export const loadStampInfo = async (stampId: string, publicClient?: PublicClient): Promise<StampInfo> => {
   const client = publicClient ?? getDefaultPublicClient();
 
@@ -205,20 +196,20 @@ export const loadBulkStampExpirations = async (
   const client = publicClient ?? getDefaultPublicClient();
 
   const batchContracts = stampIds.map((id) => ({
-    address: POSTAGE_STAMP_CONTRACT as Address,
+    address: POSTAGE_STAMP_CONTRACT,
     abi: POSTAGE_STAMP_ABI,
     functionName: 'batches' as const,
-    args: [padStampId(id) as `0x${string}`],
+    args: [padStampId(id)] as const,
   }));
 
   const stateContracts = [
     {
-      address: POSTAGE_STAMP_CONTRACT as Address,
+      address: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
       functionName: 'currentTotalOutPayment' as const,
     },
     {
-      address: POSTAGE_STAMP_CONTRACT as Address,
+      address: POSTAGE_STAMP_CONTRACT,
       abi: POSTAGE_STAMP_ABI,
       functionName: 'lastPrice' as const,
     },
