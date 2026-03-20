@@ -1,30 +1,22 @@
-import { ethers } from 'ethers';
-
 import { padStampId } from '../ui/format';
 
 import {
   type BatchData,
   CONSISTENCY_THRESHOLD_DAYS,
   type ContractState,
-  createContract,
   fetchBatchData,
   fetchContractState,
+  getDefaultPublicClient,
   GNOSIS_BLOCK_TIME,
-  MULTICALL3_ABI,
-  MULTICALL3_ADDRESS,
+  POSTAGE_FN,
   POSTAGE_STAMP_ABI,
   POSTAGE_STAMP_CONTRACT,
 } from './contracts';
-import { getWalletService } from './wallet';
 
 const MAX_UTILIZATION = 0.9;
 const BYTES_PER_CHUNK = 4096;
 const BYTES_PER_GIGABYTE = 1000 * 1000 * 1000;
 const SECONDS_PER_DAY = 24 * 60 * 60;
-const ALLOW_MULTICALL_FAILURE = false;
-const POSTAGE_FN_BATCHES = 'batches';
-const POSTAGE_FN_CURRENT_TOTAL_OUT_PAYMENT = 'currentTotalOutPayment';
-const POSTAGE_FN_LAST_PRICE = 'lastPrice';
 
 // https://docs.ethswarm.org/docs/concepts/incentives/postage-stamps/#effective-utilisation-tables
 const EFFECTIVE_SIZE_BREAKPOINTS: [number, number][] = [
@@ -79,59 +71,6 @@ export interface BulkStampExpirationResult {
   maxDriftDays: number;
   isConsistent: boolean;
 }
-
-interface MulticallResult {
-  success: boolean;
-  returnData: string;
-}
-
-const parseUintValue = (value: unknown, fieldName: string): bigint => {
-  if (typeof value !== 'bigint') {
-    throw new Error(`Invalid ${fieldName} type from contract decode`);
-  }
-
-  return value;
-};
-
-const parseSafeUint = (value: unknown, fieldName: string): number => {
-  if (typeof value === 'bigint') {
-    const asNumber = Number(value);
-    if (!Number.isSafeInteger(asNumber)) {
-      throw new Error(`Decoded ${fieldName} exceeds safe integer range`);
-    }
-
-    return asNumber;
-  }
-
-  if (typeof value === 'number') {
-    return value;
-  }
-
-  throw new Error(`Invalid ${fieldName} type from contract decode`);
-};
-
-const decodeSingleUint = (iface: ethers.Interface, functionName: string, returnData: string): bigint => {
-  const decoded = iface.decodeFunctionResult(functionName, returnData);
-  return parseUintValue(decoded[0], functionName);
-};
-
-const decodeBatchData = (iface: ethers.Interface, returnData: string): BatchData => {
-  const decoded = iface.decodeFunctionResult(POSTAGE_FN_BATCHES, returnData);
-
-  const owner = decoded.owner;
-  if (typeof owner !== 'string') {
-    throw new Error('Invalid owner type from batches decode');
-  }
-
-  return {
-    owner,
-    depth: parseSafeUint(decoded.depth, 'depth'),
-    bucketDepth: parseSafeUint(decoded.bucketDepth, 'bucketDepth'),
-    immutableFlag: Boolean(decoded.immutableFlag),
-    normalisedBalance: parseUintValue(decoded.normalisedBalance, 'normalisedBalance'),
-    lastUpdatedBlockNumber: parseUintValue(decoded.lastUpdatedBlockNumber, 'lastUpdatedBlockNumber'),
-  };
-};
 
 export const isValidStamp = (batchData: BatchData): boolean => {
   return batchData.owner !== '0x0000000000000000000000000000000000000000';
@@ -189,61 +128,6 @@ export const calculateFinancialStatus = (
   return { isActive: true, remainingDays, expirationDate };
 };
 
-const buildBatchCalls = (stampIds: string[], iface: ethers.Interface) => ({
-  batchCalls: stampIds.map((id) => ({
-    target: POSTAGE_STAMP_CONTRACT,
-    allowFailure: ALLOW_MULTICALL_FAILURE,
-    callData: iface.encodeFunctionData(POSTAGE_FN_BATCHES, [padStampId(id)]),
-  })),
-  stateCalls: [
-    {
-      target: POSTAGE_STAMP_CONTRACT,
-      allowFailure: ALLOW_MULTICALL_FAILURE,
-      callData: iface.encodeFunctionData(POSTAGE_FN_CURRENT_TOTAL_OUT_PAYMENT),
-    },
-    {
-      target: POSTAGE_STAMP_CONTRACT,
-      allowFailure: ALLOW_MULTICALL_FAILURE,
-      callData: iface.encodeFunctionData(POSTAGE_FN_LAST_PRICE),
-    },
-  ],
-});
-
-const decodeContractState = (iface: ethers.Interface, results: MulticallResult[], offset: number): ContractState => {
-  const outPayment = results[offset];
-  const price = results[offset + 1];
-
-  if (!outPayment?.success || !price?.success) {
-    throw new Error('Multicall contract state query failed');
-  }
-
-  return {
-    currentTotalOutPayment: decodeSingleUint(iface, POSTAGE_FN_CURRENT_TOTAL_OUT_PAYMENT, outPayment.returnData),
-    lastPrice: decodeSingleUint(iface, POSTAGE_FN_LAST_PRICE, price.returnData),
-  };
-};
-
-const decodeStampEntries = (
-  stampIds: string[],
-  iface: ethers.Interface,
-  results: MulticallResult[],
-  contractState: ContractState,
-): StampExpirationEntry[] => {
-  return stampIds.map((stampId, i) => {
-    const batchResult = results[i];
-    if (!batchResult?.success) {
-      throw new Error(`Multicall batch query failed for stamp ${stampId}`);
-    }
-
-    const batchData = decodeBatchData(iface, batchResult.returnData);
-    const isValid = isValidStamp(batchData);
-    const financialStatus = calculateFinancialStatus(batchData, contractState, isValid);
-    const remainingBalancePerChunk = getRemainingBalancePerChunk(batchData, contractState);
-
-    return { stampId, batchData, financialStatus, remainingBalancePerChunk, isValid };
-  });
-};
-
 /**
  * Sorts entries by soonest expiry and computes drift metrics.
  *
@@ -279,12 +163,9 @@ const aggregateEntries = (
 };
 
 export const loadStampInfo = async (stampId: string): Promise<StampInfo> => {
-  const contract = createContract();
+  const client = getDefaultPublicClient();
 
-  const [batchData, contractState] = await Promise.all([
-    fetchBatchData(contract, stampId),
-    fetchContractState(contract),
-  ]);
+  const [batchData, contractState] = await Promise.all([fetchBatchData(client, stampId), fetchContractState(client)]);
 
   const isValid = isValidStamp(batchData);
   const financialStatus = calculateFinancialStatus(batchData, contractState, isValid);
@@ -319,23 +200,57 @@ export const loadBulkStampExpirations = async (stampIds: string[]): Promise<Bulk
     };
   }
 
-  const walletService = getWalletService();
-  const provider = (walletService.isConnected() && walletService.getProvider()) || walletService.getPublicProvider();
+  const client = getDefaultPublicClient();
 
-  const postageIface = new ethers.Interface(POSTAGE_STAMP_ABI);
-  const multicall = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, provider);
+  const batchContracts = stampIds.map((id) => ({
+    address: POSTAGE_STAMP_CONTRACT,
+    abi: POSTAGE_STAMP_ABI,
+    functionName: POSTAGE_FN.BATCHES,
+    args: [padStampId(id)] as const,
+  }));
 
-  const { batchCalls, stateCalls } = buildBatchCalls(stampIds, postageIface);
-  const calls = [...batchCalls, ...stateCalls];
+  const stateContracts = [
+    {
+      address: POSTAGE_STAMP_CONTRACT,
+      abi: POSTAGE_STAMP_ABI,
+      functionName: POSTAGE_FN.CURRENT_TOTAL_OUT_PAYMENT,
+    },
+    {
+      address: POSTAGE_STAMP_CONTRACT,
+      abi: POSTAGE_STAMP_ABI,
+      functionName: POSTAGE_FN.LAST_PRICE,
+    },
+  ];
 
-  const results: MulticallResult[] = await multicall.aggregate3(calls);
+  const results = await client.multicall({
+    contracts: [...batchContracts, ...stateContracts],
+    allowFailure: false,
+  });
 
-  if (results.length !== calls.length) {
-    throw new Error(`Unexpected multicall result count: expected ${calls.length}, received ${results.length}`);
-  }
+  const batchResults = results.slice(0, stampIds.length);
+  const stateResults = results.slice(stampIds.length);
 
-  const contractState = decodeContractState(postageIface, results, stampIds.length);
-  const entries = decodeStampEntries(stampIds, postageIface, results, contractState);
+  const contractState: ContractState = {
+    currentTotalOutPayment: stateResults[0] as bigint,
+    lastPrice: stateResults[1] as bigint,
+  };
+
+  const entries: StampExpirationEntry[] = stampIds.map((stampId, i) => {
+    const raw = batchResults[i] as [string, number, number, boolean, bigint, bigint];
+    const batchData: BatchData = {
+      owner: raw[0],
+      depth: Number(raw[1]),
+      bucketDepth: Number(raw[2]),
+      immutableFlag: raw[3],
+      normalisedBalance: raw[4],
+      lastUpdatedBlockNumber: raw[5],
+    };
+    const isValid = isValidStamp(batchData);
+    const financialStatus = calculateFinancialStatus(batchData, contractState, isValid);
+    const remainingBalancePerChunk = getRemainingBalancePerChunk(batchData, contractState);
+
+    return { stampId, batchData, financialStatus, remainingBalancePerChunk, isValid };
+  });
 
   return { contractState, ...aggregateEntries(entries) };
 };

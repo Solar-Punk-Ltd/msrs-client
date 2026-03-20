@@ -1,5 +1,4 @@
-import { useWallet } from '@/providers/Wallet';
-import { METAMASK_DOWNLOAD_URL, WALLET_ERROR } from '@/utils/network/wallet';
+import { METAMASK_DOWNLOAD_URL, useWallet, WALLET_ERROR } from '@/providers/Wallet';
 import { formatAddress } from '@/utils/ui/format';
 
 import './WalletConnection.scss';

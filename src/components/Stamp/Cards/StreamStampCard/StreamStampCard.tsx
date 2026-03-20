@@ -1,8 +1,7 @@
-import { ethers } from 'ethers';
-
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
 import { useStampTopUp } from '@/hooks/useStampTopUp';
+import { useWallet } from '@/providers/Wallet';
 import { isStampActive } from '@/utils/network/stampInfo';
 import { formatStampId } from '@/utils/ui/format';
 
@@ -13,21 +12,14 @@ import './StreamStampCard.scss';
 
 interface StreamStampCardProps {
   stamp: StampWithInfo;
-  signer?: ethers.Signer;
   sharedExpanded?: boolean;
   onToggleExpanded?: () => void;
   onStampRefresh?: (stampId: string) => Promise<void>;
 }
 
-export function StreamStampCard({
-  stamp,
-  signer,
-  sharedExpanded,
-  onToggleExpanded,
-  onStampRefresh,
-}: StreamStampCardProps) {
+export function StreamStampCard({ stamp, sharedExpanded, onToggleExpanded, onStampRefresh }: StreamStampCardProps) {
+  const { account } = useWallet();
   const { isTopUpLoading, errorModalOpen, errorMessage, handleTopUp, closeErrorModal } = useStampTopUp(
-    signer,
     stamp.stampId,
     onStampRefresh,
   );
@@ -89,10 +81,9 @@ export function StreamStampCard({
         <TTLDisplay financialStatus={financialStatus} classPrefix="stream-stamp" />
       </div>
 
-      {signer && isActive && (
+      {account && isActive && (
         <StampActions
           stampId={stamp.stampId}
-          signer={signer}
           onTopUp={handleTopUp}
           isLoading={isTopUpLoading}
           variant="stream"

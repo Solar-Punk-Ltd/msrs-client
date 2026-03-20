@@ -1,19 +1,26 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
+import { useAccount, useConnect, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
+import { gnosis } from 'wagmi/chains';
+import { metaMask } from 'wagmi/connectors';
 
-import { getWalletService, WALLET_EVENT } from '../utils/network/wallet';
+const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
+
+export const WALLET_ERROR = {
+  NOT_FOUND: 'MetaMask not found. Please install MetaMask to continue.',
+  OUTDATED: 'MetaMask detected but outdated. Please update MetaMask to the latest version.',
+} as const;
+
+export { METAMASK_DOWNLOAD_URL };
 
 interface IWalletContext {
   account: string | null;
-  provider: ethers.BrowserProvider | null;
-  signer: ethers.Signer | null;
   isConnecting: boolean;
   isReconnecting: boolean;
   error: string | null;
   chainError: boolean;
-  connect: () => Promise<void>;
+  connect: () => void;
   disconnect: () => void;
-  switchToGnosis: () => Promise<void>;
+  switchToGnosis: () => void;
 }
 
 const WalletContext = createContext<IWalletContext | undefined>(undefined);
@@ -30,192 +37,47 @@ interface WalletProviderProps {
   children: ReactNode;
 }
 
+function mapConnectError(error: Error | null): string | null {
+  if (!error) return null;
+  const msg = error.message.toLowerCase();
+  if (msg.includes('connector not found') || msg.includes('provider not found')) {
+    return WALLET_ERROR.NOT_FOUND;
+  }
+  return error.message;
+}
+
 export function WalletProvider({ children }: WalletProviderProps) {
-  const [state, setState] = useState({
-    account: null as string | null,
-    provider: null as ethers.BrowserProvider | null,
-    signer: null as ethers.Signer | null,
-    isConnecting: false,
-    isReconnecting: true,
-    error: null as string | null,
-    chainError: false,
-  });
+  const { address, isConnected, isConnecting: wagmiIsConnecting, isReconnecting } = useAccount();
+  const { connect: wagmiConnect, error: connectError, isPending: isConnectPending } = useConnect();
+  const { disconnect: wagmiDisconnect } = useDisconnect();
+  const { switchChain } = useSwitchChain();
+  const { data: walletClient } = useWalletClient();
 
-  const walletService = getWalletService();
+  const chainError = useMemo(() => {
+    if (!isConnected || !walletClient) return false;
+    return walletClient.chain.id !== gnosis.id;
+  }, [isConnected, walletClient]);
 
-  useEffect(() => {
-    const checkConnection = async () => {
-      setState((prev) => ({ ...prev, isReconnecting: true }));
+  const connect = () => {
+    wagmiConnect({ connector: metaMask() });
+  };
 
-      try {
-        const connection = await walletService.checkAndReconnect();
+  const disconnect = () => {
+    wagmiDisconnect();
+  };
 
-        if (connection) {
-          setState({
-            account: connection.account,
-            provider: connection.provider,
-            signer: connection.signer,
-            isConnecting: false,
-            isReconnecting: false,
-            error: null,
-            chainError: false,
-          });
-        } else {
-          setState((prev) => ({ ...prev, isReconnecting: false }));
-        }
-      } catch (error) {
-        console.error('Failed to check connection:', error);
-        setState((prev) => ({
-          ...prev,
-          isReconnecting: false,
-          error: error instanceof Error ? error.message : 'Failed to reconnect',
-        }));
-      }
-    };
+  const switchToGnosis = () => {
+    switchChain({ chainId: gnosis.id });
+  };
 
-    checkConnection();
-  }, []);
+  const error = mapConnectError(connectError);
 
-  useEffect(() => {
-    const handleAccountChanged = async (data: { oldAccount: string; newAccount: string }) => {
-      console.log('Account changed from', data.oldAccount, 'to', data.newAccount);
-
-      setState((prev) => ({
-        ...prev,
-        account: data.newAccount,
-        signer: walletService.getSigner(),
-        error: null,
-        chainError: false,
-      }));
-    };
-
-    const handleDisconnected = (data: { reason: string; error?: any }) => {
-      console.log('Wallet disconnected:', data.reason);
-
-      setState({
-        account: null,
-        provider: null,
-        signer: null,
-        isConnecting: false,
-        isReconnecting: false,
-        error: data.reason,
-        chainError: false,
-      });
-    };
-
-    const handleChainChanged = (data: { chainId: number; error?: Error }) => {
-      console.log('Chain changed to', data.chainId);
-      if (data.error) {
-        console.error('Chain error:', data.error);
-        setState((prev) => ({
-          ...prev,
-          chainError: true,
-          error: data.error!.message,
-        }));
-      }
-    };
-
-    const handleError = (error: Error) => {
-      console.error('Wallet error:', error);
-      setState((prev) => ({
-        ...prev,
-        error: error.message,
-      }));
-    };
-
-    walletService.on(WALLET_EVENT.ACCOUNT_CHANGED, handleAccountChanged);
-    walletService.on(WALLET_EVENT.DISCONNECTED, handleDisconnected);
-    walletService.on(WALLET_EVENT.CHAIN_CHANGED, handleChainChanged);
-    walletService.on(WALLET_EVENT.ERROR, handleError);
-
-    return () => {
-      walletService.off(WALLET_EVENT.ACCOUNT_CHANGED, handleAccountChanged);
-      walletService.off(WALLET_EVENT.DISCONNECTED, handleDisconnected);
-      walletService.off(WALLET_EVENT.CHAIN_CHANGED, handleChainChanged);
-      walletService.off(WALLET_EVENT.ERROR, handleError);
-    };
-  }, [walletService]);
-
-  const connect = useCallback(async () => {
-    setState((prev) => ({
-      ...prev,
-      isConnecting: true,
-      error: null,
-      chainError: false,
-    }));
-
-    try {
-      const connection = await walletService.connect();
-
-      setState({
-        account: connection.account,
-        provider: connection.provider,
-        signer: connection.signer,
-        isConnecting: false,
-        isReconnecting: false,
-        error: null,
-        chainError: false,
-      });
-    } catch (error) {
-      console.error('Failed to connect:', error);
-
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
-
-      setState((prev) => ({
-        ...prev,
-        isConnecting: false,
-        error: errorMessage,
-      }));
-    }
-  }, [walletService]);
-
-  const disconnect = useCallback(() => {
-    walletService.disconnect();
-    setState({
-      account: null,
-      provider: null,
-      signer: null,
-      isConnecting: false,
-      isReconnecting: false,
-      error: null,
-      chainError: false,
-    });
-  }, [walletService]);
-
-  const switchToGnosis = useCallback(async () => {
-    if (!walletService.isConnected()) {
-      setState((prev) => ({ ...prev, error: 'Wallet not connected' }));
-      return;
-    }
-
-    try {
-      await walletService.ensureGnosisChain();
-      setState((prev) => ({
-        ...prev,
-        chainError: false,
-        error: null,
-      }));
-    } catch (error) {
-      console.error('Failed to switch network:', error);
-      setState((prev) => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Failed to switch network',
-      }));
-    }
-  }, [walletService]);
-
-  const value = {
-    // State
-    account: state.account,
-    provider: state.provider,
-    signer: state.signer,
-    isConnected: walletService.isConnected(),
-    isConnecting: state.isConnecting,
-    isReconnecting: state.isReconnecting,
-    error: state.error,
-    chainError: state.chainError,
-
-    // Actions
+  const value: IWalletContext = {
+    account: address ?? null,
+    isConnecting: wagmiIsConnecting || isConnectPending,
+    isReconnecting,
+    error,
+    chainError,
     connect,
     disconnect,
     switchToGnosis,

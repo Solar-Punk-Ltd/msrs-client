@@ -7,14 +7,12 @@ import { StampManagerHeader } from '@/components/Stamp/Manager/StampManagerHeade
 import { StampInfoPanel } from '@/components/Stamp/Panels/StampInfoPanel/StampInfoPanel';
 import { useStamps } from '@/hooks/useStamps';
 import { useUserContext } from '@/providers/User';
-import { useWallet } from '@/providers/Wallet';
 
 import './StampDashboard.scss';
 
 export function StampDashboard() {
-  const { provider, signer } = useWallet();
   const { session, isSolarpunkAdmin } = useUserContext();
-  const stamps = useStamps(session?.serverKeys.nginx, provider);
+  const stamps = useStamps(session?.serverKeys.nginx);
 
   const [activeTab, setActiveTab] = useState<StampViewTab>(STAMP_TAB.BULK_STAMP);
   const [showInfo, setShowInfo] = useState(false);
@@ -33,11 +31,7 @@ export function StampDashboard() {
         {isSolarpunkAdmin && <TabBar activeTab={activeTab} onTabChange={setActiveTab} />}
 
         <div className="stamp-dashboard-content">
-          {activeTab === STAMP_TAB.BULK_STAMP ? (
-            <BulkStampManager stamps={stamps} signer={signer} />
-          ) : (
-            <StampManager stamps={stamps} signer={signer} />
-          )}
+          {activeTab === STAMP_TAB.BULK_STAMP ? <BulkStampManager stamps={stamps} /> : <StampManager stamps={stamps} />}
         </div>
       </div>
     </div>

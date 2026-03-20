@@ -1,8 +1,7 @@
-import { ethers } from 'ethers';
-
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { StampWithInfo } from '@/hooks/useStamps';
 import { useStampTopUp } from '@/hooks/useStampTopUp';
+import { useWallet } from '@/providers/Wallet';
 import { isStampActive } from '@/utils/network/stampInfo';
 import { formatStampId } from '@/utils/ui/format';
 
@@ -13,14 +12,13 @@ import './StampCard.scss';
 
 interface StampCardProps {
   stamp: StampWithInfo;
-  signer?: ethers.Signer;
   onStampRefresh?: (stampId: string) => Promise<void>;
 }
 
-export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
+export function StampCard({ stamp, onStampRefresh }: StampCardProps) {
   const { stampId, stampInfo, error, tags } = stamp;
+  const { account } = useWallet();
   const { isTopUpLoading, errorModalOpen, errorMessage, handleTopUp, closeErrorModal } = useStampTopUp(
-    signer,
     stampId,
     onStampRefresh,
   );
@@ -63,9 +61,7 @@ export function StampCard({ stamp, signer, onStampRefresh }: StampCardProps) {
       <div className="stamp-details">
         <TTLDisplay financialStatus={financialStatus} classPrefix="stamp" />
       </div>
-      {signer && isActive && (
-        <StampActions stampId={stampId} signer={signer} onTopUp={handleTopUp} isLoading={isTopUpLoading} />
-      )}
+      {account && isActive && <StampActions stampId={stampId} onTopUp={handleTopUp} isLoading={isTopUpLoading} />}
 
       <SimpleModal isOpen={errorModalOpen} title="Error" onClose={closeErrorModal} closeText="OK">
         <p>{errorMessage}</p>

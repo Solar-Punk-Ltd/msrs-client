@@ -1,39 +1,49 @@
-import { ethers } from 'ethers';
+import { type Address, type PublicClient, type WalletClient } from 'viem';
 
-import { BZZ_TOKEN_ABI, BZZ_TOKEN_ADDRESS, POSTAGE_STAMP_CONTRACT } from './constants';
+import { BZZ_FN, BZZ_TOKEN_ABI, BZZ_TOKEN_ADDRESS, POSTAGE_STAMP_CONTRACT, TX_STATUS } from './constants';
 
 export async function hasSufficientBalance(
-  provider: ethers.Provider,
+  publicClient: PublicClient,
   userAddress: string,
   amountPlur: bigint,
 ): Promise<boolean> {
-  const bzzContract = new ethers.Contract(BZZ_TOKEN_ADDRESS, BZZ_TOKEN_ABI, provider);
-  const balance: bigint = await bzzContract.balanceOf(userAddress);
+  const balance = (await publicClient.readContract({
+    address: BZZ_TOKEN_ADDRESS,
+    abi: BZZ_TOKEN_ABI,
+    functionName: BZZ_FN.BALANCE_OF,
+    args: [userAddress as Address],
+  })) as bigint;
+
   return balance >= amountPlur;
 }
 
-export async function ensureBzzApproval(signer: ethers.Signer, amountPlur: bigint): Promise<boolean> {
-  const bzzContract = new ethers.Contract(BZZ_TOKEN_ADDRESS, BZZ_TOKEN_ABI, signer);
-  const userAddress = await signer.getAddress();
+export async function ensureBzzApproval(
+  walletClient: WalletClient,
+  publicClient: PublicClient,
+  amountPlur: bigint,
+): Promise<boolean> {
+  const userAddress = walletClient.account!.address;
 
-  const currentAllowance: bigint = await bzzContract.allowance(userAddress, POSTAGE_STAMP_CONTRACT);
+  const currentAllowance = (await publicClient.readContract({
+    address: BZZ_TOKEN_ADDRESS,
+    abi: BZZ_TOKEN_ABI,
+    functionName: BZZ_FN.ALLOWANCE,
+    args: [userAddress, POSTAGE_STAMP_CONTRACT],
+  })) as bigint;
 
   if (currentAllowance >= amountPlur) {
-    console.log('BZZ approval already sufficient');
     return true;
   }
 
-  console.log('Approving BZZ tokens for PostageStamp contract...');
+  const hash = await walletClient.writeContract({
+    address: BZZ_TOKEN_ADDRESS,
+    abi: BZZ_TOKEN_ABI,
+    functionName: BZZ_FN.APPROVE,
+    args: [POSTAGE_STAMP_CONTRACT, amountPlur],
+    chain: walletClient.chain,
+    account: walletClient.account!,
+  });
 
-  // I leave this here for future reference
-  // Approve max uint256 for convenience (user won't need to approve again)
-  // const maxApproval = ethers.MaxUint256;
-  // const approveTx = await bzzContract.approve(POSTAGE_STAMP_CONTRACT, maxApproval);
-
-  // For now only approve the needed amount
-  const approveTx = await bzzContract.approve(POSTAGE_STAMP_CONTRACT, amountPlur);
-  const receipt = await approveTx.wait();
-
-  console.log('BZZ approval confirmed');
-  return receipt !== null;
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  return receipt.status === TX_STATUS.SUCCESS;
 }

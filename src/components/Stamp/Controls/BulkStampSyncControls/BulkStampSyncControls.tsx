@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-
 import { SimpleModal } from '@/components/SimpleModal/SimpleModal';
 import { useBulkStampTopUpMutation } from '@/hooks/useBulkStampTopUpMutation';
 import { useBulkStampTopUpPlan } from '@/hooks/useBulkStampTopUpPlan';
@@ -11,12 +9,11 @@ import './BulkStampSyncControls.scss';
 
 interface BulkStampSyncControlsProps {
   stampIds: string[];
-  signer: ethers.Signer | null;
   maxDriftDays: number;
   onComplete: () => void;
 }
 
-export function BulkStampSyncControls({ stampIds, signer, maxDriftDays, onComplete }: BulkStampSyncControlsProps) {
+export function BulkStampSyncControls({ stampIds, maxDriftDays, onComplete }: BulkStampSyncControlsProps) {
   const { plan: syncPlan, isPlanLoading } = useBulkStampTopUpPlan(stampIds, 0);
   const { execute, isExecuting, result, progressState, errorModal, clearErrorModal } = useBulkStampTopUpMutation({
     onComplete,
@@ -50,7 +47,7 @@ export function BulkStampSyncControls({ stampIds, signer, maxDriftDays, onComple
       {!isExecuting && !progressState && (
         <button
           className="bulk-stamp-sync-button"
-          onClick={() => execute(signer, stampIds, 0)}
+          onClick={() => execute(stampIds, 0)}
           disabled={isPlanLoading || !syncPlan || stampIds.length === 0}
           type="button"
         >

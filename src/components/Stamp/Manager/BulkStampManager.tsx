@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react';
-import { ethers } from 'ethers';
 
 import { useBulkStampExpiration } from '@/hooks/useBulkStampExpiration';
 import { StampsData } from '@/types/stamp';
@@ -13,10 +12,9 @@ import './BulkStampManager.scss';
 
 interface BulkStampManagerProps {
   stamps: StampsData;
-  signer: ethers.Signer | null;
 }
 
-export function BulkStampManager({ stamps, signer }: BulkStampManagerProps) {
+export function BulkStampManager({ stamps }: BulkStampManagerProps) {
   const allStampIds = useMemo(() => {
     const ids: string[] = [];
 
@@ -55,12 +53,11 @@ export function BulkStampManager({ stamps, signer }: BulkStampManagerProps) {
       {bulkStampExpiration.data && !bulkStampExpiration.data.isConsistent ? (
         <BulkStampSyncControls
           stampIds={allStampIds}
-          signer={signer}
           maxDriftDays={bulkStampExpiration.data.maxDriftDays}
           onComplete={handleComplete}
         />
       ) : (
-        <BulkStampTopUpControls stampIds={allStampIds} signer={signer} onComplete={handleComplete} />
+        <BulkStampTopUpControls stampIds={allStampIds} onComplete={handleComplete} />
       )}
     </div>
   );

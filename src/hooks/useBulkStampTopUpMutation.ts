@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ethers } from 'ethers';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
 import { hasSufficientBalance } from '@/utils/network/contracts';
 import { tryBatchTopUp } from '@/utils/network/eip5792';
@@ -12,7 +12,6 @@ import {
   TOPUP_STATUS,
   TopUpStatus,
 } from '@/utils/network/stampTopup';
-import { getWalletService } from '@/utils/network/wallet';
 import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
 
 export interface ProgressState {
@@ -29,26 +28,19 @@ interface UseBulkStampTopUpMutationOptions {
 
 export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOptions) {
   const queryClient = useQueryClient();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
+  const { address } = useAccount();
+
   const [progressState, setProgressState] = useState<ProgressState | null>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    return () => {
-      abortControllerRef.current?.abort();
-    };
-  }, []);
 
   const mutation = useMutation({
-    mutationFn: async ({
-      signer,
-      stampIds,
-      additionalDays,
-    }: {
-      signer: ethers.Signer;
-      stampIds: string[];
-      additionalDays: number;
-    }) => {
+    mutationFn: async ({ stampIds, additionalDays }: { stampIds: string[]; additionalDays: number }) => {
+      if (!walletClient || !publicClient || !address) {
+        throw new Error('Wallet not connected');
+      }
+
       const progressCallback: BulkStampTopUpProgressCallback = (status, detail) => {
         setProgressState({
           status,
@@ -59,39 +51,23 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
         });
       };
 
-      const provider = signer.provider;
-      if (!provider) throw new Error('No provider available');
-
-      const userAddress = await signer.getAddress();
       const plan = await calculateBulkStampTopUpPlan(stampIds, additionalDays);
 
       if (plan.stampsNeedingTopUp.length === 0) {
         return { successful: [], failed: [] } as BulkStampTopUpResult;
       }
 
-      const hasBalance = await hasSufficientBalance(provider, userAddress, plan.totalCostPlur);
+      const hasBalance = await hasSufficientBalance(publicClient, address, plan.totalCostPlur);
       if (!hasBalance) {
         throw new Error(`Insufficient BZZ balance. Need ${plan.totalCostBzz.toDecimalString()} BZZ`);
       }
 
-      const ethereum = getWalletService().getEthereum();
-      if (ethereum) {
-        abortControllerRef.current?.abort();
-        abortControllerRef.current = new AbortController();
-
-        const batchResult = await tryBatchTopUp(
-          ethereum,
-          userAddress,
-          plan,
-          progressCallback,
-          abortControllerRef.current.signal,
-        );
-        if (batchResult) {
-          return batchResult;
-        }
+      const batchResult = await tryBatchTopUp(address, plan, progressCallback);
+      if (batchResult) {
+        return batchResult;
       }
 
-      return extendBulkStampDuration(signer, stampIds, additionalDays, progressCallback);
+      return extendBulkStampDuration(walletClient, publicClient, stampIds, additionalDays, progressCallback);
     },
     onSuccess: (result) => {
       if (result.failed.length === 0) {
@@ -108,15 +84,15 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
   });
 
   const execute = useCallback(
-    (signer: ethers.Signer | null, stampIds: string[], additionalDays: number) => {
-      if (!signer) {
+    (stampIds: string[], additionalDays: number) => {
+      if (!walletClient || !publicClient) {
         setErrorModal('Please connect your wallet first.');
         return;
       }
       setProgressState(null);
-      mutation.mutate({ signer, stampIds, additionalDays });
+      mutation.mutate({ stampIds, additionalDays });
     },
-    [mutation],
+    [mutation, walletClient, publicClient],
   );
 
   return {

@@ -1,3 +1,5 @@
+import { type Hex } from 'viem';
+
 export const formatDuration = (seconds: number) => {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -16,8 +18,8 @@ export function formatAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-export const padStampId = (stampId: string): string => {
-  return stampId.startsWith('0x') ? stampId : `0x${stampId}`;
+export const padStampId = (stampId: string): Hex => {
+  return (stampId.startsWith('0x') ? stampId : `0x${stampId}`) as Hex;
 };
 
 export const formatStampExpirationDate = (date: Date) => date.toISOString().slice(0, 10);

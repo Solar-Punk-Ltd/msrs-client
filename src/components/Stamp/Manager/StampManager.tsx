@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-
 import { StampsData } from '@/types/stamp';
 
 import { PinnedStreamGrid } from '../Grids/PinnedStampGrid/PinnedStampGrid';
@@ -10,10 +8,9 @@ import './StampManager.scss';
 
 interface StampManagerProps {
   stamps: StampsData;
-  signer: ethers.Signer | null;
 }
 
-export function StampManager({ stamps, signer }: StampManagerProps) {
+export function StampManager({ stamps }: StampManagerProps) {
   const hasContent =
     stamps.pinnedStreams.length > 0 ||
     stamps.privateStamps.length > 0 ||
@@ -29,31 +26,16 @@ export function StampManager({ stamps, signer }: StampManagerProps) {
       ) : hasContent ? (
         <>
           {stamps.pinnedStreams.length > 0 && (
-            <PinnedStreamGrid streams={stamps.pinnedStreams} signer={signer} onStampRefresh={stamps.refresh} />
+            <PinnedStreamGrid streams={stamps.pinnedStreams} onStampRefresh={stamps.refresh} />
           )}
           {stamps.privateStamps.length > 0 && (
-            <StampGrid
-              title="Private Stamps"
-              stamps={stamps.privateStamps}
-              signer={signer}
-              onStampRefresh={stamps.refresh}
-            />
+            <StampGrid title="Private Stamps" stamps={stamps.privateStamps} onStampRefresh={stamps.refresh} />
           )}
           {stamps.publicStamps.length > 0 && (
-            <StampGrid
-              title="Public Stamps"
-              stamps={stamps.publicStamps}
-              signer={signer}
-              onStampRefresh={stamps.refresh}
-            />
+            <StampGrid title="Public Stamps" stamps={stamps.publicStamps} onStampRefresh={stamps.refresh} />
           )}
           {stamps.customPrivateStamps.length > 0 && (
-            <StampGrid
-              title="External"
-              stamps={stamps.customPrivateStamps}
-              signer={signer}
-              onStampRefresh={stamps.refresh}
-            />
+            <StampGrid title="External" stamps={stamps.customPrivateStamps} onStampRefresh={stamps.refresh} />
           )}
         </>
       ) : (

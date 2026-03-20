@@ -1,24 +1,8 @@
-import { ethers } from 'ethers';
+import { type Hex, type PublicClient, type WalletClient } from 'viem';
 
 import { padStampId } from '../../ui/format';
-import { getWalletService } from '../wallet';
 
-import { POSTAGE_STAMP_ABI, POSTAGE_STAMP_CONTRACT } from './constants';
-
-export interface PostageStampContract {
-  batches(batchId: string): Promise<{
-    owner: string;
-    depth: number;
-    bucketDepth: number;
-    immutableFlag: boolean;
-    normalisedBalance: bigint;
-    lastUpdatedBlockNumber: bigint;
-  }>;
-  currentTotalOutPayment(): Promise<bigint>;
-  lastPrice(): Promise<bigint>;
-  topUp(batchId: string, amount: bigint): Promise<ethers.ContractTransactionResponse>;
-  connect(signer: ethers.Signer): PostageStampContract;
-}
+import { POSTAGE_FN, POSTAGE_STAMP_ABI, POSTAGE_STAMP_CONTRACT, TX_STATUS } from './constants';
 
 export interface BatchData {
   owner: string;
@@ -34,69 +18,70 @@ export interface ContractState {
   lastPrice: bigint;
 }
 
-export const createContract = (provider?: ethers.Provider): PostageStampContract => {
-  if (!provider) {
-    const walletService = getWalletService();
+export const fetchBatchData = async (publicClient: PublicClient, stampId: string): Promise<BatchData> => {
+  const result = await publicClient.readContract({
+    address: POSTAGE_STAMP_CONTRACT,
+    abi: POSTAGE_STAMP_ABI,
+    functionName: POSTAGE_FN.BATCHES,
+    args: [padStampId(stampId)],
+  });
 
-    if (walletService.isConnected()) {
-      const walletProvider = walletService.getProvider();
-      if (walletProvider) {
-        provider = walletProvider;
-      }
-    }
-
-    if (!provider) {
-      provider = walletService.getPublicProvider();
-    }
-  }
-
-  return new ethers.Contract(POSTAGE_STAMP_CONTRACT, POSTAGE_STAMP_ABI, provider) as unknown as PostageStampContract;
-};
-
-export const fetchBatchData = async (contract: PostageStampContract, stampId: string): Promise<BatchData> => {
-  const formattedId = padStampId(stampId);
-  const batch = await contract.batches(formattedId);
+  const [owner, depth, bucketDepth, immutableFlag, normalisedBalance, lastUpdatedBlockNumber] = result as [
+    string,
+    number,
+    number,
+    boolean,
+    bigint,
+    bigint,
+  ];
 
   return {
-    owner: batch.owner,
-    depth: Number(batch.depth),
-    bucketDepth: Number(batch.bucketDepth),
-    immutableFlag: batch.immutableFlag,
-    normalisedBalance: batch.normalisedBalance,
-    lastUpdatedBlockNumber: batch.lastUpdatedBlockNumber,
+    owner,
+    depth: Number(depth),
+    bucketDepth: Number(bucketDepth),
+    immutableFlag,
+    normalisedBalance,
+    lastUpdatedBlockNumber,
   };
 };
 
-export const fetchContractState = async (contract: PostageStampContract): Promise<ContractState> => {
+export const fetchContractState = async (publicClient: PublicClient): Promise<ContractState> => {
   const [currentTotalOutPayment, lastPrice] = await Promise.all([
-    contract.currentTotalOutPayment(),
-    contract.lastPrice(),
+    publicClient.readContract({
+      address: POSTAGE_STAMP_CONTRACT,
+      abi: POSTAGE_STAMP_ABI,
+      functionName: POSTAGE_FN.CURRENT_TOTAL_OUT_PAYMENT,
+    }) as Promise<bigint>,
+    publicClient.readContract({
+      address: POSTAGE_STAMP_CONTRACT,
+      abi: POSTAGE_STAMP_ABI,
+      functionName: POSTAGE_FN.LAST_PRICE,
+    }) as Promise<bigint>,
   ]);
 
-  return {
-    currentTotalOutPayment,
-    lastPrice,
-  };
+  return { currentTotalOutPayment, lastPrice };
 };
 
 export async function executeTopup(
-  signer: ethers.Signer,
+  walletClient: WalletClient,
+  publicClient: PublicClient,
   stampId: string,
   amountPerChunk: bigint,
-): Promise<ethers.ContractTransactionReceipt> {
-  const provider = signer.provider;
-  if (!provider) throw new Error('No provider available');
+): Promise<Hex> {
+  const hash = await walletClient.writeContract({
+    address: POSTAGE_STAMP_CONTRACT,
+    abi: POSTAGE_STAMP_ABI,
+    functionName: POSTAGE_FN.TOP_UP,
+    args: [padStampId(stampId), amountPerChunk],
+    chain: walletClient.chain,
+    account: walletClient.account!,
+  });
 
-  const contract = createContract(provider);
-  const contractWithSigner = contract.connect(signer);
-  const batchId = padStampId(stampId);
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
-  console.log('Executing topup transaction...');
-  const tx = await contractWithSigner.topUp(batchId, amountPerChunk);
-  const receipt = await tx.wait();
+  if (receipt.status === TX_STATUS.REVERTED) {
+    throw new Error('TopUp transaction reverted');
+  }
 
-  if (!receipt) throw new Error('Transaction failed');
-  console.log('Topup transaction confirmed');
-
-  return receipt;
+  return hash;
 }

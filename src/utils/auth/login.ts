@@ -5,7 +5,7 @@ import msgpack from 'msgpack-lite';
 import { deflate } from 'pako';
 
 import { MsrsIngMessage, StreamAggMessage } from '@/types/stream';
-import { getSigner } from '@/utils/network/wallet';
+import { getSigner } from '@/utils/crypto';
 
 import { config } from '../shared/config';
 
