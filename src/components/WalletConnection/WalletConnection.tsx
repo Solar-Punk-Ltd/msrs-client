@@ -1,5 +1,5 @@
 import { useWallet } from '@/providers/Wallet';
-import { METAMASK_DOWNLOAD_URL } from '@/utils/network/wallet';
+import { METAMASK_DOWNLOAD_URL, WALLET_ERROR } from '@/utils/network/wallet';
 import { formatAddress } from '@/utils/ui/format';
 
 import './WalletConnection.scss';
@@ -44,9 +44,9 @@ export function WalletConnection() {
       {error && !chainError && (
         <div className="error-message" role="alert">
           <span className="error-message__text">{error}</span>
-          {(error.includes('install MetaMask') || error.includes('outdated')) && (
+          {(error === WALLET_ERROR.NOT_FOUND || error === WALLET_ERROR.OUTDATED) && (
             <a className="error-message__link" href={METAMASK_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
-              {error.includes('outdated') ? '↗ Update MetaMask' : '↗ Install MetaMask'}
+              {error === WALLET_ERROR.OUTDATED ? '↗ Update MetaMask' : '↗ Install MetaMask'}
             </a>
           )}
         </div>

@@ -26,6 +26,11 @@ export const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
 export const GNOSIS_BLOCK_EXPLORER_URL = 'https://gnosisscan.io';
 export const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
 
+export const WALLET_ERROR = {
+  NOT_FOUND: 'MetaMask not found. Please install MetaMask to continue.',
+  OUTDATED: 'MetaMask detected but outdated. Please update MetaMask to the latest version.',
+} as const;
+
 const STORAGE_KEY = 'wallet_connected';
 const CHAIN_SWITCH_DELAY_MS = 1500;
 const CHAIN_NOT_ADDED_ERROR_CODE = 4902;
@@ -100,10 +105,10 @@ export class WalletService {
     }
 
     if (window.ethereum?.isMetaMask) {
-      throw new Error('MetaMask detected but outdated. Please update MetaMask to the latest version.');
+      throw new Error(WALLET_ERROR.OUTDATED);
     }
 
-    throw new Error('MetaMask not found. Please install MetaMask to continue.');
+    throw new Error(WALLET_ERROR.NOT_FOUND);
   }
 
   async checkAndReconnect(): Promise<WalletConnection | null> {
