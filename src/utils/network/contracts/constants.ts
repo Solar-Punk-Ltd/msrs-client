@@ -1,12 +1,8 @@
 import { type Address, createPublicClient, http, type PublicClient } from 'viem';
 import { gnosis } from 'viem/chains';
 
-// ── Network ──────────────────────────────────────────────────────────────────
-
 export const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
 export const GNOSIS_BLOCK_TIME = 5; // seconds
-
-// ── Contract addresses ───────────────────────────────────────────────────────
 
 export const POSTAGE_STAMP_CONTRACT: Address = '0x45a1502382541Cd610CC9068e88727426b696293';
 export const CONSISTENCY_THRESHOLD_DAYS = 1 / 24; // 1 hour
@@ -113,8 +109,6 @@ export const BZZ_TOKEN_ABI = [
   },
 ] as const;
 
-// ── Contract function names ──────────────────────────────────────────────────
-
 export const POSTAGE_FN = {
   BATCHES: 'batches',
   CURRENT_TOTAL_OUT_PAYMENT: 'currentTotalOutPayment',
@@ -128,21 +122,15 @@ export const BZZ_FN = {
   BALANCE_OF: 'balanceOf',
 } as const;
 
-// ── Transaction status ───────────────────────────────────────────────────────
-
 export const TX_STATUS = {
   SUCCESS: 'success',
   REVERTED: 'reverted',
 } as const;
 
-// ── EIP-5792 capability status ───────────────────────────────────────────────
-
 export const ATOMIC_CAPABILITY_STATUS = {
   SUPPORTED: 'supported',
   READY: 'ready',
 } as const;
-
-// ── Default public client ────────────────────────────────────────────────────
 
 export function getDefaultPublicClient(): PublicClient {
   return createPublicClient({

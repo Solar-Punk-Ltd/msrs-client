@@ -23,8 +23,6 @@ import {
   TOPUP_STATUS,
 } from './stampTopup';
 
-// ── EIP-5792 capability detection ────────────────────────────────────────────
-
 interface AtomicCapability {
   status?: string;
 }
@@ -58,8 +56,6 @@ async function isAtomicBatchAvailable(): Promise<boolean> {
     return false;
   }
 }
-
-// ── Batch call building ──────────────────────────────────────────────────────
 
 async function buildBatchCalls(userAddress: Address, plan: BulkStampTopUpPlan) {
   const calls: Array<{
@@ -98,8 +94,6 @@ async function buildBatchCalls(userAddress: Address, plan: BulkStampTopUpPlan) {
 
   return calls;
 }
-
-// ── Batch execution ──────────────────────────────────────────────────────────
 
 async function executeBatchTopUp(
   userAddress: Address,
@@ -144,8 +138,6 @@ async function executeBatchTopUp(
     })),
   };
 }
-
-// ── Public API ───────────────────────────────────────────────────────────────
 
 export async function tryBatchTopUp(
   userAddress: Address,

@@ -1,5 +1,3 @@
-import { type PublicClient } from 'viem';
-
 import { padStampId } from '../ui/format';
 
 import {
@@ -129,6 +127,15 @@ export const calculateFinancialStatus = (
   return { isActive: true, remainingDays, expirationDate };
 };
 
+/**
+ * Sorts entries by soonest expiry and computes drift metrics.
+ *
+ * Drift = difference in remaining days between the latest and soonest expiring
+ * active stamps. A non zero drift means stamps will expire at different times.
+ * `isConsistent` flags whether the drift is within a 1 hour tolerance
+ * (CONSISTENCY_THRESHOLD_DAYS), which accounts for minor timing differences
+ * caused by sequential on chain topUp transactions (~5s per stamp on Gnosis).
+ */
 const aggregateEntries = (
   entries: StampExpirationEntry[],
 ): Pick<BulkStampExpirationResult, 'entries' | 'soonestExpiry' | 'maxDriftDays' | 'isConsistent'> => {
@@ -153,8 +160,8 @@ const aggregateEntries = (
   };
 };
 
-export const loadStampInfo = async (stampId: string, publicClient?: PublicClient): Promise<StampInfo> => {
-  const client = publicClient ?? getDefaultPublicClient();
+export const loadStampInfo = async (stampId: string): Promise<StampInfo> => {
+  const client = getDefaultPublicClient();
 
   const [batchData, contractState] = await Promise.all([fetchBatchData(client, stampId), fetchContractState(client)]);
 
@@ -180,10 +187,7 @@ export const loadStampInfo = async (stampId: string, publicClient?: PublicClient
   };
 };
 
-export const loadBulkStampExpirations = async (
-  stampIds: string[],
-  publicClient?: PublicClient,
-): Promise<BulkStampExpirationResult> => {
+export const loadBulkStampExpirations = async (stampIds: string[]): Promise<BulkStampExpirationResult> => {
   if (stampIds.length === 0) {
     return {
       entries: [],
@@ -194,7 +198,7 @@ export const loadBulkStampExpirations = async (
     };
   }
 
-  const client = publicClient ?? getDefaultPublicClient();
+  const client = getDefaultPublicClient();
 
   const batchContracts = stampIds.map((id) => ({
     address: POSTAGE_STAMP_CONTRACT,
