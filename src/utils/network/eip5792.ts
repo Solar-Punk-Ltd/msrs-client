@@ -120,7 +120,9 @@ async function executeBatchTopUp(
     };
   }
 
-  const errorMessage = `Batch transaction ${result.status ?? 'failed'}`;
+  const errorMessage = `Batch transaction failed (status: ${
+    result.status ?? 'unknown'
+  }). All stamps were left unchanged. Please try again.`;
   onProgress?.(TOPUP_STATUS.ERROR, { error: errorMessage });
 
   return {

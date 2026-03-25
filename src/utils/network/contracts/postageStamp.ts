@@ -80,7 +80,7 @@ export async function executeTopup(
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
 
   if (receipt.status === TX_STATUS.REVERTED) {
-    throw new Error('TopUp transaction reverted');
+    throw new Error('Stamp top-up transaction was reverted by the contract. The stamp may be expired or invalid.');
   }
 
   return hash;

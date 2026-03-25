@@ -8,7 +8,6 @@ import {
   BulkStampTopUpProgressCallback,
   BulkStampTopUpResult,
   calculateBulkStampTopUpPlan,
-  extendBulkStampDuration,
   TOPUP_STATUS,
   TopUpStatus,
 } from '@/utils/network/stampTopup';
@@ -38,7 +37,7 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
   const mutation = useMutation({
     mutationFn: async ({ stampIds, additionalDays }: { stampIds: string[]; additionalDays: number }) => {
       if (!walletClient || !publicClient || !address) {
-        throw new Error('Wallet not connected');
+        throw new Error('No wallet connected. Please connect your wallet and try again.');
       }
 
       const progressCallback: BulkStampTopUpProgressCallback = (status, detail) => {
@@ -59,7 +58,9 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
 
       const hasBalance = await hasSufficientBalance(publicClient, address, plan.totalCostPlur);
       if (!hasBalance) {
-        throw new Error(`Insufficient BZZ balance. Need ${plan.totalCostBzz.toDecimalString()} BZZ`);
+        throw new Error(
+          `Not enough BZZ to complete this top-up. Required: ${plan.totalCostBzz.toDecimalString()} BZZ. Please add more BZZ to your wallet.`,
+        );
       }
 
       const batchResult = await tryBatchTopUp(address, plan, progressCallback);
@@ -67,7 +68,9 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
         return batchResult;
       }
 
-      return extendBulkStampDuration(walletClient, publicClient, stampIds, additionalDays, progressCallback);
+      throw new Error(
+        'Your wallet does not support atomic batch transactions (EIP-5792). Please use a compatible wallet.',
+      );
     },
     onSuccess: (result) => {
       if (result.failed.length === 0) {
@@ -86,7 +89,7 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
   const execute = useCallback(
     (stampIds: string[], additionalDays: number) => {
       if (!walletClient || !publicClient) {
-        setErrorModal('Please connect your wallet first.');
+        setErrorModal('No wallet connected. Please connect your wallet and try again.');
         return;
       }
       setProgressState(null);

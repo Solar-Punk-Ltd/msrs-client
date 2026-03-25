@@ -1,6 +1,6 @@
 export function extractErrorMessage(error: unknown): string {
   if (!error) {
-    return 'Unknown error occurred';
+    return 'An unexpected error occurred. Please try again or contact support if the issue persists.';
   }
 
   if (error instanceof Error) {
@@ -26,7 +26,7 @@ export function extractErrorMessage(error: unknown): string {
     return error;
   }
 
-  return 'Unknown error occurred';
+  return 'An unexpected error occurred. Please try again or contact support if the issue persists.';
 }
 
 export function getUserFriendlyErrorMessage(error: unknown): string {
@@ -35,10 +35,11 @@ export function getUserFriendlyErrorMessage(error: unknown): string {
   // Map common error messages to user-friendly ones
   const errorMappings: Record<string, string> = {
     'The requested account and/or method has not been authorized by the user.':
-      'Please authorize this transaction in MetaMask.',
+      'Please authorize this transaction in your wallet.',
     'User denied transaction signature.': 'Transaction was cancelled by user.',
     'insufficient funds for gas * price + value': 'Insufficient funds to complete this transaction.',
-    'execution reverted': 'Transaction failed. Please check your wallet balance and try again.',
+    'execution reverted':
+      'Transaction was reverted on-chain. Please check your wallet balance and stamp validity, then try again.',
     'user rejected transaction': 'Transaction was rejected by user.',
   };
 

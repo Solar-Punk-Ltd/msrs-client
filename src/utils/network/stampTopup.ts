@@ -1,8 +1,6 @@
 import { BZZ, Duration } from '@ethersphere/bee-js';
 import { type Hex, type PublicClient, type WalletClient } from 'viem';
 
-import { getUserFriendlyErrorMessage } from '../shared/errorHandling';
-
 import {
   ensureBzzApproval,
   executeTopup,
@@ -50,7 +48,6 @@ export interface BulkStampTopUpResult {
 
 export const TOPUP_STATUS = {
   APPROVING: 'approving',
-  TOPUP: 'topup',
   BATCH_PENDING: 'batch_pending',
   DONE: 'done',
   ERROR: 'error',
@@ -94,12 +91,14 @@ export async function extendStampDuration(
 
   const hasBalance = await hasSufficientBalance(publicClient, userAddress, calculation.totalCostPlur);
   if (!hasBalance) {
-    throw new Error(`Insufficient BZZ balance. Need ${calculation.costBzz.toDecimalString()} BZZ`);
+    throw new Error(
+      `Not enough BZZ to complete this top-up. Required: ${calculation.costBzz.toDecimalString()} BZZ. Please add more BZZ to your wallet.`,
+    );
   }
 
   const approved = await ensureBzzApproval(walletClient, publicClient, calculation.totalCostPlur);
   if (!approved) {
-    throw new Error('BZZ approval failed');
+    throw new Error('Failed to approve BZZ spending. Please try again and confirm the approval in your wallet.');
   }
 
   return executeTopup(walletClient, publicClient, stampId, calculation.amountPerChunk);
@@ -193,67 +192,4 @@ export async function calculateBulkStampTopUpPlan(
     additionalDays,
     preTopUpDrift: expirationResult.maxDriftDays,
   };
-}
-
-export async function extendBulkStampDuration(
-  walletClient: WalletClient,
-  publicClient: PublicClient,
-  stampIds: string[],
-  additionalDays: number,
-  onProgress?: BulkStampTopUpProgressCallback,
-): Promise<BulkStampTopUpResult> {
-  const userAddress = walletClient.account!.address;
-
-  const plan = await calculateBulkStampTopUpPlan(stampIds, additionalDays);
-
-  if (plan.stampsNeedingTopUp.length === 0) {
-    onProgress?.(TOPUP_STATUS.DONE, { total: 0 });
-    return { successful: [], failed: [] };
-  }
-
-  // Check total BZZ balance
-  const hasBalance = await hasSufficientBalance(publicClient, userAddress, plan.totalCostPlur);
-  if (!hasBalance) {
-    throw new Error(`Insufficient BZZ balance. Need ${plan.totalCostBzz.toDecimalString()} BZZ`);
-  }
-
-  // Single approval for total amount
-  onProgress?.(TOPUP_STATUS.APPROVING, { total: plan.stampsNeedingTopUp.length });
-  const approved = await ensureBzzApproval(walletClient, publicClient, plan.totalCostPlur);
-  if (!approved) {
-    throw new Error('BZZ approval failed');
-  }
-
-  // Execute topUps sequentially, stop on first failure
-  const result: BulkStampTopUpResult = { successful: [], failed: [] };
-
-  for (let i = 0; i < plan.stampsNeedingTopUp.length; i++) {
-    const stamp = plan.stampsNeedingTopUp[i];
-    onProgress?.(TOPUP_STATUS.TOPUP, {
-      stampId: stamp.stampId,
-      index: i,
-      total: plan.stampsNeedingTopUp.length,
-    });
-
-    try {
-      const txHash = await executeTopup(walletClient, publicClient, stamp.stampId, stamp.neededTopUpPerChunk);
-      result.successful.push({ stampId: stamp.stampId, txHash });
-    } catch (error) {
-      const errorMessage = getUserFriendlyErrorMessage(error);
-      result.failed.push({ stampId: stamp.stampId, error: errorMessage });
-      onProgress?.(TOPUP_STATUS.ERROR, {
-        stampId: stamp.stampId,
-        index: i,
-        total: plan.stampsNeedingTopUp.length,
-        error: errorMessage,
-      });
-      break;
-    }
-  }
-
-  if (result.failed.length === 0) {
-    onProgress?.(TOPUP_STATUS.DONE, { total: plan.stampsNeedingTopUp.length });
-  }
-
-  return result;
 }

@@ -18,18 +18,16 @@ interface FailureDetailsProps {
   failed: BulkStampTopUpResult['failed'];
 }
 
-function getStatusMessage(status: TopUpStatus, currentIndex: number, totalStamps: number): string {
+function getStatusMessage(status: TopUpStatus, _currentIndex: number, _totalStamps: number): string {
   switch (status) {
     case TOPUP_STATUS.APPROVING:
       return 'Approving BZZ...';
     case TOPUP_STATUS.BATCH_PENDING:
       return 'Confirming batch transaction...';
-    case TOPUP_STATUS.TOPUP:
-      return `Processing stamp ${currentIndex + 1} of ${totalStamps}...`;
     case TOPUP_STATUS.DONE:
       return 'Done';
     case TOPUP_STATUS.ERROR:
-      return 'Top up failed. Please try again.';
+      return 'Top-up failed. Please try again or check your wallet for details.';
     default:
       return '';
   }
@@ -94,8 +92,7 @@ export function BulkStampProgressDisplay({
 
   const handleReload = () => window.location.reload();
 
-  const isProcessing =
-    status === TOPUP_STATUS.APPROVING || status === TOPUP_STATUS.TOPUP || status === TOPUP_STATUS.BATCH_PENDING;
+  const isProcessing = status === TOPUP_STATUS.APPROVING || status === TOPUP_STATUS.BATCH_PENDING;
   const isDone = status === TOPUP_STATUS.DONE;
   const isError = status === TOPUP_STATUS.ERROR;
 
