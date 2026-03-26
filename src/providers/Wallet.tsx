@@ -1,7 +1,8 @@
-import { createContext, ReactNode, useContext, useMemo } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
 import { useAccount, useConnect, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
 import { gnosis } from 'wagmi/chains';
-import { metaMask } from 'wagmi/connectors';
+
+import { metaMaskConnector, wagmiConfig } from '@/config/wagmi';
 
 const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
 
@@ -58,13 +59,14 @@ export function WalletProvider({ children }: WalletProviderProps) {
     return walletClient.chain.id !== gnosis.id;
   }, [isConnected, walletClient]);
 
-  const connect = () => {
-    wagmiConnect({ connector: metaMask() });
-  };
+  const connect = useCallback(() => {
+    wagmiConnect({ connector: metaMaskConnector });
+  }, [wagmiConnect]);
 
-  const disconnect = () => {
+  const disconnect = useCallback(() => {
     wagmiDisconnect();
-  };
+    wagmiConfig.storage?.removeItem('recentConnectorId');
+  }, [wagmiDisconnect]);
 
   const switchToGnosis = () => {
     switchChain({ chainId: gnosis.id });
@@ -73,7 +75,7 @@ export function WalletProvider({ children }: WalletProviderProps) {
   const error = mapConnectError(connectError);
 
   const value: IWalletContext = {
-    account: address ?? null,
+    account: isConnected ? address ?? null : null,
     isConnecting: wagmiIsConnecting || isConnectPending,
     isReconnecting,
     error,

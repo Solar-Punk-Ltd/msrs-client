@@ -4,9 +4,11 @@ import { metaMask } from 'wagmi/connectors';
 
 import { GNOSIS_RPC_URL } from '@/utils/network/contracts';
 
+export const metaMaskConnector = metaMask();
+
 export const wagmiConfig = createConfig({
   chains: [gnosis],
-  connectors: [metaMask()],
+  connectors: [metaMaskConnector],
   transports: {
     [gnosis.id]: http(GNOSIS_RPC_URL),
   },
