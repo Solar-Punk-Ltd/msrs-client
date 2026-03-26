@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useConnection, usePublicClient, useWalletClient } from 'wagmi';
+import { type Address } from 'viem';
+import { usePublicClient, useWalletClient } from 'wagmi';
 
+import { useWallet } from '@/providers/Wallet';
 import { hasSufficientBalance } from '@/utils/network/contracts';
 import { tryBatchTopUp } from '@/utils/network/eip5792';
 import {
@@ -27,9 +29,10 @@ interface UseBulkStampTopUpMutationOptions {
 
 export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOptions) {
   const queryClient = useQueryClient();
+  const { account } = useWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
-  const { address } = useConnection();
+  const address = account as Address | null;
 
   const [progressState, setProgressState] = useState<ProgressState | null>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
@@ -88,14 +91,14 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
 
   const execute = useCallback(
     (stampIds: string[], additionalDays: number) => {
-      if (!walletClient || !publicClient) {
+      if (!walletClient || !publicClient || !address) {
         setErrorModal('No wallet connected. Please connect your wallet and try again.');
         return;
       }
       setProgressState(null);
       mutation.mutate({ stampIds, additionalDays });
     },
-    [mutation, walletClient, publicClient],
+    [mutation, walletClient, publicClient, address],
   );
 
   return {
