@@ -1,5 +1,5 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
-import { useAccount, useConnect, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
+import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { useConnect, useConnection, useDisconnect, useSwitchChain, useWalletClient } from 'wagmi';
 import { gnosis } from 'wagmi/chains';
 
 import { metaMaskConnector, wagmiConfig } from '@/config/wagmi';
@@ -48,10 +48,10 @@ function mapConnectError(error: Error | null): string | null {
 }
 
 export function WalletProvider({ children }: WalletProviderProps) {
-  const { address, isConnected, isConnecting: wagmiIsConnecting, isReconnecting } = useAccount();
-  const { connect: wagmiConnect, error: connectError, isPending: isConnectPending } = useConnect();
-  const { disconnect: wagmiDisconnect } = useDisconnect();
-  const { switchChain } = useSwitchChain();
+  const { address, isConnected, isConnecting: wagmiIsConnecting, isReconnecting } = useConnection();
+  const { mutate: wagmiConnect, error: connectError, isPending: isConnectPending } = useConnect();
+  const { mutate: wagmiDisconnect } = useDisconnect();
+  const { mutate: switchChainMutate } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
 
   const chainError = useMemo(() => {
@@ -59,23 +59,47 @@ export function WalletProvider({ children }: WalletProviderProps) {
     return walletClient.chain.id !== gnosis.id;
   }, [isConnected, walletClient]);
 
+  // Guard against stale reconnects: stays true after disconnect,
+  // only cleared when wagmiConnect's onSuccess confirms a genuine connection.
+  const [userDisconnected, setUserDisconnected] = useState(false);
+
   const connect = useCallback(() => {
-    wagmiConnect({ connector: metaMaskConnector });
+    wagmiConnect({ connector: metaMaskConnector }, { onSuccess: () => setUserDisconnected(false) });
   }, [wagmiConnect]);
 
   const disconnect = useCallback(() => {
-    wagmiDisconnect();
-    wagmiConfig.storage?.removeItem('recentConnectorId');
+    setUserDisconnected(true);
+    wagmiDisconnect(undefined, {
+      onSuccess: async () => {
+        // Clear wagmi storage to prevent auto reconnect with stale data
+        wagmiConfig.storage?.removeItem('recentConnectorId');
+        wagmiConfig.storage?.removeItem('connections');
+
+        // Revoke MetaMask permissions so eth_accounts returns [] on next connect attempt
+        try {
+          const connector = wagmiConfig.connectors.find((c) => c.id === 'metaMaskSDK');
+          if (connector) {
+            const provider = await connector.getProvider();
+            await (provider as { request: (args: { method: string; params: unknown[] }) => Promise<unknown> }).request({
+              method: 'wallet_revokePermissions',
+              params: [{ eth_accounts: {} }],
+            });
+          }
+        } catch {
+          // Older MetaMask versions may not support wallet_revokePermissions
+        }
+      },
+    });
   }, [wagmiDisconnect]);
 
-  const switchToGnosis = () => {
-    switchChain({ chainId: gnosis.id });
-  };
+  const switchToGnosis = useCallback(() => {
+    switchChainMutate({ chainId: gnosis.id });
+  }, [switchChainMutate]);
 
   const error = mapConnectError(connectError);
 
   const value: IWalletContext = {
-    account: isConnected ? address ?? null : null,
+    account: isConnected && !userDisconnected ? address ?? null : null,
     isConnecting: wagmiIsConnecting || isConnectPending,
     isReconnecting,
     error,

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
+import { useConnection, usePublicClient, useWalletClient } from 'wagmi';
 
 import { hasSufficientBalance } from '@/utils/network/contracts';
 import { tryBatchTopUp } from '@/utils/network/eip5792';
@@ -29,7 +29,7 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
   const queryClient = useQueryClient();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
-  const { address } = useAccount();
+  const { address } = useConnection();
 
   const [progressState, setProgressState] = useState<ProgressState | null>(null);
   const [errorModal, setErrorModal] = useState<string | null>(null);
