@@ -21,6 +21,7 @@ export async function ensureBzzApproval(
   walletClient: WalletClient,
   publicClient: PublicClient,
   amountPlur: bigint,
+  spender: Address = POSTAGE_STAMP_CONTRACT,
 ): Promise<boolean> {
   const userAddress = walletClient.account!.address;
 
@@ -28,7 +29,7 @@ export async function ensureBzzApproval(
     address: BZZ_TOKEN_ADDRESS,
     abi: BZZ_TOKEN_ABI,
     functionName: BZZ_FN.ALLOWANCE,
-    args: [userAddress, POSTAGE_STAMP_CONTRACT],
+    args: [userAddress, spender],
   })) as bigint;
 
   if (currentAllowance >= amountPlur) {
@@ -39,7 +40,7 @@ export async function ensureBzzApproval(
     address: BZZ_TOKEN_ADDRESS,
     abi: BZZ_TOKEN_ABI,
     functionName: BZZ_FN.APPROVE,
-    args: [POSTAGE_STAMP_CONTRACT, amountPlur],
+    args: [spender, amountPlur],
     chain: walletClient.chain,
     account: walletClient.account!,
   });
