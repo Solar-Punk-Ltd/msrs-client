@@ -135,7 +135,7 @@ export const calculateFinancialStatus = (
  * active stamps. A non zero drift means stamps will expire at different times.
  * `isConsistent` flags whether the drift is within a 1 hour tolerance
  * (CONSISTENCY_THRESHOLD_DAYS), which accounts for minor timing differences
- * caused by sequential on chain topUp transactions (~5s per stamp on Gnosis).
+ * caused by on-chain topUp transactions.
  */
 const aggregateEntries = (
   entries: StampExpirationEntry[],

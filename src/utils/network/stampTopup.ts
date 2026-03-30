@@ -41,11 +41,6 @@ export interface BulkStampTopUpPlan {
   preTopUpDrift: number;
 }
 
-export interface BulkStampTopUpResult {
-  successful: { stampId: string; txHash?: Hex }[];
-  failed: { stampId: string; error: string }[];
-}
-
 export const TOPUP_STATUS = {
   APPROVING: 'approving',
   BATCH_PENDING: 'batch_pending',
@@ -55,10 +50,7 @@ export const TOPUP_STATUS = {
 
 export type TopUpStatus = (typeof TOPUP_STATUS)[keyof typeof TOPUP_STATUS];
 
-export type BulkStampTopUpProgressCallback = (
-  status: TopUpStatus,
-  detail: { stampId?: string; index?: number; total?: number; error?: string },
-) => void;
+export type BulkStampTopUpProgressCallback = (status: TopUpStatus, detail: { total?: number; error?: string }) => void;
 
 function getAmountForDuration(duration: Duration, pricePerBlock: bigint): bigint {
   const blocks = BigInt(duration.toSeconds()) / BigInt(GNOSIS_BLOCK_TIME);
