@@ -4,11 +4,10 @@ import { type Address } from 'viem';
 import { usePublicClient, useWalletClient } from 'wagmi';
 
 import { useWallet } from '@/providers/Wallet';
+import { executeBatchTopUp } from '@/utils/network/batchTopUp';
 import { hasSufficientBalance } from '@/utils/network/contracts';
-import { tryBatchTopUp } from '@/utils/network/eip5792';
 import {
   BulkStampTopUpProgressCallback,
-  BulkStampTopUpResult,
   calculateBulkStampTopUpPlan,
   TOPUP_STATUS,
   TopUpStatus,
@@ -17,8 +16,6 @@ import { getUserFriendlyErrorMessage } from '@/utils/shared/errorHandling';
 
 export interface ProgressState {
   status: TopUpStatus;
-  stampId?: string;
-  index?: number;
   total?: number;
   error?: string;
 }
@@ -46,8 +43,6 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
       const progressCallback: BulkStampTopUpProgressCallback = (status, detail) => {
         setProgressState({
           status,
-          stampId: detail.stampId,
-          index: detail.index,
           total: detail.total,
           error: detail.error,
         });
@@ -56,7 +51,7 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
       const plan = await calculateBulkStampTopUpPlan(stampIds, additionalDays);
 
       if (plan.stampsNeedingTopUp.length === 0) {
-        return { successful: [], failed: [] } as BulkStampTopUpResult;
+        return;
       }
 
       const hasBalance = await hasSufficientBalance(publicClient, address, plan.totalCostPlur);
@@ -66,21 +61,12 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
         );
       }
 
-      const batchResult = await tryBatchTopUp(address, plan, progressCallback);
-      if (batchResult) {
-        return batchResult;
-      }
-
-      throw new Error(
-        'Your wallet does not support atomic batch transactions (EIP-5792). Please use a compatible wallet.',
-      );
+      await executeBatchTopUp(walletClient, publicClient, plan, progressCallback);
     },
-    onSuccess: (result) => {
-      if (result.failed.length === 0) {
-        queryClient.invalidateQueries({ queryKey: ['bulk-stamp-expirations'] });
-        queryClient.invalidateQueries({ queryKey: ['bulk-stamp-topup-plan'] });
-        options?.onComplete?.();
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bulk-stamp-expirations'] });
+      queryClient.invalidateQueries({ queryKey: ['bulk-stamp-topup-plan'] });
+      options?.onComplete?.();
     },
     onError: (err) => {
       const message = getUserFriendlyErrorMessage(err);
@@ -104,7 +90,6 @@ export function useBulkStampTopUpMutation(options?: UseBulkStampTopUpMutationOpt
   return {
     execute,
     isExecuting: mutation.isPending,
-    result: (mutation.data as BulkStampTopUpResult) ?? null,
     progressState,
     errorModal,
     clearErrorModal: () => setErrorModal(null),
