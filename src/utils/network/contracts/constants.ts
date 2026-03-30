@@ -5,6 +5,8 @@ export const GNOSIS_RPC_URL = 'https://rpc.gnosischain.com';
 export const GNOSIS_BLOCK_TIME = 5; // seconds
 
 export const POSTAGE_STAMP_CONTRACT: Address = '0x45a1502382541Cd610CC9068e88727426b696293';
+// https://github.com/Solar-Punk-Ltd/postage-batcher
+export const POSTAGE_BATCHER_ADDRESS: Address = '0xf9E92Fa33e697Ba3059Bc25ba1448Cd899b16e51';
 export const CONSISTENCY_THRESHOLD_DAYS = 1 / 24; // 1 hour
 
 export const MULTICALL3_ADDRESS: Address = '0xcA11bde05977b3631167028862bE2a173976CA11';
@@ -122,14 +124,37 @@ export const BZZ_FN = {
   BALANCE_OF: 'balanceOf',
 } as const;
 
+export const POSTAGE_BATCHER_ABI = [
+  {
+    name: 'batchTopUp',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: '_batchIds', type: 'bytes32[]' },
+      { name: '_topupAmountsPerChunk', type: 'uint256[]' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'batchTopUpFixed',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: '_batchIds', type: 'bytes32[]' },
+      { name: '_topupAmountPerChunk', type: 'uint256' },
+    ],
+    outputs: [],
+  },
+] as const;
+
+export const POSTAGE_BATCHER_FN = {
+  BATCH_TOP_UP: 'batchTopUp',
+  BATCH_TOP_UP_FIXED: 'batchTopUpFixed',
+} as const;
+
 export const TX_STATUS = {
   SUCCESS: 'success',
   REVERTED: 'reverted',
-} as const;
-
-export const ATOMIC_CAPABILITY_STATUS = {
-  SUPPORTED: 'supported',
-  READY: 'ready',
 } as const;
 
 export function getDefaultPublicClient(): PublicClient {
