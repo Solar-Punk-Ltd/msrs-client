@@ -15,7 +15,7 @@ interface BulkStampSyncControlsProps {
 
 export function BulkStampSyncControls({ stampIds, maxDriftDays, onComplete }: BulkStampSyncControlsProps) {
   const { plan: syncPlan, isPlanLoading } = useBulkStampTopUpPlan(stampIds, 0);
-  const { execute, isExecuting, result, progressState, errorModal, clearErrorModal } = useBulkStampTopUpMutation({
+  const { execute, isExecuting, progressState, errorModal, clearErrorModal } = useBulkStampTopUpMutation({
     onComplete,
   });
 
@@ -57,9 +57,7 @@ export function BulkStampSyncControls({ stampIds, maxDriftDays, onComplete }: Bu
 
       <BulkStampProgressDisplay
         status={progressState?.status ?? null}
-        currentIndex={progressState?.index}
         totalStamps={progressState?.total ?? stampIds.length}
-        result={result}
         error={progressState?.error}
       />
 

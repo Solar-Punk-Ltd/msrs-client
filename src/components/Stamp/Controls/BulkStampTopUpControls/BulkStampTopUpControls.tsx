@@ -19,7 +19,7 @@ export function BulkStampTopUpControls({ stampIds, onComplete }: BulkStampTopUpC
   const [selectedDays, setSelectedDays] = useState(30);
 
   const { plan, isPlanLoading } = useBulkStampTopUpPlan(stampIds, selectedDays);
-  const { execute, isExecuting, result, progressState, errorModal, clearErrorModal } = useBulkStampTopUpMutation({
+  const { execute, isExecuting, progressState, errorModal, clearErrorModal } = useBulkStampTopUpMutation({
     onComplete,
   });
 
@@ -57,9 +57,7 @@ export function BulkStampTopUpControls({ stampIds, onComplete }: BulkStampTopUpC
 
       <BulkStampProgressDisplay
         status={progressState?.status ?? null}
-        currentIndex={progressState?.index}
         totalStamps={progressState?.total ?? stampIds.length}
-        result={result}
         error={progressState?.error}
       />
 

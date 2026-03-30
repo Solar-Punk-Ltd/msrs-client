@@ -38,7 +38,6 @@
   height: 100%;
   background: var(--gradient-accent);
   border-radius: var(--border-radius-2xs);
-  transition: width var(--duration-base) var(--easing-ease-out);
 
   &--indeterminate {
     animation: pulse 1.5s ease-in-out infinite;
@@ -53,44 +52,6 @@
 
   50% {
     opacity: 0.5;
-  }
-}
-
-.bulk-stamp-progress-result {
-  @include mixins.flex-column;
-  gap: var(--spacing-sm);
-}
-
-.bulk-stamp-progress-success {
-  color: var(--color-success-light);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family-base);
-}
-
-.bulk-stamp-progress-failures {
-  @include mixins.flex-column;
-  gap: var(--spacing-xs);
-}
-
-.bulk-stamp-progress-fail-count {
-  color: var(--color-error-light);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family-base);
-}
-
-.bulk-stamp-progress-details-toggle {
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  text-decoration: underline;
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family-base);
-  cursor: pointer;
-  padding: 0;
-  transition: color var(--duration-fast) var(--easing-ease-out);
-
-  &:hover {
-    color: var(--color-text-inverse);
   }
 }
 
@@ -115,17 +76,5 @@
 
   &:active {
     transform: translateY(0);
-  }
-}
-
-.bulk-stamp-progress-fail-list {
-  margin: 0;
-  padding-left: var(--spacing-lg);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family-mono);
-
-  li {
-    margin-bottom: var(--spacing-xs);
   }
 }
