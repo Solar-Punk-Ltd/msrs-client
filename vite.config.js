@@ -59,52 +59,11 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            // React and routing
-            if (
-              id.includes('node_modules/react') ||
-              id.includes('node_modules/react-dom') ||
-              id.includes('node_modules/react-router')
-            ) {
-              return 'react-vendor';
-            }
-            // Waku
-            if (id.includes('@solarpunkltd/waku-sdk') || id.includes('@waku/utils')) {
-              return 'waku-vendor';
-            }
-            // Swarm
-            if (id.includes('@ethersphere/bee-js') || id.includes('@solarpunkltd/swarm-chat-js')) {
-              return 'swarm-vendor';
-            }
-            // Crypto
-            if (
-              id.includes('node_modules/ethers') ||
-              id.includes('node_modules/crypto-js') ||
-              id.includes('node_modules/bs58') ||
-              id.includes('node_modules/buffer') ||
-              id.includes('node_modules/process')
-            ) {
-              return 'crypto-vendor';
-            }
-            // Media
-            if (id.includes('node_modules/hls.js')) {
-              return 'media-vendor';
-            }
-            // Utils
-            if (
-              id.includes('node_modules/lodash') ||
-              id.includes('node_modules/clsx') ||
-              id.includes('node_modules/p-queue') ||
-              id.includes('node_modules/pako') ||
-              id.includes('node_modules/protobufjs') ||
-              id.includes('node_modules/msgpack-lite')
-            ) {
-              return 'utils-vendor';
-            }
-          },
+          entryFileNames: `assets/[name].js`,
+          chunkFileNames: `assets/[name].js`,
+          assetFileNames: `assets/[name].[ext]`,
         },
       },
-      chunkSizeWarningLimit: 1000,
     },
     test: {
       globals: true,
