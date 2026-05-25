@@ -8,6 +8,8 @@ export interface ThemeConfig {
   logoOnDarkPath?: string;
   /** Optional looping/single-play background video shown behind the main layout. */
   backgroundVideoPath?: string;
+  /** Render a marketing footer below the main content. */
+  showFooter?: boolean;
 }
 
 export const THEME_NAMES = {
@@ -44,5 +46,6 @@ export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
     primaryColor: '#fe6e00',
     logoPath: '/assets/themes/swarm/logo.svg',
     backgroundVideoPath: '/assets/themes/swarm/doors_v3.mp4',
+    showFooter: true,
   },
 };

@@ -97,3 +97,7 @@ header {
   width: 100%;
   overflow: hidden;
 }
+
+.main-layout--has-footer .content {
+  overflow-y: auto;
+}
