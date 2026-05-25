@@ -22,7 +22,7 @@
   padding: var(--spacing-lg);
   max-height: fit-content;
   box-sizing: border-box;
-  background: var(--gradient-primary);
+  background: var(--modal-background, var(--gradient-primary));
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
   border-radius: var(--border-radius-md);
@@ -70,6 +70,7 @@
 
   &.primary {
     background-color: var(--modal-cancel-background, var(--color-primary)) !important;
+    color: var(--modal-cancel-color, var(--color-text-inverse)) !important;
 
     &:hover {
       background-color: var(--modal-cancel-hover, var(--color-primary-hover)) !important;

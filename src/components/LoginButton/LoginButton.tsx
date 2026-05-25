@@ -6,7 +6,7 @@ import { useClickOutside } from '@/hooks/useClickOutside';
 import { useTheme } from '@/providers/Theme';
 import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
-import { THEME_NAMES } from '@/utils/theme/themeConfig';
+import { AVAILABLE_THEMES, THEME_NAMES, ThemeName } from '@/utils/theme/themeConfig';
 
 import { ConfirmationModal } from '../ConfirmationModal/ConfirmationModal';
 
@@ -70,8 +70,9 @@ export const LoginButton = () => {
   };
 
   const handleThemeToggle = () => {
-    const newTheme = theme === THEME_NAMES.SOLARPUNK ? THEME_NAMES.CRYPTOMONDAYS : THEME_NAMES.SOLARPUNK;
-    setTheme(newTheme);
+    const order: ThemeName[] = [THEME_NAMES.SOLARPUNK, THEME_NAMES.CRYPTOMONDAYS, THEME_NAMES.SWARM];
+    const next = order[(order.indexOf(theme) + 1) % order.length];
+    setTheme(next);
   };
 
   if (isUserLoggedIn) {
@@ -109,7 +110,7 @@ export const LoginButton = () => {
             <div className="login-dropdown-divider" />
             {isSolarpunkAdmin && (
               <button className="login-dropdown-item" onClick={handleThemeToggle}>
-                Theme: {theme === THEME_NAMES.SOLARPUNK ? 'SolarPunk' : 'CryptoMondays'}
+                Theme: {AVAILABLE_THEMES[theme].displayName}
               </button>
             )}
             <button className="login-dropdown-item" onClick={handleLogout}>

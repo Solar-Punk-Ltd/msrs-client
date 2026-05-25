@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { getTheme } from '@/utils/shared/config';
-import { THEME_NAMES, THEME_STORAGE_KEY, ThemeName } from '@/utils/theme/themeConfig';
+import { AVAILABLE_THEMES, THEME_NAMES, THEME_STORAGE_KEY, ThemeName } from '@/utils/theme/themeConfig';
 
 interface ThemeContextType {
   theme: ThemeName;
@@ -10,15 +10,19 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function isValidTheme(value: string | null): value is ThemeName {
+  return value !== null && value in AVAILABLE_THEMES;
+}
+
 function getInitialTheme(): ThemeName {
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  if (stored === THEME_NAMES.SOLARPUNK || stored === THEME_NAMES.CRYPTOMONDAYS) {
-    return stored as ThemeName;
+  if (isValidTheme(stored)) {
+    return stored;
   }
 
   const envTheme = getTheme();
-  if (envTheme === THEME_NAMES.SOLARPUNK || envTheme === THEME_NAMES.CRYPTOMONDAYS) {
-    return envTheme as ThemeName;
+  if (isValidTheme(envTheme)) {
+    return envTheme;
   }
 
   return THEME_NAMES.CRYPTOMONDAYS;

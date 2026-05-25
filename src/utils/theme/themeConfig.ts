@@ -6,11 +6,14 @@ export interface ThemeConfig {
   logoPath: string;
   logoIconPath?: string;
   logoOnDarkPath?: string;
+  /** Optional looping/single-play background video shown behind the main layout. */
+  backgroundVideoPath?: string;
 }
 
 export const THEME_NAMES = {
   SOLARPUNK: 'solarpunk',
   CRYPTOMONDAYS: 'cryptomondays',
+  SWARM: 'swarm',
 } as const;
 
 export type ThemeName = (typeof THEME_NAMES)[keyof typeof THEME_NAMES];
@@ -33,5 +36,13 @@ export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
     logoPath: '/assets/themes/cryptomondays/logo.svg',
     logoIconPath: '/assets/themes/cryptomondays/logo-icon.svg',
     logoOnDarkPath: '/assets/themes/cryptomondays/logo-on-black.svg',
+  },
+  [THEME_NAMES.SWARM]: {
+    name: THEME_NAMES.SWARM,
+    displayName: 'Swarm',
+    description: 'Ethereum Swarm Foundation theme with brand orange and video background',
+    primaryColor: '#fe6e00',
+    logoPath: '/assets/themes/swarm/logo.svg',
+    backgroundVideoPath: '/assets/themes/swarm/doors_v3.mp4',
   },
 };

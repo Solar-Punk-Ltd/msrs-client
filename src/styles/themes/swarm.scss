@@ -1,0 +1,203 @@
+@use 'sass:map';
+@use 'base' as theme-base;
+
+$swarm-colors: (
+  // Primary colors
+  'primary': #fe6e00,
+  'primary-hover': #ff7a00,
+  'primary-dark': #eb7000,
+
+  // Secondary colors
+  'secondary': #1f2831,
+  'secondary-light': #2d3843,
+  'secondary-dark': #0d1216,
+
+  // Accent colors
+  'accent': #fe6e00,
+  'accent-hover': #ff7a00,
+
+  // Background colors
+  'background-primary': #0d1216,
+  'background-secondary': #1f2831,
+  'background-overlay': rgba(0, 0, 0, 0.7),
+  'background-glass': rgba(31, 40, 49, 0.88),
+  'background-badge': rgba(246, 247, 249, 0.9),
+  'background-badge-hover': rgba(246, 247, 249, 1),
+  'background-glass-light': rgba(246, 247, 249, 0.08),
+  'background-message': rgba(246, 247, 249, 0.08),
+  'background-message-hover': rgba(246, 247, 249, 0.14),
+  'background-button-secondary': rgba(246, 247, 249, 0.12),
+  'background-input': rgba(246, 247, 249, 0.1),
+  'background-input-focus': rgba(246, 247, 249, 0.16),
+  'background-pagination': rgba(246, 247, 249, 0.1),
+  'background-loading': #0d1216,
+  'background-dark': #0d1216,
+  'background-dark-strong': rgba(13, 18, 22, 0.95),
+  'background-tooltip': #1f2831,
+  'background-tooltip-hover': #2d3843,
+  'background-stamp-topup': rgba(254, 110, 0, 0.1),
+  'background-stamp-cost': rgba(0, 0, 0, 0.4),
+  // Overlay colors
+  'overlay-dark': rgba(0, 0, 0, 0.75),
+  'shadow-strong': rgba(0, 0, 0, 0.5),
+  'glow-primary': rgba(254, 110, 0, 0.6),
+  // Spinner colors
+  'spinner-track': rgba(246, 247, 249, 0.15),
+  'spinner-active': #fe6e00,
+  // Chat colors
+  'chat-loading': #fe6e00,
+  'send-button': #fe6e00,
+
+  // Text colors
+  'text-primary': #f6f7f9,
+  'text-secondary': rgba(246, 247, 249, 0.75),
+  'text-tertiary': rgba(246, 247, 249, 0.55),
+  'text-inverse': #f6f7f9,
+  'text-placeholder': rgba(246, 247, 249, 0.5),
+  // Badges are light pills, so badge text is dark navy
+  'text-badge': #1f2831,
+  // Status colors
+  'success': #00c758,
+  'success-light': #48f286,
+  'success-background': rgba(0, 199, 88, 0.15),
+  'success-border': rgba(0, 199, 88, 0.4),
+  'error': #fb2c36,
+  'error-dark': #b91c1c,
+  'error-background': rgba(251, 44, 54, 0.15),
+  'error-border': rgba(251, 44, 54, 0.4),
+  'warning': #f28b0a,
+  'info': #155dfc,
+
+  // Border colors
+  'border-primary': rgba(246, 247, 249, 0.1),
+  'border-secondary': rgba(246, 247, 249, 0.05),
+  'border-input': rgba(246, 247, 249, 0.15),
+  'border-input-focus': #fe6e00,
+  'border-pagination': rgba(246, 247, 249, 0.15),
+  'border-tooltip': #2d3843,
+  'border-badge': rgba(31, 40, 49, 0.15),
+  'border-stamp-topup': rgba(254, 110, 0, 0.25),
+  'border-stream-list': rgba(246, 247, 249, 0.12),
+  // Disabled states
+  'disabled': #6a7282,
+  'disabled-light': #8b909a
+);
+
+$swarm-gradients: (
+  'primary': linear-gradient(135deg, rgba(255, 122, 0, 0.9) 0%, rgba(180, 59, 205, 0.9) 100%),
+  'secondary': linear-gradient(135deg, #1f2831 0%, #2d3843 100%),
+  'accent': linear-gradient(135deg, #ff7a00 0%, #fe6e00 50%, #eb7000 100%),
+  'accent-hover': linear-gradient(135deg, #ff8a40 0%, #ff7a00 50%, #fe6e00 100%),
+  'overlay-top': linear-gradient(180deg, #0d1216 0%, rgba(13, 18, 22, 0) 100%),
+  'overlay-light': linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent),
+  'header-overlay': linear-gradient(180deg, #0d1216, rgba(13, 18, 22, 0)),
+  'status-error': linear-gradient(135deg, #fb2c36, #b91c1c),
+  // Action buttons use solid colors instead of gradients (Swarm-only deviation)
+  'action-pin': #fe6e00,
+  'action-pin-hover': #ff7a00,
+  'action-delete': #fb2c36,
+  'action-delete-hover': #dc2626,
+  'action-unpin': #6a7282,
+  'action-unpin-hover': #4b5563,
+  'action-edit': #fe6e00,
+  'action-edit-hover': #ff7a00,
+  'action-token': #155dfc,
+  'action-token-hover': #1149d0,
+  'modal-confirm': #fe6e00,
+  'modal-confirm-hover': #ff7a00,
+  'stamp-header': linear-gradient(135deg, #fe6e00, #b43bcd),
+  'stamp-info': linear-gradient(135deg, rgba(31, 40, 49, 0.95), rgba(45, 56, 67, 0.95)),
+  'stamp-badge-chat': linear-gradient(135deg, #fe6e00, #ff7a00),
+  'stamp-badge-media': linear-gradient(135deg, #155dfc, #00c758),
+);
+
+$swarm-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+$swarm-font-family-heading: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+
+$swarm-theme: (
+  'name': 'swarm',
+  'colors': $swarm-colors,
+  'gradients': $swarm-gradients,
+  'font-family-base': $swarm-font-family-base,
+  'font-family-heading': $swarm-font-family-heading,
+);
+
+@mixin apply-swarm-theme() {
+  @include theme-base.apply-theme($swarm-theme);
+
+  --font-family-base: #{$swarm-font-family-base};
+  --font-family-heading: #{$swarm-font-family-heading};
+
+  --background-image: linear-gradient(180deg, #0d1216 0%, #141a20 100%);
+
+  --accent-border: 1px solid rgba(246, 247, 249, 0.1);
+  --accent-glow: 0 0 2px rgba(254, 110, 0, 0.2);
+  --pinned-border: 2px solid #{map.get($swarm-colors, 'primary')};
+  --pinned-glow: 0 0 12px rgba(254, 110, 0, 0.5);
+
+  --login-dropdown-background: #1f2831;
+  --login-dropdown-border: 1px solid #2d3843;
+  --login-dropdown-glow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --login-dropdown-divider: 1px solid #2d3843;
+  --login-dropdown-text: #f6f7f9;
+  --login-button-padding: var(--spacing-md) var(--spacing-lg);
+  --login-button-font-size: var(--font-size-lg);
+
+  --modal-background: #{map.get($swarm-colors, 'secondary')};
+  --modal-border: 1px solid rgba(246, 247, 249, 0.1);
+  --modal-glow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  // Cancel button is the light pill (inverted from the dark primary)
+  --modal-cancel-background: #f6f7f9;
+  --modal-cancel-hover: #ffffff;
+  --modal-cancel-color: #{map.get($swarm-colors, 'secondary')};
+  --modal-header-font-size: var(--font-size-2xl);
+  --modal-header-font-size-mobile: var(--font-size-xl);
+  --modal-button-height: 40px;
+  --modal-button-font-size: var(--font-size-lg);
+  --modal-button-padding-x: var(--spacing-lg);
+  --modal-button-height-mobile: 36px;
+  --modal-button-font-size-mobile: var(--font-size-base);
+  --modal-button-padding-x-mobile: var(--spacing-base);
+
+  --chat-message-background: rgba(246, 247, 249, 0.08);
+
+  --stream-info-background: rgba(31, 40, 49, 0.88);
+  --stream-info-border: 1px solid rgba(246, 247, 249, 0.12);
+  --stream-info-glow: none;
+
+  --player-loading-background: rgba(31, 40, 49, 0.88);
+  --player-loading-border: 1px solid rgba(246, 247, 249, 0.12);
+  --player-loading-glow: none;
+  --player-error-background: rgba(251, 44, 54, 0.1);
+  --player-error-border: 1px solid rgba(251, 44, 54, 0.35);
+  --player-error-glow: none;
+
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+
+  --stream-group-background: rgba(31, 40, 49, 0.85);
+  --stream-group-border: 1px solid rgba(246, 247, 249, 0.12);
+  --stream-group-border-radius: 16px;
+  --stream-group-padding: 20px;
+  --stream-group-blur: blur(10px);
+
+  --back-button-font-size-mobile: var(--font-size-md);
+
+  --gradient-create-stream: #{map.get($swarm-colors, 'primary')};
+  --gradient-create-stream-hover: #{map.get($swarm-colors, 'primary-hover')};
+
+  --button-border-radius: var(--border-radius-full);
+  --button-padding: var(--spacing-sm) var(--spacing-base);
+  --button-font-size: var(--font-size-base);
+
+  --pagination-button-background: #{map.get($swarm-colors, 'primary')};
+  --pagination-button-background-hover: #{map.get($swarm-colors, 'primary-hover')};
+  --pagination-button-color: #f6f7f9;
+  --pagination-button-border: none;
+  --pagination-button-border-hover: none;
+
+  --header-logo-height: 32px;
+  --header-logo-height-mobile: 24px;
+}
