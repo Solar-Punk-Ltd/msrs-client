@@ -131,9 +131,11 @@ export function StreamWatcher() {
         </div>
       )}
 
-      <div className={`stream-item-chat ${isInfoExpanded ? 'hidden' : ''}`}>
-        <Chat owner={owner} topic={topic} isExternal={foundStream?.isExternal} />
-      </div>
+      {!shouldShowError && (
+        <div className={`stream-item-chat ${isInfoExpanded ? 'hidden' : ''}`}>
+          <Chat owner={owner} topic={topic} isExternal={foundStream?.isExternal} />
+        </div>
+      )}
     </div>
   );
 }

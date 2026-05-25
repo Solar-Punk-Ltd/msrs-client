@@ -160,6 +160,7 @@ export function StreamManager() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         isLoading={isDeleting}
+        loadingText="Deleting..."
       />
 
       <SimpleModal isOpen={tokenModalOpen} title="Your stream key" onClose={handleCloseTokenModal} closeText="Close">

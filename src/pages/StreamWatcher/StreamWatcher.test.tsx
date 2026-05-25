@@ -121,4 +121,44 @@ describe('StreamWatcher', () => {
     fireEvent.click(screen.getByText(/back/i));
     expect(mockNavigate).toHaveBeenCalledWith('/streams');
   });
+
+  it('hides Chat panel when stream is not found', async () => {
+    const { useAppContext } = await import('@/providers/App/App');
+    (useParams as any).mockReturnValue({ mediatype: 'video', owner: 'bob', topic: 'missing' });
+
+    (useAppContext as any).mockReturnValue({
+      streamList: [],
+      isLoading: true,
+      isRefreshing: false,
+      error: null,
+      messageReceiveMode: MessageReceiveMode.SWARM,
+      setNewStreamList: vi.fn(),
+      fetchAppState: vi.fn(),
+      refreshStreamList: vi.fn(),
+    });
+    const { rerender } = renderStreamWatcher();
+
+    (useAppContext as any).mockReturnValue({
+      streamList: [],
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      messageReceiveMode: MessageReceiveMode.SWARM,
+      setNewStreamList: vi.fn(),
+      fetchAppState: vi.fn(),
+      refreshStreamList: vi.fn(),
+    });
+    rerender(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <UserProvider>
+            <StreamWatcher />
+          </UserProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('chat')).not.toBeInTheDocument();
+  });
 });
