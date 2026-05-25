@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 
-import { Footer } from '@/components/Footer';
 import { LoginButton } from '@/components/LoginButton/LoginButton';
 import { LoginModal } from '@/components/LoginModal/LoginModal';
 import { Logo, LogoVariant } from '@/components/Logo';
@@ -22,10 +21,10 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { isLoginModalOpen } = useUserContext();
   const { theme } = useTheme();
 
-  const { backgroundVideoPath, showFooter } = AVAILABLE_THEMES[theme];
+  const { backgroundVideoPath } = AVAILABLE_THEMES[theme];
 
   return (
-    <div className={`main-layout${showFooter ? ' main-layout--has-footer' : ''}`} role="main-layout">
+    <div className="main-layout" role="main-layout">
       {backgroundVideoPath && (
         <video className="main-layout__background-video" src={backgroundVideoPath} autoPlay muted playsInline />
       )}
@@ -38,10 +37,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <LoginButton />
       </header>
       {isLoginModalOpen && <LoginModal />}
-      <div className="content">
-        {children}
-        {showFooter && <Footer />}
-      </div>
+      <div className="content">{children}</div>
     </div>
   );
 }
