@@ -200,4 +200,15 @@ $swarm-theme: (
 
   --header-logo-height: 32px;
   --header-logo-height-mobile: 24px;
+
+  // Flat buttons — no purple glow from the shared shadow tokens
+  --shadow-button: none;
+  --shadow-action-button: none;
+  --shadow-action-button-hover: none;
+  --shadow-action-delete: none;
+  --shadow-action-delete-hover: none;
+  --shadow-action-unpin: none;
+  --shadow-action-unpin-hover: none;
+  --shadow-action-token: none;
+  --shadow-action-token-hover: none;
 }
