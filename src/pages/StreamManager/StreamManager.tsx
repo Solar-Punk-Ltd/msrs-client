@@ -162,16 +162,11 @@ export function StreamManager() {
         isLoading={isDeleting}
       />
 
-      <SimpleModal
-        isOpen={tokenModalOpen}
-        title="MSRS Ingestion Token"
-        onClose={handleCloseTokenModal}
-        closeText="Close"
-      >
+      <SimpleModal isOpen={tokenModalOpen} title="Your stream key" onClose={handleCloseTokenModal} closeText="Close">
         <div className="simple-modal-subheader">
           {tokenCopiedToClipboard
-            ? 'Token has been copied to your clipboard. Use this token for stream ingestion:'
-            : 'Please manually copy this token for stream ingestion:'}
+            ? 'Your stream key has been copied to your clipboard. Use it to start your broadcast.'
+            : 'Copy your stream key to start your broadcast.'}
         </div>
         <div className="simple-modal-token">{displayToken}</div>
       </SimpleModal>

@@ -71,12 +71,12 @@ describe('LoginButton', () => {
 
   it('renders "Login" when user is not logged in', () => {
     render(<LoginButton />);
-    expect(screen.getByText('Login')).toBeInTheDocument();
+    expect(screen.getByText('Log in')).toBeInTheDocument();
   });
 
   it('calls setIsLoginModalOpen when clicked (not logged in)', () => {
     render(<LoginButton />);
-    fireEvent.click(screen.getByText('Login'));
+    fireEvent.click(screen.getByText('Log in'));
     expect(setIsLoginModalOpen).toHaveBeenCalledWith(true);
   });
 
@@ -90,8 +90,8 @@ describe('LoginButton', () => {
     mockUserContext.isUserLoggedIn = true;
     render(<LoginButton />);
     fireEvent.click(screen.getByText('TestUser'));
-    expect(screen.getByText('Logout')).toBeInTheDocument();
-    expect(screen.getByText('Stream Browser')).toBeInTheDocument();
+    expect(screen.getByText('Log out')).toBeInTheDocument();
+    expect(screen.getByText('Browse streams')).toBeInTheDocument();
   });
 
   it('shows "My Streams" and "My Stamps" options for admin users', () => {
@@ -101,7 +101,7 @@ describe('LoginButton', () => {
     fireEvent.click(screen.getByText('TestUser'));
     expect(screen.getByText('My Streams')).toBeInTheDocument();
     expect(screen.getByText('My Stamps')).toBeInTheDocument();
-    expect(screen.getByText('Logout')).toBeInTheDocument();
+    expect(screen.getByText('Log out')).toBeInTheDocument();
   });
 
   it('does not show "My Streams" and "My Stamps" options for regular users', () => {
@@ -111,7 +111,7 @@ describe('LoginButton', () => {
     fireEvent.click(screen.getByText('TestUser'));
     expect(screen.queryByText('My Streams')).not.toBeInTheDocument();
     expect(screen.queryByText('My Stamps')).not.toBeInTheDocument();
-    expect(screen.getByText('Logout')).toBeInTheDocument();
+    expect(screen.getByText('Log out')).toBeInTheDocument();
   });
 
   it('shows confirmation modal when regular user clicks Logout', () => {
@@ -119,10 +119,10 @@ describe('LoginButton', () => {
     mockUserContext.isAdmin = false;
     render(<LoginButton />);
     fireEvent.click(screen.getByText('TestUser'));
-    fireEvent.click(screen.getByText('Logout'));
+    fireEvent.click(screen.getByText('Log out'));
 
     expect(screen.getByTestId('confirmation-modal')).toBeInTheDocument();
-    expect(screen.getByText('Logout Confirmation')).toBeInTheDocument();
+    expect(screen.getByText('Are you sure?')).toBeInTheDocument();
     expect(logout).not.toHaveBeenCalled(); // Should not be called immediately
   });
 
@@ -131,7 +131,7 @@ describe('LoginButton', () => {
     mockUserContext.isAdmin = true;
     render(<LoginButton />);
     fireEvent.click(screen.getByText('TestUser'));
-    fireEvent.click(screen.getByText('Logout'));
+    fireEvent.click(screen.getByText('Log out'));
 
     expect(logout).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('/browse');
@@ -144,10 +144,10 @@ describe('LoginButton', () => {
 
     // Open dropdown and click logout
     fireEvent.click(screen.getByText('TestUser'));
-    fireEvent.click(screen.getByText('Logout'));
+    fireEvent.click(screen.getByText('Log out'));
 
     // Confirm logout in modal
-    fireEvent.click(screen.getByText('Ok'));
+    fireEvent.click(screen.getByText('Log out'));
 
     expect(logout).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('/browse');
@@ -160,7 +160,7 @@ describe('LoginButton', () => {
 
     // Open dropdown and click logout
     fireEvent.click(screen.getByText('TestUser'));
-    fireEvent.click(screen.getByText('Logout'));
+    fireEvent.click(screen.getByText('Log out'));
 
     // Cancel logout in modal
     fireEvent.click(screen.getByText('Cancel'));
@@ -183,7 +183,7 @@ describe('LoginButton', () => {
     mockUserContext.isUserLoggedIn = true;
     render(<LoginButton />);
     fireEvent.click(screen.getByText('TestUser'));
-    fireEvent.click(screen.getByText('Stream Browser'));
+    fireEvent.click(screen.getByText('Browse streams'));
     expect(mockNavigate).toHaveBeenCalledWith('/browse');
   });
 

@@ -80,9 +80,9 @@ export const LoginButton = () => {
       <div className="login-button-container" ref={dropdownRef}>
         <ConfirmationModal
           isOpen={logoutModalOpen}
-          title="Logout Confirmation"
-          message="If you log out, you lose your persisted session which cannot be recovered. A new session will be created when you log in again which comes with a new Identity. Are you sure you want to proceed?"
-          confirmText="Ok"
+          title="Are you sure?"
+          message="If you log out, your display name won't be saved. You'll need to choose one again next time."
+          confirmText="Log out"
           cancelText="Cancel"
           onConfirm={handleLogoutModalConfirm}
           onCancel={handleLogoutModalCancel}
@@ -95,7 +95,7 @@ export const LoginButton = () => {
         {isDropdownOpen && (
           <div className="login-dropdown">
             <button className="login-dropdown-item" onClick={handleBrowser}>
-              Stream Browser
+              Browse streams
             </button>
             {isAdmin && (
               <button className="login-dropdown-item" onClick={handleMyStreams}>
@@ -114,7 +114,7 @@ export const LoginButton = () => {
               </button>
             )}
             <button className="login-dropdown-item" onClick={handleLogout}>
-              Logout
+              Log out
             </button>
           </div>
         )}
@@ -124,7 +124,7 @@ export const LoginButton = () => {
 
   return (
     <Button className="login-button" onClick={handleButtonClick}>
-      Login
+      Log in
     </Button>
   );
 };

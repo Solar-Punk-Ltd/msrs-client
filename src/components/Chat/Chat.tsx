@@ -226,7 +226,7 @@ export const Chat: React.FC<ChatProps> = ({ owner, topic, isExternal = false }) 
 
           {!wakuNodeLoading && !chatLoading && !keys.public && (
             <Button onClick={() => setIsLoginModalOpen(true)} className="chat-login-prompt">
-              Please log in to send messages.
+              Log in to join the chat
             </Button>
           )}
           {!wakuNodeLoading && !chatLoading && keys.public && (
