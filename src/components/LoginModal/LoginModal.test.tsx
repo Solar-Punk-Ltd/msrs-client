@@ -37,7 +37,7 @@ describe('LoginModal', () => {
   it('renders modal with input and buttons', () => {
     render(<LoginModal />);
     expect(screen.getByText(/Choose a display name/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Display name/i)[0]).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Display name')).toBeInTheDocument();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
     expect(screen.getByText('Join')).toBeInTheDocument();
   });
@@ -84,8 +84,8 @@ describe('LoginModal', () => {
     render(<LoginModal />);
     fireEvent.click(screen.getByText('Admin Login'));
     expect(screen.getByText(/Enter your admin credentials/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Display name/i)[0]).toBeInTheDocument();
-    expect(screen.getByText(/Password/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Display name')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
   });
 
   it('can switch back to username mode', () => {

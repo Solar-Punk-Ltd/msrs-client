@@ -65,6 +65,11 @@
   font-weight: var(--font-weight-bold);
   box-sizing: border-box;
   width: 100%;
+
+  &::placeholder {
+    color: var(--color-text-placeholder);
+    font-weight: var(--font-weight-normal);
+  }
 }
 
 .login-modal-input-container {

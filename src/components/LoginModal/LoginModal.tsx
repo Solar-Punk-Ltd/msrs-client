@@ -62,10 +62,11 @@ export function LoginModal() {
       {error && <div className="login-modal-error">{error}</div>}
 
       <div className="login-modal-input-container">
-        <div className="login-modal-input-nickname">Display name</div>
         <input
           value={localName || ''}
           className="login-modal-input"
+          placeholder="Display name"
+          aria-label="Display name"
           onChange={(e) => setLocalName(e.target.value)}
           disabled={isLoading}
           maxLength={20}
@@ -105,10 +106,11 @@ export function LoginModal() {
       {error && <div className="login-modal-error">{error}</div>}
 
       <div className="login-modal-input-container">
-        <div className="login-modal-input-nickname">Display name</div>
         <input
           value={adminUsername}
           className="login-modal-input"
+          placeholder="Display name"
+          aria-label="Display name"
           onChange={(e) => setAdminUsername(e.target.value)}
           disabled={isLoading}
           onKeyPress={(e) => {
@@ -120,11 +122,12 @@ export function LoginModal() {
       </div>
 
       <div className="login-modal-input-container">
-        <div className="login-modal-input-nickname">Password</div>
         <input
           type="password"
           value={adminPassword}
           className="login-modal-input"
+          placeholder="Password"
+          aria-label="Password"
           onChange={(e) => setAdminPassword(e.target.value)}
           disabled={isLoading}
           onKeyPress={(e) => {
