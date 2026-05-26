@@ -108,7 +108,7 @@ export function ThreadView({
 
       {!currentUserAddress && onLoginPrompt && (
         <Button onClick={onLoginPrompt} className="chat-login-prompt">
-          Please log in to send messages.
+          Log in to join the chat
         </Button>
       )}
       {currentUserAddress && <MessageSender onSend={onSendMessage} disabled={disabled} />}

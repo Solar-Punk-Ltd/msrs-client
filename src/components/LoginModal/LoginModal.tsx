@@ -56,16 +56,17 @@ export function LoginModal() {
 
   const renderUsernameLogin = () => (
     <>
-      <div className="login-modal-header">Chat</div>
-      <div className="login-modal-content">Please add your username for the chat!</div>
+      <div className="login-modal-header">Log in</div>
+      <div className="login-modal-content">Choose a display name to join the chat</div>
 
       {error && <div className="login-modal-error">{error}</div>}
 
       <div className="login-modal-input-container">
-        <div className="login-modal-input-nickname">Username: </div>
         <input
           value={localName || ''}
           className="login-modal-input"
+          placeholder="Display name"
+          aria-label="Display name"
           onChange={(e) => setLocalName(e.target.value)}
           disabled={isLoading}
           maxLength={20}
@@ -86,7 +87,7 @@ export function LoginModal() {
           onClick={handleUsernameLogin}
           disabled={isLoading}
         >
-          {isLoading ? 'Logging in...' : 'OK'}
+          {isLoading ? 'Logging in...' : 'Join'}
         </Button>
       </div>
       <div className="login-modal-mode-switch">
@@ -105,10 +106,11 @@ export function LoginModal() {
       {error && <div className="login-modal-error">{error}</div>}
 
       <div className="login-modal-input-container">
-        <div className="login-modal-input-nickname">Username: </div>
         <input
           value={adminUsername}
           className="login-modal-input"
+          placeholder="Display name"
+          aria-label="Display name"
           onChange={(e) => setAdminUsername(e.target.value)}
           disabled={isLoading}
           onKeyPress={(e) => {
@@ -120,11 +122,12 @@ export function LoginModal() {
       </div>
 
       <div className="login-modal-input-container">
-        <div className="login-modal-input-nickname">Password: </div>
         <input
           type="password"
           value={adminPassword}
           className="login-modal-input"
+          placeholder="Password"
+          aria-label="Password"
           onChange={(e) => setAdminPassword(e.target.value)}
           disabled={isLoading}
           onKeyPress={(e) => {
@@ -145,13 +148,13 @@ export function LoginModal() {
           onClick={handleAdminLogin}
           disabled={isLoading}
         >
-          {isLoading ? 'Logging in...' : 'Login'}
+          {isLoading ? 'Logging in...' : 'Log in'}
         </Button>
       </div>
 
       <div className="login-modal-mode-switch">
         <button className="login-modal-switch-link" onClick={() => setLoginMode('username')} disabled={isLoading}>
-          User Login
+          Back to user login
         </button>
       </div>
     </>

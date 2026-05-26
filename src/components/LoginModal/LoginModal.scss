@@ -27,7 +27,7 @@
   width: 100%;
   padding: var(--spacing-lg);
   box-sizing: border-box;
-  background: var(--gradient-primary);
+  background: var(--modal-background, var(--gradient-primary));
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
   border-radius: var(--border-radius-md);
@@ -65,6 +65,11 @@
   font-weight: var(--font-weight-bold);
   box-sizing: border-box;
   width: 100%;
+
+  &::placeholder {
+    color: var(--color-text-placeholder);
+    font-weight: var(--font-weight-normal);
+  }
 }
 
 .login-modal-input-container {
@@ -103,6 +108,7 @@
 
   &.primary {
     background-color: var(--modal-cancel-background, var(--color-primary)) !important;
+    color: var(--modal-cancel-color, var(--color-text-inverse)) !important;
 
     &:hover {
       background-color: var(--modal-cancel-hover, var(--color-primary-hover)) !important;

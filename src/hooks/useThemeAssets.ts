@@ -13,6 +13,11 @@ const themeConfig = {
     favicon: '/assets/themes/cryptomondays/logo-icon.svg',
     loadingGradient: 'linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(8, 4, 27, 0.95) 100%)',
   },
+  [THEME_NAMES.SWARM]: {
+    title: 'Swarm Streaming',
+    favicon: '/assets/themes/swarm/favicon.png',
+    loadingGradient: 'linear-gradient(180deg, #0d1216 0%, #141a20 100%)',
+  },
 };
 
 export function useThemeAssets(theme: ThemeName) {

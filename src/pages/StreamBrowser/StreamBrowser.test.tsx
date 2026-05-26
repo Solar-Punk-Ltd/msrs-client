@@ -25,6 +25,14 @@ vi.mock('@/providers/App/App', () => ({
   }),
 }));
 
+vi.mock('@/providers/Theme', () => ({
+  useTheme: () => ({ theme: 'solarpunk', setTheme: vi.fn() }),
+}));
+
+vi.mock('@/components/Footer', () => ({
+  Footer: () => <div data-testid="footer">Footer</div>,
+}));
+
 vi.mock('@tanstack/react-query', () => ({
   useQuery: vi.fn(),
 }));

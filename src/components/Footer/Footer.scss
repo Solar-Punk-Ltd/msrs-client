@@ -1,0 +1,231 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+
+$footer-muted: #8b909a;
+$footer-divider: #2d3843;
+$footer-input-bg: #2d3843;
+
+.footer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  background: linear-gradient(180deg, #1f2831 0%, #000000 100%);
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.footer-container {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+
+  @include theme.tablet-up {
+    padding: 0 var(--spacing-4xl);
+  }
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-4xl) 0;
+
+  @include theme.tablet-up {
+    grid-template-columns: 6fr 2fr 4fr;
+    gap: var(--spacing-lg);
+  }
+}
+
+.footer-section {
+  @include mixins.flex-column;
+  gap: var(--spacing-base);
+}
+
+.footer-heading {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: $footer-muted;
+}
+
+.footer-link {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: opacity var(--duration-fast) var(--easing-ease);
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.footer-link-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.footer-event-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-base);
+}
+
+.footer-event {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-base);
+}
+
+.footer-event-calendar {
+  display: inline-flex;
+  transition: opacity var(--duration-fast) var(--easing-ease);
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.footer-calendar-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.footer-newsletter-form {
+  @include mixins.flex-column;
+  gap: var(--spacing-base);
+}
+
+.footer-newsletter-input-wrap {
+  display: flex;
+  align-items: center;
+  background: $footer-input-bg;
+  border-radius: var(--border-radius-full);
+  padding: var(--spacing-xs);
+  gap: var(--spacing-xs);
+}
+
+.footer-newsletter-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-base);
+
+  &::placeholder {
+    color: rgba(246, 247, 249, 0.5);
+  }
+}
+
+.footer-newsletter-submit {
+  @include mixins.flex-center;
+  background: var(--color-text-primary);
+  color: #000000;
+  border: none;
+  border-radius: var(--border-radius-full);
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--easing-ease);
+
+  &:hover {
+    background: #e5e9ec;
+  }
+}
+
+.footer-arrow-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.footer-newsletter-disclaimer {
+  margin: 0;
+  font-size: 10px;
+  line-height: var(--line-height-normal);
+  color: rgba(246, 247, 249, 0.5);
+}
+
+.footer-divider {
+  height: 1px;
+  background: $footer-divider;
+  width: 100%;
+}
+
+.footer-middle {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-3xl);
+  padding: var(--spacing-4xl) 0 var(--spacing-xl);
+
+  @include theme.tablet-up {
+    grid-template-columns: 4fr 2fr 2fr 2fr;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-3xl) 0 var(--spacing-lg);
+  }
+}
+
+.footer-brand {
+  @include mixins.flex-column;
+  gap: var(--spacing-xl);
+}
+
+.footer-logo {
+  height: 26px;
+  width: auto;
+}
+
+.footer-tagline {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.25rem;
+  color: $footer-muted;
+}
+
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xl) 0;
+  font-size: 10px;
+  color: rgba(246, 247, 249, 0.5);
+}
+
+.footer-bottom-separator {
+  padding: 0 var(--spacing-2xs);
+}
+
+.footer-bottom-link {
+  color: inherit;
+  text-decoration: none;
+  margin-left: var(--spacing-sm);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

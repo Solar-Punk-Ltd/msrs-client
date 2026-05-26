@@ -21,10 +21,10 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-base) var(--spacing-xl);
-  border-radius: var(--border-radius-md);
+  padding: var(--button-padding, var(--spacing-base) var(--spacing-xl));
+  border-radius: var(--button-border-radius, var(--border-radius-md));
   font-family: var(--font-family-base);
-  font-size: var(--font-size-xl);
+  font-size: var(--button-font-size, var(--font-size-xl));
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
   border: none;

@@ -13,6 +13,7 @@ interface ConfirmationModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
+  loadingText?: string;
 }
 
 export function ConfirmationModal({
@@ -24,6 +25,7 @@ export function ConfirmationModal({
   onConfirm,
   onCancel,
   isLoading = false,
+  loadingText = 'Processing...',
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -42,7 +44,7 @@ export function ConfirmationModal({
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? 'Processing...' : confirmText}
+            {isLoading ? loadingText : confirmText}
           </Button>
         </div>
       </div>

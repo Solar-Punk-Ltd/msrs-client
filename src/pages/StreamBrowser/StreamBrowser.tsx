@@ -1,15 +1,21 @@
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
+import { Footer } from '@/components/Footer';
 import { StreamList } from '@/components/Stream';
 import { useAppContext } from '@/providers/App/App';
+import { useTheme } from '@/providers/Theme';
 import { MessageReceiveMode } from '@/types/messaging';
+import { AVAILABLE_THEMES } from '@/utils/theme/themeConfig';
 
 import './StreamBrowser.scss';
 
 export function StreamBrowser() {
   const { fetchAppState, fetchInitialAppState, setNewStreamList, isLoading, messageReceiveMode } = useAppContext();
+  const { theme } = useTheme();
   const isWindowFocusRefetch = useRef(false);
+
+  const showFooter = AVAILABLE_THEMES[theme].showFooter ?? false;
 
   const { data } = useQuery({
     queryKey: ['app-state'],
@@ -38,8 +44,11 @@ export function StreamBrowser() {
   }, [data, setNewStreamList]);
 
   return (
-    <div className="stream-browser">
-      <StreamList />
+    <div className="stream-browser-page">
+      <div className="stream-browser">
+        <StreamList />
+      </div>
+      {showFooter && <Footer />}
     </div>
   );
 }

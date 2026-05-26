@@ -235,9 +235,9 @@ describe('StreamManager', () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('mock-token-12345');
 
     await waitFor(() => {
-      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
+      expect(screen.getByText('Your stream key')).toBeInTheDocument();
       expect(
-        screen.getByText('Token has been copied to your clipboard. Use this token for stream ingestion:'),
+        screen.getByText('Your stream key has been copied to your clipboard. Use it to start your broadcast.'),
       ).toBeInTheDocument();
       expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
     });
@@ -251,8 +251,8 @@ describe('StreamManager', () => {
     fireEvent.click(screen.getByText('Show Token Stream 1'));
 
     await waitFor(() => {
-      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
-      expect(screen.getByText('Please manually copy this token for stream ingestion:')).toBeInTheDocument();
+      expect(screen.getByText('Your stream key')).toBeInTheDocument();
+      expect(screen.getByText('Copy your stream key to start your broadcast.')).toBeInTheDocument();
       expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
     });
   });
@@ -268,8 +268,8 @@ describe('StreamManager', () => {
     fireEvent.click(screen.getByText('Show Token Stream 1'));
 
     await waitFor(() => {
-      expect(screen.getByText('MSRS Ingestion Token')).toBeInTheDocument();
-      expect(screen.getByText('Please manually copy this token for stream ingestion:')).toBeInTheDocument();
+      expect(screen.getByText('Your stream key')).toBeInTheDocument();
+      expect(screen.getByText('Copy your stream key to start your broadcast.')).toBeInTheDocument();
       expect(screen.getByText('mock-token-12345')).toBeInTheDocument();
     });
   });
