@@ -2,6 +2,8 @@ FROM node:22-alpine AS builder
 
 ENV CI=true
 
+RUN apk add --no-cache python3 make g++
+
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
