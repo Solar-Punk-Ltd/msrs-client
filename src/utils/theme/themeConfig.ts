@@ -6,9 +6,7 @@ export interface ThemeConfig {
   logoPath: string;
   logoIconPath?: string;
   logoOnDarkPath?: string;
-  /** Optional looping/single-play background video shown behind the main layout. */
   backgroundVideoPath?: string;
-  /** Render a marketing footer below the main content. */
   showFooter?: boolean;
 }
 
