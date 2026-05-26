@@ -6,22 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1" />
     <title>Streaming Platform</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" />
+
     <script src="/config.js"></script>
     <script>
       // Theme detection - runs before React to prevent flash
       (function () {
         const THEME_STORAGE_KEY = 'msrs-theme';
+        const VALID_THEMES = ['solarpunk', 'cryptomondays', 'swarm'];
 
         // Determine initial theme (same priority as ThemeProvider)
         let theme = localStorage.getItem(THEME_STORAGE_KEY);
-        if (theme !== 'solarpunk' && theme !== 'cryptomondays') {
+        if (!VALID_THEMES.includes(theme)) {
           if (window.__CONFIG__ && window.__CONFIG__.VITE_THEME) {
             theme = window.__CONFIG__.VITE_THEME;
           } else {
             // Fallback to build-time replacement
             theme = '%VITE_THEME%';
           }
-          if (theme !== 'solarpunk' && theme !== 'cryptomondays') {
+          if (!VALID_THEMES.includes(theme)) {
             theme = 'cryptomondays';
           }
         }
@@ -38,6 +43,11 @@
             title: 'CryptoMondays Streaming',
             favicon: '/assets/themes/cryptomondays/logo-icon.svg',
             loadingGradient: 'linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(8, 4, 27, 0.95) 100%)',
+          },
+          swarm: {
+            title: 'Swarm Streaming',
+            favicon: '/assets/themes/swarm/favicon.png',
+            loadingGradient: 'linear-gradient(180deg, #0d1216 0%, #141a20 100%)',
           },
         };
 

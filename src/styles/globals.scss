@@ -1,5 +1,6 @@
 @use 'themes/solarpunk' as solarpunk;
 @use 'themes/cryptomondays' as cryptomondays;
+@use 'themes/swarm' as swarm;
 @use 'mixins' as mixins;
 @use 'fonts' as fonts;
 
@@ -17,6 +18,10 @@ html[data-theme='solarpunk'] {
 
 html[data-theme='cryptomondays'] {
   @include cryptomondays.apply-cryptomondays-theme();
+}
+
+html[data-theme='swarm'] {
+  @include swarm.apply-swarm-theme();
 }
 
 html {

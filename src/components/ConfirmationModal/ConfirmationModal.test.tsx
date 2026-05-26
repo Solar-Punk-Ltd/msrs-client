@@ -61,6 +61,13 @@ describe('ConfirmationModal', () => {
     expect(screen.getByText('Processing...')).toBeInTheDocument();
   });
 
+  it('renders custom loadingText when provided', () => {
+    render(<ConfirmationModal {...defaultProps} isLoading={true} loadingText="Deleting..." />);
+
+    expect(screen.getByText('Deleting...')).toBeInTheDocument();
+    expect(screen.queryByText('Processing...')).not.toBeInTheDocument();
+  });
+
   it('disables buttons when isLoading is true', () => {
     render(<ConfirmationModal {...defaultProps} isLoading={true} />);
 

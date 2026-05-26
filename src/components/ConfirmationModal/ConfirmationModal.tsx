@@ -4,6 +4,10 @@ import { Button, ButtonVariant } from '../Button/Button';
 
 import './ConfirmationModal.scss';
 
+const DEFAULT_CONFIRM_TEXT = 'Confirm';
+const DEFAULT_CANCEL_TEXT = 'Cancel';
+const DEFAULT_LOADING_TEXT = 'Processing...';
+
 interface ConfirmationModalProps {
   isOpen: boolean;
   title: string;
@@ -13,17 +17,19 @@ interface ConfirmationModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
+  loadingText?: string;
 }
 
 export function ConfirmationModal({
   isOpen,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = DEFAULT_CONFIRM_TEXT,
+  cancelText = DEFAULT_CANCEL_TEXT,
   onConfirm,
   onCancel,
   isLoading = false,
+  loadingText = DEFAULT_LOADING_TEXT,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -42,7 +48,7 @@ export function ConfirmationModal({
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? 'Processing...' : confirmText}
+            {isLoading ? loadingText : confirmText}
           </Button>
         </div>
       </div>

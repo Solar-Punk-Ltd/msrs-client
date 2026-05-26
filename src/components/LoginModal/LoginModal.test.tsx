@@ -36,10 +36,10 @@ describe('LoginModal', () => {
 
   it('renders modal with input and buttons', () => {
     render(<LoginModal />);
-    expect(screen.getByText(/Please add your username/i)).toBeInTheDocument();
-    expect(screen.getByText(/Username:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Choose a display name/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Display name')).toBeInTheDocument();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
-    expect(screen.getByText('OK')).toBeInTheDocument();
+    expect(screen.getByText('Join')).toBeInTheDocument();
   });
 
   it('calls setIsLoginModalOpen when Cancel is clicked', () => {
@@ -54,7 +54,7 @@ describe('LoginModal', () => {
 
     await act(async () => {
       fireEvent.change(input, { target: { value: 'NewNick' } });
-      fireEvent.click(screen.getByText('OK'));
+      fireEvent.click(screen.getByText('Join'));
 
       // Wait for async operations to complete
       await sleep(0);
@@ -68,7 +68,7 @@ describe('LoginModal', () => {
     render(<LoginModal />);
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: '' } });
-    fireEvent.click(screen.getByText('OK'));
+    fireEvent.click(screen.getByText('Join'));
     expect(loginAsUser).not.toHaveBeenCalled();
   });
 
@@ -76,7 +76,7 @@ describe('LoginModal', () => {
     render(<LoginModal />);
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: 'a'.repeat(21) } });
-    fireEvent.click(screen.getByText('OK'));
+    fireEvent.click(screen.getByText('Join'));
     expect(loginAsUser).not.toHaveBeenCalled();
   });
 
@@ -84,15 +84,15 @@ describe('LoginModal', () => {
     render(<LoginModal />);
     fireEvent.click(screen.getByText('Admin Login'));
     expect(screen.getByText(/Enter your admin credentials/i)).toBeInTheDocument();
-    expect(screen.getByText(/Username:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Password:/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Display name')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
   });
 
   it('can switch back to username mode', () => {
     render(<LoginModal />);
     fireEvent.click(screen.getByText('Admin Login'));
-    fireEvent.click(screen.getByText('User Login'));
-    expect(screen.getByText(/Please add your username/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Back to user login'));
+    expect(screen.getByText(/Choose a display name/i)).toBeInTheDocument();
   });
 
   it('shows error when trying to admin login with empty credentials', async () => {
@@ -100,7 +100,7 @@ describe('LoginModal', () => {
     fireEvent.click(screen.getByText('Admin Login'));
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Login'));
+      fireEvent.click(screen.getByText('Log in'));
       await sleep(0);
     });
 
@@ -114,7 +114,7 @@ describe('LoginModal', () => {
 
     await act(async () => {
       fireEvent.change(input, { target: { value: '' } });
-      fireEvent.click(screen.getByText('OK'));
+      fireEvent.click(screen.getByText('Join'));
       await sleep(0);
     });
 

@@ -99,10 +99,10 @@
     width: 28px;
     height: 28px;
     padding: 0;
-    background: var(--color-background-badge);
-    color: var(--color-text-inverse);
-    border: 1px solid var(--color-border-input);
-    border-radius: var(--border-radius-sm);
+    background: var(--pagination-button-background, var(--color-background-badge));
+    color: var(--pagination-button-color, var(--color-text-inverse));
+    border: var(--pagination-button-border, 1px solid var(--color-border-input));
+    border-radius: var(--pagination-button-radius, var(--border-radius-sm));
     cursor: pointer;
     transition: all var(--duration-fast) var(--easing-ease-out);
 
@@ -112,8 +112,8 @@
     }
 
     &:hover:not(:disabled) {
-      background: var(--color-background-badge-hover);
-      border-color: var(--color-border-input-focus);
+      background: var(--pagination-button-background-hover, var(--color-background-badge-hover));
+      border-color: var(--pagination-button-border-hover, var(--color-border-input-focus));
       transform: translateY(-1px);
     }
 

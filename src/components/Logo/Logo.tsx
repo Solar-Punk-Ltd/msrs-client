@@ -16,7 +16,7 @@ interface LogoProps {
   height?: number;
 }
 
-export function Logo({ variant = LogoVariant.FULL, className = '', alt, height = 50 }: LogoProps) {
+export function Logo({ variant = LogoVariant.FULL, className = '', alt, height }: LogoProps) {
   const { theme: themeName } = useTheme();
   const theme = AVAILABLE_THEMES[themeName];
 
@@ -41,7 +41,7 @@ export function Logo({ variant = LogoVariant.FULL, className = '', alt, height =
       src={logoPath}
       alt={altText}
       className={`logo logo--${variant} ${className}`.trim()}
-      style={{ height: `${height}px` }}
+      style={height !== undefined ? { height: `${height}px` } : undefined}
     />
   );
 }

@@ -6,7 +6,7 @@ import { useClickOutside } from '@/hooks/useClickOutside';
 import { useTheme } from '@/providers/Theme';
 import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
-import { THEME_NAMES } from '@/utils/theme/themeConfig';
+import { AVAILABLE_THEMES, THEME_NAMES, ThemeName } from '@/utils/theme/themeConfig';
 
 import { ConfirmationModal } from '../ConfirmationModal/ConfirmationModal';
 
@@ -70,8 +70,9 @@ export const LoginButton = () => {
   };
 
   const handleThemeToggle = () => {
-    const newTheme = theme === THEME_NAMES.SOLARPUNK ? THEME_NAMES.CRYPTOMONDAYS : THEME_NAMES.SOLARPUNK;
-    setTheme(newTheme);
+    const order: ThemeName[] = [THEME_NAMES.SOLARPUNK, THEME_NAMES.CRYPTOMONDAYS, THEME_NAMES.SWARM];
+    const next = order[(order.indexOf(theme) + 1) % order.length];
+    setTheme(next);
   };
 
   if (isUserLoggedIn) {
@@ -79,9 +80,9 @@ export const LoginButton = () => {
       <div className="login-button-container" ref={dropdownRef}>
         <ConfirmationModal
           isOpen={logoutModalOpen}
-          title="Logout Confirmation"
-          message="If you log out, you lose your persisted session which cannot be recovered. A new session will be created when you log in again which comes with a new Identity. Are you sure you want to proceed?"
-          confirmText="Ok"
+          title="Are you sure?"
+          message="If you log out, your display name won't be saved. You'll need to choose one again next time."
+          confirmText="Log out"
           cancelText="Cancel"
           onConfirm={handleLogoutModalConfirm}
           onCancel={handleLogoutModalCancel}
@@ -94,7 +95,7 @@ export const LoginButton = () => {
         {isDropdownOpen && (
           <div className="login-dropdown">
             <button className="login-dropdown-item" onClick={handleBrowser}>
-              Stream Browser
+              Browse streams
             </button>
             {isAdmin && (
               <button className="login-dropdown-item" onClick={handleMyStreams}>
@@ -109,11 +110,11 @@ export const LoginButton = () => {
             <div className="login-dropdown-divider" />
             {isSolarpunkAdmin && (
               <button className="login-dropdown-item" onClick={handleThemeToggle}>
-                Theme: {theme === THEME_NAMES.SOLARPUNK ? 'SolarPunk' : 'CryptoMondays'}
+                Theme: {AVAILABLE_THEMES[theme].displayName}
               </button>
             )}
             <button className="login-dropdown-item" onClick={handleLogout}>
-              Logout
+              Log out
             </button>
           </div>
         )}
@@ -123,7 +124,7 @@ export const LoginButton = () => {
 
   return (
     <Button className="login-button" onClick={handleButtonClick}>
-      Login
+      Log in
     </Button>
   );
 };
