@@ -7,9 +7,11 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-lg) var(--spacing-xl);
-    background: var(--gradient-stamp-header);
+    background: var(--gradient-secondary);
     color: var(--color-text-inverse);
-    box-shadow: var(--shadow-stamp-header);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border-primary);
+    box-shadow: var(--shadow-lg);
 
     @include theme.mobile-only {
       flex-direction: column;
