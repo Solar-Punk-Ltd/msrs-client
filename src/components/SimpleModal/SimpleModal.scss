@@ -22,7 +22,7 @@
   max-height: 80vh;
   padding: var(--spacing-lg);
   box-sizing: border-box;
-  background: var(--gradient-primary);
+  background: var(--modal-background, var(--gradient-primary));
   color: var(--color-text-primary);
   font-family: var(--font-family-base);
   border-radius: var(--border-radius-md);
