@@ -10,7 +10,7 @@
   font-size: 14px;
   font-weight: bold;
   border-radius: 50%;
-  color: #ffffff;
-  box-shadow: 0 5px 10px 0 #0000001a;
+  color: var(--color-text-inverse);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(20px);
 }

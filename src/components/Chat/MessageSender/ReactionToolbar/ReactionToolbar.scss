@@ -35,7 +35,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      color: #efefef;
+      color: var(--color-text-primary);
       font-size: 12px;
       font-weight: bold;
       transition: all 0.2s ease;
@@ -62,7 +62,7 @@
 }
 
 .reaction-toolbar.expanded .epr-main {
-  background: #222222 !important;
+  background: var(--color-background-primary) !important;
 }
 
 .epr-emoji {

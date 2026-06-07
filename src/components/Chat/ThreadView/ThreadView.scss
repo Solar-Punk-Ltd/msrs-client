@@ -51,7 +51,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #efefef;
+  color: var(--color-text-primary);
 
   @include theme.mobile-only {
     font-size: 16px;
@@ -82,7 +82,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: white;
+  color: var(--color-text-primary);
   font-style: italic;
   text-align: center;
   padding: 40px 20px;
@@ -98,8 +98,8 @@
   justify-content: center;
   padding: 12px !important;
   font-size: 14px;
-  color: #ffffff90;
-  background-color: #00000040 !important;
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-glass) !important;
   border-radius: 8px;
   margin-top: auto;
 }

@@ -8,13 +8,13 @@
     font-size: 15px;
     font-weight: 600;
     margin-bottom: 2px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-text-secondary);
   }
 }
 
 .preview-value {
   padding: 6px 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 16px;
   line-height: 1.4;
   word-break: break-word;
@@ -64,10 +64,10 @@
 
   &-filename {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-text-secondary);
     padding: 4px 8px;
     margin-top: 4px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-background-glass-light);
     border-radius: 4px;
     box-sizing: border-box;
     width: 100%;
@@ -84,10 +84,10 @@
 .preview-tag {
   display: inline-block;
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: var(--color-background-button-secondary);
+  color: var(--color-text-primary);
   border-radius: 16px;
   font-size: 14px;
   font-weight: 500;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--color-border-input);
 }

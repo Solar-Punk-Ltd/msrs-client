@@ -188,6 +188,11 @@ $swarm-theme: (
   --gradient-create-stream: #{map.get($swarm-colors, 'primary')};
   --gradient-create-stream-hover: #{map.get($swarm-colors, 'primary-hover')};
 
+  // Footer — solid dark colors unique to Swarm, override the translucent defaults
+  --footer-background: linear-gradient(180deg, #{map.get($swarm-colors, 'secondary')} 0%, #000000 100%);
+  --footer-divider-color: #{map.get($swarm-colors, 'secondary-light')};
+  --footer-input-background: #{map.get($swarm-colors, 'secondary-light')};
+
   --button-border-radius: var(--border-radius-full);
   --button-padding: var(--spacing-sm) var(--spacing-base);
   --button-font-size: var(--font-size-base);
