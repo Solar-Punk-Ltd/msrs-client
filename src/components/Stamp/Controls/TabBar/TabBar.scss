@@ -14,9 +14,9 @@
 .stamp-tab {
   flex: 1;
   padding: var(--spacing-sm) var(--spacing-base);
-  border: 1px solid var(--color-border-primary);
+  border: 1px solid var(--color-border-badge);
   border-radius: var(--border-radius-base);
-  background: var(--gradient-secondary);
+  background: var(--color-background-badge);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
