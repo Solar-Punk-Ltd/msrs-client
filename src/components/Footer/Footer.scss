@@ -45,7 +45,7 @@
   margin: 0;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  color: var(--footer-text-muted, var(--color-disabled-light));
+  color: var(--color-disabled-light);
 }
 
 .footer-link {
@@ -187,7 +187,7 @@
   margin: 0;
   font-size: var(--font-size-sm);
   line-height: 1.25rem;
-  color: var(--footer-text-muted, var(--color-disabled-light));
+  color: var(--color-disabled-light);
 }
 
 .footer-bottom {
