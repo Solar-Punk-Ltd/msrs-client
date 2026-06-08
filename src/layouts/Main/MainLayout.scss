@@ -24,16 +24,17 @@
   pointer-events: none;
 }
 
-// Video anchored top-right, contained (no crop), taller than viewport —
-// matches ethswarm.org approach: browser paints a fraction of the screen
-// rather than a full-bleed composite, keeping GPU load low.
+// Video covers full viewport width from the top-right anchor.
+// cover ensures no transparent gap appears on the left edge on wider screens;
+// object-position: top right keeps the original corner crop point.
+// The re-encoded 1920px file keeps GPU decode load minimal.
 .main-layout__background-video {
   position: absolute;
   top: 0;
   right: 0;
   width: 100%;
   height: auto;
-  object-fit: contain;
+  object-fit: cover;
   object-position: top right;
   pointer-events: none;
   z-index: -1;
