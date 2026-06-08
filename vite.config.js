@@ -25,6 +25,8 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       host: true,
+      port: 5175,
+      strictPort: false,
     },
     plugins: [
       nodePolyfills(),
