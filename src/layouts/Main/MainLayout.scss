@@ -24,17 +24,23 @@
   pointer-events: none;
 }
 
-// Sits at the same z-index as ::before; DOM order layers it above the bg fill.
+// Video anchored top-right, contained (no crop), taller than viewport —
+// matches ethswarm.org approach: browser paints a fraction of the screen
+// rather than a full-bleed composite, keeping GPU load low.
 .main-layout__background-video {
   position: absolute;
   top: 0;
   right: 0;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
   object-position: top right;
   pointer-events: none;
   z-index: -1;
+
+  @include theme.tablet-up {
+    height: 150vh;
+  }
 }
 
 header {
