@@ -41,9 +41,8 @@ export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
     name: THEME_NAMES.SWARM,
     displayName: 'Swarm',
     description: 'Ethereum Swarm Foundation theme with brand orange and video background',
-    primaryColor: '#fe6e00',
+    primaryColor: '#f47a20',
     logoPath: '/assets/themes/swarm/logo.svg',
-    backgroundVideoPath: '/assets/themes/swarm/doors_v3.mp4',
     showFooter: true,
   },
 };
