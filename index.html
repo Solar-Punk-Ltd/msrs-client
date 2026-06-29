@@ -18,7 +18,7 @@
       // Theme detection - runs before React to prevent flash
       (function () {
         const THEME_STORAGE_KEY = 'msrs-theme';
-        const VALID_THEMES = ['solarpunk', 'cryptomondays', 'swarm'];
+        const VALID_THEMES = ['solarpunk', 'cryptomondays', 'swarm', 'ethis'];
 
         // Determine initial theme (same priority as ThemeProvider)
         let theme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -50,6 +50,11 @@
           swarm: {
             title: 'Swarm Streaming',
             favicon: '/assets/themes/swarm/favicon.png',
+            loadingGradient: 'linear-gradient(180deg, #151517 0%, #1b1b1c 100%)',
+          },
+          ethis: {
+            title: 'Ethis Streaming',
+            favicon: '/assets/themes/ethis/favicon.png',
             loadingGradient: 'linear-gradient(180deg, #151517 0%, #1b1b1c 100%)',
           },
         };

@@ -18,6 +18,11 @@ const themeConfig = {
     favicon: '/assets/themes/swarm/favicon.png',
     loadingGradient: 'linear-gradient(180deg, #0d1216 0%, #141a20 100%)',
   },
+  [THEME_NAMES.ETHIS]: {
+    title: 'Ethis Streaming',
+    favicon: '/assets/themes/ethis/favicon.png',
+    loadingGradient: 'linear-gradient(180deg, #151517 0%, #1b1b1c 100%)',
+  },
 };
 
 export function useThemeAssets(theme: ThemeName) {

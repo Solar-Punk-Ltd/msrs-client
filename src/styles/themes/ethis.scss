@@ -1,0 +1,10 @@
+// Ethis theme — currently identical to the Swarm theme. It re-uses Swarm's
+// theme map and generated properties so the two stay in sync until Ethis gets
+// its own brand. When it diverges, define $ethis-* maps here and stop delegating.
+@use 'swarm' as swarm;
+
+$ethis-theme: swarm.$swarm-theme;
+
+@mixin apply-ethis-theme() {
+  @include swarm.apply-swarm-theme();
+}

@@ -5,6 +5,7 @@
 @use 'solarpunk';
 @use 'cryptomondays';
 @use 'swarm';
+@use 'ethis';
 
 // Receives $active-theme from globals.scss via 'with' configuration
 $active-theme: 'solarpunk' !default;
@@ -13,6 +14,7 @@ $themes: (
   'solarpunk': solarpunk.$solarpunk-theme,
   'cryptomondays': cryptomondays.$cryptomondays-theme,
   'swarm': swarm.$swarm-theme,
+  'ethis': ethis.$ethis-theme,
 );
 
 /// Apply the currently active theme
@@ -24,8 +26,10 @@ $themes: (
     @include solarpunk.apply-solarpunk-theme();
   } @else if $active-theme == 'swarm' {
     @include swarm.apply-swarm-theme();
+  } @else if $active-theme == 'ethis' {
+    @include ethis.apply-ethis-theme();
   } @else {
-    @error 'Unknown theme: #{$active-theme}. Available themes: solarpunk, cryptomondays, swarm';
+    @error 'Unknown theme: #{$active-theme}. Available themes: solarpunk, cryptomondays, swarm, ethis';
   }
 }
 

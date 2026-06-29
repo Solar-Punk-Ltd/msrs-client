@@ -14,6 +14,7 @@ export const THEME_NAMES = {
   SOLARPUNK: 'solarpunk',
   CRYPTOMONDAYS: 'cryptomondays',
   SWARM: 'swarm',
+  ETHIS: 'ethis',
 } as const;
 
 export type ThemeName = (typeof THEME_NAMES)[keyof typeof THEME_NAMES];
@@ -43,6 +44,15 @@ export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
     description: 'Ethereum Swarm Foundation theme with brand orange and video background',
     primaryColor: '#f47a20',
     logoPath: '/assets/themes/swarm/logo.svg',
+    showFooter: true,
+  },
+  // Ethis currently mirrors the Swarm brand; it will get its own identity later.
+  [THEME_NAMES.ETHIS]: {
+    name: THEME_NAMES.ETHIS,
+    displayName: 'Ethis',
+    description: 'Ethis theme (currently mirrors the Swarm brand)',
+    primaryColor: '#f47a20',
+    logoPath: '/assets/themes/ethis/logo.svg',
     showFooter: true,
   },
 };
