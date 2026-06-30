@@ -46,13 +46,13 @@ export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
     logoPath: '/assets/themes/swarm/logo.svg',
     showFooter: true,
   },
-  // Ethis currently mirrors the Swarm brand; it will get its own identity later.
+  // Ethis mirrors the Swarm brand's colours/fonts but uses the Ethereum mark.
   [THEME_NAMES.ETHIS]: {
     name: THEME_NAMES.ETHIS,
     displayName: 'Ethis',
-    description: 'Ethis theme (currently mirrors the Swarm brand)',
+    description: 'Ethis theme (Swarm brand styling with the Ethereum logo)',
     primaryColor: '#f47a20',
-    logoPath: '/assets/themes/ethis/logo.svg',
+    logoPath: '/assets/themes/ethis/logo.png',
     showFooter: true,
   },
 };
