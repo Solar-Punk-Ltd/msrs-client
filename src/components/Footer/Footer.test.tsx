@@ -6,7 +6,6 @@ import { Footer } from './Footer';
 describe('Footer', () => {
   it('renders section headings', () => {
     render(<Footer />);
-    expect(screen.getByText('Upcoming events')).toBeInTheDocument();
     expect(screen.getByText('Community')).toBeInTheDocument();
     expect(screen.getByText('Newsletter')).toBeInTheDocument();
     expect(screen.getByText('Use Swarm')).toBeInTheDocument();

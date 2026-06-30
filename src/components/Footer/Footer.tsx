@@ -1,5 +1,4 @@
 import { ArrowIcon } from './ArrowIcon';
-import { CalendarIcon } from './CalendarIcon';
 import {
   BRAND_LINKS,
   COMMUNITY_LINKS,
@@ -7,7 +6,6 @@ import {
   NEWSLETTER_FORM_ACTION,
   RESOURCES_LINKS,
   SWARM_LOGO_PATH,
-  UPCOMING_EVENTS,
   USE_SWARM_LINKS,
 } from './constants';
 import { LinkList } from './LinkList';
@@ -21,28 +19,6 @@ export function Footer() {
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-top">
-          <section className="footer-section footer-section--events">
-            <h3 className="footer-heading">Upcoming events</h3>
-            <ul className="footer-event-list">
-              {UPCOMING_EVENTS.map((event) => (
-                <li key={event.label} className="footer-event">
-                  <a className="footer-link" href={event.href} target="_blank" rel="noreferrer">
-                    {event.label}
-                  </a>
-                  <a
-                    className="footer-event-calendar"
-                    href={event.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`Add ${event.label} to calendar`}
-                  >
-                    <CalendarIcon />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-
           <section className="footer-section footer-section--community">
             <h3 className="footer-heading">Community</h3>
             <LinkList links={COMMUNITY_LINKS} />

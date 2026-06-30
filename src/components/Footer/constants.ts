@@ -3,12 +3,6 @@ export interface FooterLink {
   href: string;
 }
 
-export const UPCOMING_EVENTS: FooterLink[] = [
-  { label: 'Workshop: How to Decentralize Any Frontend?, online, May 5', href: 'https://workshops.swarm.bzz.link/' },
-  { label: 'Workshop: Decentralized Streaming, online, May 12', href: 'https://workshops.swarm.bzz.link/' },
-  { label: 'Swarm Community Call, online, May 28', href: 'https://scc.swarm.bzz.link/' },
-];
-
 export const COMMUNITY_LINKS: FooterLink[] = [
   { label: 'Discord', href: 'https://discord.ethswarm.org' },
   { label: 'GitHub', href: 'https://github.com/ethersphere' },

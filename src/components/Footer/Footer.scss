@@ -31,7 +31,8 @@
   padding: var(--spacing-4xl) 0;
 
   @include theme.tablet-up {
-    grid-template-columns: 6fr 2fr 4fr;
+    // Community + Newsletter, left-aligned; the trailing column is an empty spacer
+    grid-template-columns: 2fr 4fr 6fr;
     gap: var(--spacing-lg);
   }
 }
@@ -67,35 +68,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-}
-
-.footer-event-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-base);
-}
-
-.footer-event {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-base);
-}
-
-.footer-event-calendar {
-  display: inline-flex;
-  transition: opacity var(--duration-fast) var(--easing-ease);
-
-  &:hover {
-    opacity: 0.7;
-  }
-}
-
-.footer-calendar-icon {
-  width: 1rem;
-  height: 1rem;
 }
 
 .footer-newsletter-form {
