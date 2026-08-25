@@ -8,6 +8,8 @@ export interface ThemeConfig {
   logoOnDarkPath?: string;
   backgroundVideoPath?: string;
   showFooter?: boolean;
+  /** Group the stream browser into Live / Next stream / Upcoming / Past sections. */
+  groupStreamsBySchedule?: boolean;
 }
 
 export const THEME_NAMES = {
@@ -45,6 +47,7 @@ export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
     primaryColor: '#f47a20',
     logoPath: '/assets/themes/swarm/logo.svg',
     showFooter: true,
+    groupStreamsBySchedule: true,
   },
   // Ethis mirrors the Swarm brand's colours/fonts but uses the Ethereum mark.
   [THEME_NAMES.ETHIS]: {

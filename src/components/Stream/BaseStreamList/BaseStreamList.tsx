@@ -6,6 +6,7 @@ import { useAppContext } from '@/providers/App/App';
 import { StateEntry } from '@/types/stream';
 import { makeFeedIdentifier } from '@/utils/network/bee';
 import { config } from '@/utils/shared/config';
+import { groupStreams } from '@/utils/stream/groupStreams';
 
 import { StreamListItem } from '../StreamListItem/StreamListItem';
 import { StreamSearch } from '../StreamSearch/StreamSearch';
@@ -20,6 +21,8 @@ interface BaseStreamListProps {
   renderHeader?: () => React.ReactNode;
   renderFooter?: () => React.ReactNode;
   enableSearch?: boolean;
+  /** Render Live / Next stream / Upcoming / Past sections instead of a flat list (search still uses the flat list). */
+  groupBySchedule?: boolean;
 }
 
 const ITEMS_PER_PAGE = 8;
@@ -32,6 +35,7 @@ export function BaseStreamList({
   renderHeader,
   renderFooter,
   enableSearch = false,
+  groupBySchedule = false,
 }: BaseStreamListProps) {
   const { streamList, isLoading, isRefreshing } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,21 +61,36 @@ export function BaseStreamList({
     setCurrentPage(1);
   }, [searchQuery, filteredStreamList]);
 
-  const totalPages = Math.ceil((filteredStreamList?.length ?? 0) / ITEMS_PER_PAGE);
+  // grouped (sectioned) mode is bypassed while searching so results stay a flat list
+  const isGrouped = groupBySchedule && !searchQuery.trim();
+
+  const grouped = useMemo(() => {
+    if (!isGrouped || !filteredStreamList) return null;
+    return groupStreams(filteredStreamList);
+  }, [isGrouped, filteredStreamList]);
+
+  // in grouped mode only the Past section paginates; Live/Next/Upcoming are always fully visible
+  const pageSource = grouped ? grouped.past : filteredStreamList;
+  const totalPages = Math.ceil((pageSource?.length ?? 0) / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
 
   const paginatedStreamList = useMemo(() => {
-    if (!filteredStreamList) return null;
-    return filteredStreamList.slice(startIndex, endIndex);
-  }, [filteredStreamList, startIndex, endIndex]);
+    if (!pageSource) return null;
+    return pageSource.slice(startIndex, endIndex);
+  }, [pageSource, startIndex, endIndex]);
+
+  const visibleStreams = useMemo(() => {
+    if (!grouped) return paginatedStreamList;
+    return [...grouped.live, ...(grouped.next ? [grouped.next] : []), ...grouped.upcoming, ...(paginatedStreamList ?? [])];
+  }, [grouped, paginatedStreamList]);
 
   const manifestUrlMap = useMemo(() => {
     const map = new Map<string, string>();
 
-    if (!paginatedStreamList) return map;
+    if (!visibleStreams) return map;
 
-    paginatedStreamList.forEach((stream) => {
+    visibleStreams.forEach((stream) => {
       const topic = Topic.fromString(stream.topic);
       const feedIndex = FeedIndex.fromBigInt(BigInt(1));
       const identifier = makeFeedIdentifier(topic, feedIndex);
@@ -80,7 +99,28 @@ export function BaseStreamList({
     });
 
     return map;
-  }, [paginatedStreamList]);
+  }, [visibleStreams]);
+
+  const renderItem = (stream: StateEntry) => {
+    const manifestUrl = manifestUrlMap.get(stream.topic) || '';
+    return (
+      <StreamListItem
+        key={`${stream.owner}-${stream.topic}`}
+        stream={stream}
+        thumbnailRef={stream.thumbnail as string}
+        manifestUrl={manifestUrl}
+        renderActions={renderActions}
+        className={itemClassName}
+      />
+    );
+  };
+
+  const renderSection = (sectionTitle: string, streams: StateEntry[], modifier: string) => (
+    <section className={`stream-section stream-section--${modifier}`}>
+      <h3 className="stream-section-title">{sectionTitle}</h3>
+      <div className="stream-section-grid">{streams.map(renderItem)}</div>
+    </section>
+  );
 
   const hasNoStreams = !isLoading && streamList?.length === 0;
   const hasNoResults = !isLoading && streamList && streamList.length > 0 && filteredStreamList?.length === 0;
@@ -134,21 +174,16 @@ export function BaseStreamList({
           <div className="base-stream-list empty">
             <p>No streams found matching &quot;{searchQuery}&quot;</p>
           </div>
+        ) : grouped ? (
+          <div className="base-stream-list base-stream-list--grouped">
+            {grouped.live.length > 0 && renderSection('Live now', grouped.live, 'live')}
+            {grouped.next && renderSection('Next stream', [grouped.next], 'next')}
+            {grouped.upcoming.length > 0 && renderSection('Upcoming streams', grouped.upcoming, 'upcoming')}
+            {(paginatedStreamList?.length ?? 0) > 0 && renderSection('Past streams', paginatedStreamList!, 'past')}
+          </div>
         ) : (
           <div className="base-stream-list">
-            {paginatedStreamList?.map((stream) => {
-              const manifestUrl = manifestUrlMap.get(stream.topic) || '';
-              return (
-                <StreamListItem
-                  key={`${stream.owner}-${stream.topic}`}
-                  stream={stream}
-                  thumbnailRef={stream.thumbnail as string}
-                  manifestUrl={manifestUrl}
-                  renderActions={renderActions}
-                  className={itemClassName}
-                />
-              );
-            })}
+            {paginatedStreamList?.map(renderItem)}
           </div>
         )}
       </div>

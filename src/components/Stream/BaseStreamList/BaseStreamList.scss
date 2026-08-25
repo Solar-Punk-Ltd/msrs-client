@@ -135,3 +135,47 @@
     text-align: center;
   }
 }
+
+// Grouped (sectioned) mode — Live / Next stream / Upcoming / Past
+.base-stream-list--grouped {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.stream-section {
+  width: 100%;
+}
+
+.stream-section-title {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: inherit;
+  font-family: var(--font-family-base);
+}
+
+.stream-section-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  row-gap: var(--spacing-sm);
+  column-gap: var(--spacing-base);
+  width: 100%;
+  box-sizing: border-box;
+
+  @include theme.tablet-up {
+    grid-template-columns: repeat(2, 1fr);
+    justify-items: stretch;
+  }
+}
+
+// The featured "Next stream" gets its own full-width row
+.stream-section--next .stream-section-grid {
+  grid-template-columns: 1fr;
+
+  @include theme.tablet-up {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
