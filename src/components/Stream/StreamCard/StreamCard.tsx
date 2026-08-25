@@ -99,7 +99,7 @@ export function StreamCard({ stream, thumbnailRef, manifestUrl }: StreamCardProp
           className="watch-on-swarm-button"
           onClick={() => navigate(`/watch/${stream.mediaType}/${stream.owner}/${stream.topic}`)}
         >
-          Watch on Swarm &rarr;
+          {stream.state === StateType.VOD ? <>Watch on Swarm &rarr;</> : <>Join stream &amp; chat &rarr;</>}
         </button>
       </div>
 

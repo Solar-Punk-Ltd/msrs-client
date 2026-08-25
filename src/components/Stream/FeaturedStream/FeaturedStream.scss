@@ -181,3 +181,28 @@
   font-weight: 600;
   color: var(--color-primary);
 }
+
+// Inline live player in the featured banner
+.featured-stream-player {
+  width: 100%;
+  border-radius: var(--border-radius-base);
+  overflow: hidden;
+  background: var(--color-background-dark, #000);
+
+  video,
+  audio {
+    display: block;
+    width: 100%;
+  }
+}
+
+// Live CTA: solid, high-urgency
+.watch-on-swarm-button--live {
+  background: var(--color-primary);
+  color: #000;
+
+  &:hover {
+    background: var(--color-primary-hover, var(--color-primary));
+    opacity: 0.9;
+  }
+}

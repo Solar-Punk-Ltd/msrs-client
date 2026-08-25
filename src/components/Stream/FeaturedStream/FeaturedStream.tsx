@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { StateEntry, StateType } from '@/types/stream';
 
 import { StreamThumbnail } from '../StreamThumbnail/StreamThumbnail';
+import { SwarmHlsPlayer } from '../SwarmHlsPlayer/SwarmHlsPlayer';
 
 import './FeaturedStream.scss';
 
@@ -100,23 +101,36 @@ export function FeaturedStream({ stream, thumbnailRef, manifestUrl }: FeaturedSt
       </div>
 
       <div className="featured-stream-media">
-        <StreamThumbnail
-          title={stream.title}
-          thumbnailRef={thumbnailRef}
-          manifestUrl={manifestUrl}
-          owner={stream.owner}
-          topic={stream.topic}
-          state={stream.state}
-          duration={stream.duration}
-          mediaType={stream.mediaType}
-          pinned={stream.pinned}
-        />
+        {isLive ? (
+          <div className="featured-stream-player">
+            <SwarmHlsPlayer
+              owner={stream.owner}
+              topic={stream.topic}
+              mediaType={stream.mediaType}
+              streamState={stream.state}
+              isExternal={stream.isExternal}
+              manifestIndex={stream.index}
+            />
+          </div>
+        ) : (
+          <StreamThumbnail
+            title={stream.title}
+            thumbnailRef={thumbnailRef}
+            manifestUrl={manifestUrl}
+            owner={stream.owner}
+            topic={stream.topic}
+            state={stream.state}
+            duration={stream.duration}
+            mediaType={stream.mediaType}
+            pinned={stream.pinned}
+          />
+        )}
         <button
           type="button"
-          className="watch-on-swarm-button"
+          className={`watch-on-swarm-button ${isLive ? 'watch-on-swarm-button--live' : ''}`}
           onClick={() => navigate(`/watch/${stream.mediaType}/${stream.owner}/${stream.topic}`)}
         >
-          Watch on Swarm &rarr;
+          {isLive || stream.state === StateType.SCHEDULED ? <>Join stream &amp; chat &rarr;</> : <>Watch on Swarm &rarr;</>}
         </button>
       </div>
     </div>
