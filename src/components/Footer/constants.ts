@@ -3,6 +3,11 @@ export interface FooterLink {
   href: string;
 }
 
+export const UPCOMING_EVENTS: FooterLink[] = [
+  { label: 'Swarm Community Call, online, August 27', href: 'https://scc.swarm.bzz.link/' },
+  { label: 'Swarm Community Call, online, September 24', href: 'https://scc.swarm.bzz.link/' },
+];
+
 export const COMMUNITY_LINKS: FooterLink[] = [
   { label: 'Discord', href: 'https://discord.ethswarm.org' },
   { label: 'GitHub', href: 'https://github.com/ethersphere' },

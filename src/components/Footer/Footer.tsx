@@ -6,6 +6,7 @@ import {
   NEWSLETTER_FORM_ACTION,
   RESOURCES_LINKS,
   SWARM_LOGO_PATH,
+  UPCOMING_EVENTS,
   USE_SWARM_LINKS,
 } from './constants';
 import { LinkList } from './LinkList';
@@ -19,6 +20,11 @@ export function Footer() {
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-top">
+          <section className="footer-section footer-section--events">
+            <h3 className="footer-heading">Upcoming events</h3>
+            <LinkList links={UPCOMING_EVENTS} />
+          </section>
+
           <section className="footer-section footer-section--community">
             <h3 className="footer-heading">Community</h3>
             <LinkList links={COMMUNITY_LINKS} />

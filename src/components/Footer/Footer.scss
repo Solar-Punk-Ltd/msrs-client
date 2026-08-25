@@ -31,8 +31,8 @@
   padding: var(--spacing-4xl) 0;
 
   @include theme.tablet-up {
-    // Community + Newsletter, left-aligned; the trailing column is an empty spacer
-    grid-template-columns: 2fr 4fr 6fr;
+    // Upcoming events + Community + Newsletter, left-aligned; the trailing column is an empty spacer
+    grid-template-columns: 4fr 2fr 4fr 2fr;
     gap: var(--spacing-lg);
   }
 }
