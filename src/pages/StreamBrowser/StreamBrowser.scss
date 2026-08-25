@@ -26,3 +26,85 @@
     max-width: 500px;
   }
 }
+
+// Wide layout for themes using the sectioned (grouped) stream browser:
+// the panel grows with its content and the PAGE scrolls (like scc.swarm.bzz.link),
+// instead of an inner scrollbox.
+.stream-browser--wide {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+
+  @include theme.tablet-up {
+    max-width: 1200px;
+  }
+
+  .stream-list {
+    overflow: visible;
+    min-height: auto;
+    flex: none;
+  }
+
+  .base-stream-list-container {
+    overflow: visible;
+    min-height: auto;
+    flex: none;
+  }
+
+  .base-stream-list {
+    overflow: visible;
+    overflow-y: visible;
+    height: auto;
+    max-height: none;
+  }
+}
+
+// In wide mode drop the glass-panel chrome — content sits directly on the page
+.stream-browser--wide .stream-list {
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+// Hero heading (SCC-page style), shown when the theme defines heroTitle
+.stream-browser-hero {
+  text-align: center;
+  padding: 48px 24px 0;
+
+  @include theme.tablet-up {
+    padding-top: 64px;
+  }
+}
+
+.stream-browser-hero-title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+  color: var(--color-text-primary);
+
+  @include theme.tablet-up {
+    font-size: 3rem;
+  }
+}
+
+.stream-browser-hero-subtitle {
+  font-size: 1.05rem;
+  color: var(--color-text-secondary);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+// Compact, right-aligned search in wide mode
+.stream-browser--wide .stream-search {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 var(--spacing-base);
+
+  .stream-search-wrapper {
+    max-width: 320px;
+    width: 100%;
+  }
+}

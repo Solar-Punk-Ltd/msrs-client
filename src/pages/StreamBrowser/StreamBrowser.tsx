@@ -16,6 +16,8 @@ export function StreamBrowser() {
   const isWindowFocusRefetch = useRef(false);
 
   const showFooter = AVAILABLE_THEMES[theme].showFooter ?? false;
+  const isWide = AVAILABLE_THEMES[theme].groupStreamsBySchedule ?? false;
+  const { heroTitle, heroSubtitle } = AVAILABLE_THEMES[theme];
 
   const { data } = useQuery({
     queryKey: ['app-state'],
@@ -45,7 +47,13 @@ export function StreamBrowser() {
 
   return (
     <div className="stream-browser-page">
-      <div className="stream-browser">
+      {heroTitle && (
+        <div className="stream-browser-hero">
+          <h1 className="stream-browser-hero-title">{heroTitle}</h1>
+          {heroSubtitle && <p className="stream-browser-hero-subtitle">{heroSubtitle}</p>}
+        </div>
+      )}
+      <div className={`stream-browser ${isWide ? 'stream-browser--wide' : ''}`}>
         <StreamList />
       </div>
       {showFooter && <Footer />}

@@ -3,44 +3,32 @@ export interface FooterLink {
   href: string;
 }
 
-export const COMMUNITY_LINKS: FooterLink[] = [
-  { label: 'Discord', href: 'https://discord.ethswarm.org' },
-  { label: 'GitHub', href: 'https://github.com/ethersphere' },
-  { label: 'X / Twitter', href: 'https://twitter.com/ethswarm' },
-  { label: 'Reddit', href: 'https://www.reddit.com/r/ethswarm/' },
-  { label: 'YouTube', href: 'https://www.youtube.com/channel/UCu6ywn9MTqdREuE6xuRkskA/videos' },
-];
-
-export const USE_SWARM_LINKS: FooterLink[] = [
-  { label: 'Start Building', href: 'https://www.ethswarm.org/build' },
-  { label: 'Run a Node', href: 'https://www.ethswarm.org/build/run-a-full-node' },
-  { label: 'Swarm Desktop', href: 'https://www.ethswarm.org/build/desktop' },
-  { label: 'Awesome Swarm', href: 'https://github.com/ethersphere/awesome-swarm' },
-  { label: 'Swarm Gateway', href: 'https://gateway.ethswarm.org/' },
-  { label: 'Get BZZ', href: 'https://www.ethswarm.org/get-bzz' },
-];
-
-export const RESOURCES_LINKS: FooterLink[] = [
-  { label: 'Technology', href: 'https://www.ethswarm.org/why' },
-  { label: 'Bee docs', href: 'https://docs.ethswarm.org/docs/' },
-  { label: 'Bee.js docs', href: 'https://bee-js.ethswarm.org/docs/' },
-  { label: 'Network stats', href: 'https://swarmscan.io/' },
-  { label: 'Contribute', href: 'https://www.ethswarm.org/contribute' },
-  { label: 'Roadmap', href: 'https://roadmap.ethswarm.org/' },
+// Mirrors the footer on scc.swarm.bzz.link — static, no per-event maintenance
+export const BRAND_LINKS: FooterLink[] = [
+  { label: 'ethswarm.org', href: 'https://www.ethswarm.org' },
+  { label: 'Documentation', href: 'https://docs.ethswarm.org' },
   { label: 'Blog', href: 'https://blog.ethswarm.org' },
 ];
 
-export const ECOSYSTEM_LINKS: FooterLink[] = [
-  { label: 'Grants', href: 'https://www.ethswarm.org/grants' },
-  { label: 'Bounties', href: 'https://app.dework.xyz/swarm-41421' },
-  { label: 'Fair Data Society', href: 'https://fairdatasociety.org/' },
-  { label: 'The Hivemaker’s Code', href: 'https://toolkit.ethswarm.org/' },
+export const COMMUNITY_LINKS: FooterLink[] = [
+  { label: 'Discord', href: 'https://discord.com/invite/hyCr9BMX9U' },
+  { label: 'X (Twitter)', href: 'https://x.com/ethswarm' },
+  { label: 'Reddit', href: 'https://www.reddit.com/r/ethswarm/' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@EthereumSwarm' },
 ];
 
-export const BRAND_LINKS: FooterLink[] = [
-  { label: 'Papers', href: 'https://papers.ethswarm.org/' },
-  { label: 'Foundation', href: 'https://www.ethswarm.org/foundation' },
-  { label: 'Jobs', href: 'https://www.ethswarm.org/jobs' },
+export const DEVELOPMENT_LINKS: FooterLink[] = [
+  { label: 'GitHub', href: 'https://github.com/ethersphere' },
+  { label: 'Developer Hub', href: 'https://docs.ethswarm.org/docs/develop/introduction/' },
+  { label: 'Research Papers', href: 'https://papers.ethswarm.org/' },
+  { label: 'Beeport', href: 'https://beeport.ethswarm.org/' },
+];
+
+export const RESOURCES_LINKS: FooterLink[] = [
+  { label: 'Swarm Hub', href: 'https://links.ethswarm.org/' },
+  { label: 'Desktop App', href: 'https://desktop.ethswarm.org/' },
+  { label: 'Swarmy', href: 'https://swarmy.cloud/' },
+  { label: 'Etherjot', href: 'https://etherjot.eth.limo/' },
 ];
 
 export const SWARM_LOGO_PATH = '/assets/themes/swarm/logo.svg';

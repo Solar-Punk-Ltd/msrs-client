@@ -8,6 +8,8 @@ import { makeFeedIdentifier } from '@/utils/network/bee';
 import { config } from '@/utils/shared/config';
 import { groupStreams } from '@/utils/stream/groupStreams';
 
+import { FeaturedStream } from '../FeaturedStream/FeaturedStream';
+import { StreamCard } from '../StreamCard/StreamCard';
 import { StreamListItem } from '../StreamListItem/StreamListItem';
 import { StreamSearch } from '../StreamSearch/StreamSearch';
 
@@ -118,7 +120,16 @@ export function BaseStreamList({
   const renderSection = (sectionTitle: string, streams: StateEntry[], modifier: string) => (
     <section className={`stream-section stream-section--${modifier}`}>
       <h3 className="stream-section-title">{sectionTitle}</h3>
-      <div className="stream-section-grid">{streams.map(renderItem)}</div>
+      <div className="stream-section-grid">
+        {streams.map((stream) => (
+          <StreamCard
+            key={`${stream.owner}-${stream.topic}`}
+            stream={stream}
+            thumbnailRef={stream.thumbnail as string}
+            manifestUrl={manifestUrlMap.get(stream.topic) || ''}
+          />
+        ))}
+      </div>
     </section>
   );
 
@@ -176,8 +187,28 @@ export function BaseStreamList({
           </div>
         ) : grouped ? (
           <div className="base-stream-list base-stream-list--grouped">
-            {grouped.live.length > 0 && renderSection('Live now', grouped.live, 'live')}
-            {grouped.next && renderSection('Next stream', [grouped.next], 'next')}
+            {grouped.live.map((liveStream) => (
+              <section
+                key={`live-${liveStream.owner}-${liveStream.topic}`}
+                className="stream-section stream-section--next stream-section--live"
+              >
+                <h3 className="stream-section-title">Live now</h3>
+                <FeaturedStream
+                  stream={liveStream}
+                  thumbnailRef={liveStream.thumbnail as string}
+                  manifestUrl={manifestUrlMap.get(liveStream.topic) || ''}
+                />
+              </section>
+            ))}
+            {grouped.next && (
+              <section className="stream-section stream-section--next">
+                <FeaturedStream
+                  stream={grouped.next}
+                  thumbnailRef={grouped.next.thumbnail as string}
+                  manifestUrl={manifestUrlMap.get(grouped.next.topic) || ''}
+                />
+              </section>
+            )}
             {grouped.upcoming.length > 0 && renderSection('Upcoming streams', grouped.upcoming, 'upcoming')}
             {(paginatedStreamList?.length ?? 0) > 0 && renderSection('Past streams', paginatedStreamList!, 'past')}
           </div>

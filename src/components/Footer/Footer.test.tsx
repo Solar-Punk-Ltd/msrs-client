@@ -8,16 +8,15 @@ describe('Footer', () => {
     render(<Footer />);
     expect(screen.getByText('Community')).toBeInTheDocument();
     expect(screen.getByText('Newsletter')).toBeInTheDocument();
-    expect(screen.getByText('Use Swarm')).toBeInTheDocument();
+    expect(screen.getByText('Development')).toBeInTheDocument();
     expect(screen.getByText('Resources')).toBeInTheDocument();
-    expect(screen.getByText('Ecosystem')).toBeInTheDocument();
   });
 
   it('renders community links with correct hrefs', () => {
     render(<Footer />);
-    expect(screen.getByText('Discord').closest('a')).toHaveAttribute('href', 'https://discord.ethswarm.org');
+    expect(screen.getByText('Discord').closest('a')).toHaveAttribute('href', 'https://discord.com/invite/hyCr9BMX9U');
     expect(screen.getByText('GitHub').closest('a')).toHaveAttribute('href', 'https://github.com/ethersphere');
-    expect(screen.getByText('X / Twitter').closest('a')).toHaveAttribute('href', 'https://twitter.com/ethswarm');
+    expect(screen.getByText('X (Twitter)').closest('a')).toHaveAttribute('href', 'https://x.com/ethswarm');
   });
 
   it('renders newsletter form with required email input', () => {
