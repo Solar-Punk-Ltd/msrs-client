@@ -30,7 +30,11 @@ describe('groupStreams', () => {
   it('features the scheduled stream with the earliest future start time', () => {
     const past = makeStream({ title: 'past', state: StateType.SCHEDULED, scheduledStartTime: '2026-08-01T17:00:00Z' });
     const soon = makeStream({ title: 'soon', state: StateType.SCHEDULED, scheduledStartTime: '2026-08-27T17:00:00Z' });
-    const later = makeStream({ title: 'later', state: StateType.SCHEDULED, scheduledStartTime: '2026-09-24T17:00:00Z' });
+    const later = makeStream({
+      title: 'later',
+      state: StateType.SCHEDULED,
+      scheduledStartTime: '2026-09-24T17:00:00Z',
+    });
     const { next, upcoming } = groupStreams([later, past, soon], NOW);
     expect(next?.title).toBe('soon');
     expect(upcoming.map((s) => s.title)).toEqual(['past', 'later']);
@@ -49,8 +53,16 @@ describe('groupStreams', () => {
   });
 
   it('falls back to the earliest scheduled stream when none are in the future', () => {
-    const older = makeStream({ title: 'older', state: StateType.SCHEDULED, scheduledStartTime: '2026-07-01T17:00:00Z' });
-    const newer = makeStream({ title: 'newer', state: StateType.SCHEDULED, scheduledStartTime: '2026-08-01T17:00:00Z' });
+    const older = makeStream({
+      title: 'older',
+      state: StateType.SCHEDULED,
+      scheduledStartTime: '2026-07-01T17:00:00Z',
+    });
+    const newer = makeStream({
+      title: 'newer',
+      state: StateType.SCHEDULED,
+      scheduledStartTime: '2026-08-01T17:00:00Z',
+    });
     const { next, upcoming } = groupStreams([newer, older], NOW);
     expect(next?.title).toBe('older');
     expect(upcoming.map((s) => s.title)).toEqual(['newer']);
@@ -63,6 +75,23 @@ describe('groupStreams', () => {
     expect(next).toBeNull();
     expect(upcoming).toEqual([]);
     expect(past.map((s) => s.title)).toEqual(['b', 'a']);
+  });
+
+  it('does not let an undated scheduled stream win the featured slot over past dated ones', () => {
+    const pastA = makeStream({
+      title: 'pastA',
+      state: StateType.SCHEDULED,
+      scheduledStartTime: '2026-07-01T17:00:00Z',
+    });
+    const pastB = makeStream({
+      title: 'pastB',
+      state: StateType.SCHEDULED,
+      scheduledStartTime: '2026-08-01T17:00:00Z',
+    });
+    const undated = makeStream({ title: 'undated', state: StateType.SCHEDULED });
+    const { next, upcoming } = groupStreams([undated, pastB, pastA], NOW);
+    expect(next?.title).toBe('pastA');
+    expect(upcoming.map((s) => s.title)).toEqual(['pastB', 'undated']);
   });
 
   it('treats scheduled streams without a parseable start time as furthest in the future', () => {

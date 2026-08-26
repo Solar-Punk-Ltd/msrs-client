@@ -54,7 +54,7 @@ function parseDescription(description?: string): DescriptionParts {
 
 // "Core Development Updates: Bee 2.8.2" -> bold lead before the separator
 function renderBullet(text: string) {
-  const match = text.match(/^(.+?)([:—])\s*(.+)$/);
+  const match = text.match(/^(.+?)\s*([:—])\s*(.+)$/);
   if (!match) return <span>{text}</span>;
   return (
     <span>

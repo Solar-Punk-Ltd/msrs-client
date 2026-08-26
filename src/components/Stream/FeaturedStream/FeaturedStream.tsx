@@ -59,6 +59,8 @@ export function FeaturedStream({ stream, thumbnailRef, manifestUrl }: FeaturedSt
   // unmounting tears down the HLS session entirely.
   useEffect(() => {
     if (!isLive || !mediaRef.current) return;
+    // no IntersectionObserver (older browsers/test envs): keep the preview mounted
+    if (typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting), { threshold: 0.2 });
     observer.observe(mediaRef.current);
     return () => observer.disconnect();
@@ -141,7 +143,11 @@ export function FeaturedStream({ stream, thumbnailRef, manifestUrl }: FeaturedSt
           className={`watch-on-swarm-button ${isLive ? 'watch-on-swarm-button--live' : ''}`}
           onClick={() => navigate(`/watch/${stream.mediaType}/${stream.owner}/${stream.topic}`)}
         >
-          {isLive || stream.state === StateType.SCHEDULED ? <>Join stream &amp; chat &rarr;</> : <>Watch on Swarm &rarr;</>}
+          {isLive || stream.state === StateType.SCHEDULED ? (
+            <>Join stream &amp; chat &rarr;</>
+          ) : (
+            <>Watch on Swarm &rarr;</>
+          )}
         </button>
       </div>
     </div>

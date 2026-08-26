@@ -66,10 +66,18 @@ export function BaseStreamList({
   // grouped (sectioned) mode is bypassed while searching so results stay a flat list
   const isGrouped = groupBySchedule && !searchQuery.trim();
 
+  // periodic tick so the featured selection follows the clock in a long-open tab
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (!isGrouped) return;
+    const id = setInterval(() => setNowTick(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, [isGrouped]);
+
   const grouped = useMemo(() => {
     if (!isGrouped || !filteredStreamList) return null;
-    return groupStreams(filteredStreamList);
-  }, [isGrouped, filteredStreamList]);
+    return groupStreams(filteredStreamList, nowTick);
+  }, [isGrouped, filteredStreamList, nowTick]);
 
   // in grouped mode only the Past section paginates; Live/Next/Upcoming are always fully visible
   const pageSource = grouped ? grouped.past : filteredStreamList;
@@ -84,7 +92,12 @@ export function BaseStreamList({
 
   const visibleStreams = useMemo(() => {
     if (!grouped) return paginatedStreamList;
-    return [...grouped.live, ...(grouped.next ? [grouped.next] : []), ...grouped.upcoming, ...(paginatedStreamList ?? [])];
+    return [
+      ...grouped.live,
+      ...(grouped.next ? [grouped.next] : []),
+      ...grouped.upcoming,
+      ...(paginatedStreamList ?? []),
+    ];
   }, [grouped, paginatedStreamList]);
 
   const manifestUrlMap = useMemo(() => {
@@ -213,9 +226,7 @@ export function BaseStreamList({
             {(paginatedStreamList?.length ?? 0) > 0 && renderSection('Past streams', paginatedStreamList!, 'past')}
           </div>
         ) : (
-          <div className="base-stream-list">
-            {paginatedStreamList?.map(renderItem)}
-          </div>
+          <div className="base-stream-list">{paginatedStreamList?.map(renderItem)}</div>
         )}
       </div>
 

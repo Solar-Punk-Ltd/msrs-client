@@ -52,8 +52,7 @@ export const AVAILABLE_THEMES: Record<ThemeName, ThemeConfig> = {
     showFooter: true,
     groupStreamsBySchedule: true,
     heroTitle: 'Stream over Swarm',
-    heroSubtitle:
-      'Live streams and recordings from the Swarm community — stored and delivered over the Swarm network.',
+    heroSubtitle: 'Live streams and recordings from the Swarm community — stored and delivered over the Swarm network.',
   },
   // Ethis mirrors the Swarm brand's colours/fonts but uses the Ethereum mark.
   [THEME_NAMES.ETHIS]: {

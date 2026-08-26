@@ -17,8 +17,8 @@ const scheduledTime = (stream: StateEntry): number => {
  * Splits a stream list into schedule-based sections:
  * - live: currently live streams, most recently updated first
  * - next: the featured upcoming stream — a pinned scheduled stream if present,
- *   otherwise the scheduled stream with the earliest future start time,
- *   otherwise the earliest scheduled stream
+ *   otherwise the dated scheduled stream with the earliest future start time,
+ *   otherwise the earliest scheduled stream (undated entries sort last)
  * - upcoming: remaining scheduled streams, soonest first
  * - past: VODs, newest first
  */
@@ -31,7 +31,14 @@ export function groupStreams(streams: StateEntry[], now: number = Date.now()): G
 
   const past = streams.filter((s) => s.state === StateType.VOD).sort((a, b) => b.createdAt - a.createdAt);
 
-  const next = scheduled.find((s) => s.pinned) ?? scheduled.find((s) => scheduledTime(s) >= now) ?? scheduled[0] ?? null;
+  const next =
+    scheduled.find((s) => s.pinned) ??
+    scheduled.find((s) => {
+      const t = scheduledTime(s);
+      return t !== Number.POSITIVE_INFINITY && t >= now;
+    }) ??
+    scheduled[0] ??
+    null;
 
   const upcoming = scheduled.filter((s) => s !== next);
 
