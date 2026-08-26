@@ -6,6 +6,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Provider as UserProvider } from '@/providers/User';
 import { MessageReceiveMode } from '@/types/messaging';
 
+vi.mock('@/providers/Theme', () => ({
+  useTheme: () => ({ theme: 'swarm' }),
+}));
+
 vi.mock('@/providers/App/App', () => ({
   useAppContext: vi.fn(() => ({
     streamList: [
