@@ -1,0 +1,51 @@
+// YouTube-style pre-stream placeholder: thumbnail + "Live in X" overlay
+.scheduled-placeholder {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  background: var(--color-background-dark, #000);
+}
+
+.scheduled-placeholder-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(40px) brightness(0.3) saturate(1.2);
+  transform: scale(1.2); // hide blur edge bleed
+}
+
+.scheduled-placeholder-image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.scheduled-placeholder-overlay {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.scheduled-placeholder-relative {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.scheduled-placeholder-absolute {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.75);
+}

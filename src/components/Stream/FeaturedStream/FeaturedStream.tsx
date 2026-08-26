@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { StateEntry, StateType } from '@/types/stream';
@@ -52,6 +52,17 @@ function parseStartTime(iso?: string): number | null {
 export function FeaturedStream({ stream, thumbnailRef, manifestUrl }: FeaturedStreamProps) {
   const navigate = useNavigate();
   const isLive = stream.state === StateType.LIVE;
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const [isInView, setIsInView] = useState(true);
+
+  // Pause the inline live player's bandwidth use when the banner is scrolled out of view:
+  // unmounting tears down the HLS session entirely.
+  useEffect(() => {
+    if (!isLive || !mediaRef.current) return;
+    const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting), { threshold: 0.2 });
+    observer.observe(mediaRef.current);
+    return () => observer.disconnect();
+  }, [isLive]);
   const startTime = parseStartTime(stream.scheduledStartTime);
   const countdown = useCountdown(isLive ? null : startTime);
 
@@ -100,8 +111,8 @@ export function FeaturedStream({ stream, thumbnailRef, manifestUrl }: FeaturedSt
         {isLive && <p className="featured-stream-live-note">Streaming now over the Swarm network</p>}
       </div>
 
-      <div className="featured-stream-media">
-        {isLive ? (
+      <div className="featured-stream-media" ref={mediaRef}>
+        {isLive && isInView ? (
           <div className="featured-stream-player">
             <SwarmHlsPlayer
               owner={stream.owner}

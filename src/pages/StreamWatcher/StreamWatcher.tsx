@@ -4,12 +4,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button, ButtonVariant } from '@/components/Button/Button';
 import { Chat } from '@/components/Chat/Chat';
 import { InputLoading } from '@/components/InputLoading/InputLoading';
+import { ScheduledPlaceholder } from '@/components/Stream/ScheduledPlaceholder/ScheduledPlaceholder';
 import { StreamInfo } from '@/components/Stream/StreamInfo/StreamInfo';
 import { SwarmHlsPlayer } from '@/components/Stream/SwarmHlsPlayer/SwarmHlsPlayer';
 import { useAppContext } from '@/providers/App/App';
+import { useTheme } from '@/providers/Theme';
 import { ROUTES } from '@/routes';
 import { MessageReceiveMode } from '@/types/messaging';
 import { MediaType, StateType } from '@/types/stream';
+import { AVAILABLE_THEMES } from '@/utils/theme/themeConfig';
 
 import './StreamWatcher.scss';
 
@@ -23,6 +26,8 @@ export function StreamWatcher() {
   }>();
   const navigate = useNavigate();
   const { streamList, isLoading, refreshStreamList, messageReceiveMode } = useAppContext();
+  const { theme } = useTheme();
+  const isWide = AVAILABLE_THEMES[theme].groupStreamsBySchedule ?? false;
 
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
   const [isInfoExpanded, setIsInfoExpanded] = useState(false);
@@ -88,10 +93,23 @@ export function StreamWatcher() {
   }
 
   return (
-    <div className="stream-item-page">
+    <div className={`stream-item-page ${isWide ? 'stream-item-page--wide' : ''}`}>
       <Button variant={ButtonVariant.SECONDARY} onClick={() => handleBackButtonClick()} className="stream-back-button">
         ← Back
       </Button>
+
+      {foundStream && isScheduled && isWide && (
+        <div className="stream-item-player">
+          <ScheduledPlaceholder
+            title={foundStream.title}
+            thumbnailRef={foundStream.thumbnail as string}
+            owner={owner}
+            topic={topic}
+            mediaType={(mediatype as MediaType) || foundStream.mediaType}
+            scheduledStartTime={foundStream.scheduledStartTime}
+          />
+        </div>
+      )}
 
       {foundStream && !isScheduled && (mediatype === MediaType.AUDIO || mediatype === MediaType.VIDEO) && (
         <div className="stream-item-player">
@@ -106,15 +124,22 @@ export function StreamWatcher() {
         </div>
       )}
 
-      {foundStream && (
-        <StreamInfo
-          title={foundStream.title}
-          description={foundStream.description || 'No description available'}
-          tags={foundStream.tags}
-          scheduledStartTime={foundStream.scheduledStartTime}
-          isScheduled={isScheduled}
-          onExpandChange={setIsInfoExpanded}
-        />
+      {foundStream && isWide ? (
+        <div className="stream-watch-info">
+          <h1 className="stream-watch-title">{foundStream.title}</h1>
+          {foundStream.description && <p className="stream-watch-description">{foundStream.description}</p>}
+        </div>
+      ) : (
+        foundStream && (
+          <StreamInfo
+            title={foundStream.title}
+            description={foundStream.description || 'No description available'}
+            tags={foundStream.tags}
+            scheduledStartTime={foundStream.scheduledStartTime}
+            isScheduled={isScheduled}
+            onExpandChange={setIsInfoExpanded}
+          />
+        )
       )}
 
       {shouldShowLoading && (
