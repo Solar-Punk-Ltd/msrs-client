@@ -104,3 +104,84 @@
     font-size: 0.9rem;
   }
 }
+
+// Wide watch layout (themes with the schedule-aware browser):
+// big player + info on the left, chat as a full-height sidebar on the right
+.stream-item-page--wide {
+  // page scrolls naturally; content defines the height
+  height: auto;
+  max-height: none;
+  overflow-y: auto;
+
+  @include theme.tablet-up {
+    max-width: 1440px;
+    padding: 0 var(--spacing-lg) var(--spacing-2xl);
+  }
+
+  @media (min-width: 1024px) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      'back back'
+      'player chat'
+      'info chat';
+    column-gap: var(--spacing-lg);
+    row-gap: var(--spacing-sm);
+    align-items: start;
+
+    .stream-back-button {
+      grid-area: back;
+    }
+
+    .stream-item-player {
+      grid-area: player;
+    }
+
+    .stream-info-container,
+    .stream-watch-info {
+      grid-area: info;
+      width: 100%;
+    }
+
+    .stream-loading,
+    .stream-not-found {
+      grid-area: player;
+    }
+
+    // chat stays in view while the left column scrolls
+    .stream-item-chat {
+      grid-area: chat;
+      position: sticky;
+      top: var(--spacing-sm);
+      height: calc(100vh - 170px);
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
+
+// Plain (non-collapsible) title + description in the wide watch layout
+.stream-watch-info {
+  width: 100%;
+  font-family: 'Inter', var(--font-family-base), sans-serif;
+}
+
+.stream-watch-title {
+  margin: var(--spacing-sm) 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+.stream-watch-description {
+  margin: var(--spacing-sm) 0 0;
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  white-space: pre-line;
+  max-width: 900px;
+}

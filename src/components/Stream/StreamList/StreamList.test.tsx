@@ -26,6 +26,10 @@ const mockStreamList = [
   },
 ];
 
+vi.mock('@/providers/Theme', () => ({
+  useTheme: () => ({ theme: 'swarm' }),
+}));
+
 vi.mock('@/utils/stream', () => ({
   fetchStreams: vi.fn().mockResolvedValue([]),
   fetchThumbnail: vi.fn().mockResolvedValue(null),

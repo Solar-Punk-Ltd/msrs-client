@@ -1,0 +1,107 @@
+// Rich stream card — layout borrowed from the Swarm Community Calls page
+.stream-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+  text-align: left;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+.stream-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: 10px;
+}
+
+.stream-card-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+}
+
+.stream-card-date {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.stream-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: 0 0 var(--spacing-base);
+  color: inherit;
+}
+
+.stream-card-media {
+  margin-bottom: var(--spacing-base);
+
+  .stream-thumbnail {
+    width: 100%;
+  }
+
+  .stream-thumbnail-media {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 210 / 180;
+  }
+
+  .stream-thumbnail-title {
+    display: none;
+  }
+}
+
+.stream-card-description {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+
+  p {
+    margin: 0 0 8px;
+  }
+
+  strong {
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+}
+
+.stream-card-agenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    position: relative;
+    padding-left: 14px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--color-primary);
+    }
+  }
+}

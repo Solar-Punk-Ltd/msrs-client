@@ -2,11 +2,10 @@ import { ArrowIcon } from './ArrowIcon';
 import {
   BRAND_LINKS,
   COMMUNITY_LINKS,
-  ECOSYSTEM_LINKS,
+  DEVELOPMENT_LINKS,
   NEWSLETTER_FORM_ACTION,
   RESOURCES_LINKS,
   SWARM_LOGO_PATH,
-  USE_SWARM_LINKS,
 } from './constants';
 import { LinkList } from './LinkList';
 
@@ -18,10 +17,28 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="footer-container">
-        <div className="footer-top">
-          <section className="footer-section footer-section--community">
+        <div className="footer-middle">
+          <div className="footer-brand">
+            <img className="footer-logo" src={SWARM_LOGO_PATH} alt="Swarm" />
+            <p className="footer-tagline">
+              Swarm is a decentralised storage and communication system for a sovereign digital society.
+            </p>
+            <LinkList links={BRAND_LINKS} />
+          </div>
+
+          <section className="footer-section">
             <h3 className="footer-heading">Community</h3>
             <LinkList links={COMMUNITY_LINKS} />
+          </section>
+
+          <section className="footer-section">
+            <h3 className="footer-heading">Development</h3>
+            <LinkList links={DEVELOPMENT_LINKS} />
+          </section>
+
+          <section className="footer-section">
+            <h3 className="footer-heading">Resources</h3>
+            <LinkList links={RESOURCES_LINKS} />
           </section>
 
           <section className="footer-section footer-section--newsletter">
@@ -58,36 +75,6 @@ export function Footer() {
                 and news about the Swarm project. Data will be controlled and processed by Swarm Foundation.
               </p>
             </form>
-          </section>
-        </div>
-
-        <div className="footer-divider" />
-      </div>
-
-      <div className="footer-container">
-        <div className="footer-middle">
-          <div className="footer-brand">
-            <img className="footer-logo" src={SWARM_LOGO_PATH} alt="Swarm" />
-            <p className="footer-tagline">
-              Swarm provides censorship resistant storage and communication infrastructure for a sovereign digital
-              society.
-            </p>
-            <LinkList links={BRAND_LINKS} />
-          </div>
-
-          <section className="footer-section">
-            <h3 className="footer-heading">Use Swarm</h3>
-            <LinkList links={USE_SWARM_LINKS} />
-          </section>
-
-          <section className="footer-section">
-            <h3 className="footer-heading">Resources</h3>
-            <LinkList links={RESOURCES_LINKS} />
-          </section>
-
-          <section className="footer-section">
-            <h3 className="footer-heading">Ecosystem</h3>
-            <LinkList links={ECOSYSTEM_LINKS} />
           </section>
         </div>
       </div>

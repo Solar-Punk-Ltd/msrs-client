@@ -139,7 +139,7 @@
   padding: var(--spacing-4xl) 0 var(--spacing-xl);
 
   @include theme.tablet-up {
-    grid-template-columns: 4fr 2fr 2fr 2fr;
+    grid-template-columns: 3fr 2fr 2fr 2fr 3fr;
     gap: var(--spacing-lg);
     padding: var(--spacing-3xl) 0 var(--spacing-lg);
   }
