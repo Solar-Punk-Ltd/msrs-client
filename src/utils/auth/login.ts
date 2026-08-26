@@ -57,6 +57,13 @@ export interface LoginResult {
 
 type ServerType = 'msrsIngestion' | 'streamAggregator';
 
+/**
+ * Validity of the streamer's RTMP stream key (an msrsIngestion token). Ingestion
+ * rejects expired tokens at connect time only, so a broadcast that starts inside
+ * this window keeps running, but reconnects after expiry are refused.
+ */
+const STREAM_KEY_VALIDITY_HOURS = 4 * 7 * 24;
+
 export class TokenGenerator {
   private credentials: UserCredentials;
 
@@ -332,6 +339,6 @@ export const createStreamAggregatorToken = async (session: Session, message: Par
 
 export const createMsrsIngestionToken = async (session: Session, message: MsrsIngMessage) => {
   const tokenGen = new TokenGenerator(session);
-  const ingestionToken = await tokenGen.generateServerToken('msrsIngestion', message);
+  const ingestionToken = await tokenGen.generateServerToken('msrsIngestion', message, STREAM_KEY_VALIDITY_HOURS);
   return ingestionToken;
 };
