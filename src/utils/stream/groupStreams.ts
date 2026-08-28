@@ -13,6 +13,12 @@ const scheduledTime = (stream: StateEntry): number => {
   return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time;
 };
 
+// when the stream actually happened: its scheduled start when known, else entry creation
+const eventTime = (stream: StateEntry): number => {
+  const t = scheduledTime(stream);
+  return t === Number.POSITIVE_INFINITY ? stream.createdAt : t;
+};
+
 /**
  * Splits a stream list into schedule-based sections:
  * - live: currently live streams, most recently updated first
@@ -20,7 +26,7 @@ const scheduledTime = (stream: StateEntry): number => {
  *   otherwise the dated scheduled stream with the earliest future start time,
  *   otherwise the earliest scheduled stream (undated entries sort last)
  * - upcoming: remaining scheduled streams, soonest first
- * - past: VODs, newest first
+ * - past: VODs, most recently held first (scheduled start when known, else created)
  */
 export function groupStreams(streams: StateEntry[], now: number = Date.now()): GroupedStreams {
   const live = streams.filter((s) => s.state === StateType.LIVE).sort((a, b) => b.updatedAt - a.updatedAt);
@@ -29,7 +35,7 @@ export function groupStreams(streams: StateEntry[], now: number = Date.now()): G
     .filter((s) => s.state === StateType.SCHEDULED)
     .sort((a, b) => scheduledTime(a) - scheduledTime(b));
 
-  const past = streams.filter((s) => s.state === StateType.VOD).sort((a, b) => b.createdAt - a.createdAt);
+  const past = streams.filter((s) => s.state === StateType.VOD).sort((a, b) => eventTime(b) - eventTime(a));
 
   const next =
     scheduled.find((s) => s.pinned) ??
