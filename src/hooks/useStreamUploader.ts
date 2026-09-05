@@ -23,6 +23,9 @@ export interface StreamUploaderState {
 
 const isActive = (job: UploaderJob) => job.status === 'queued' || job.status === 'running';
 
+const describeError = (reason: unknown) =>
+  reason instanceof Error ? reason.message : 'Could not reach the uploader service';
+
 /** Talks to the uploader job service: sources, batch capacity, and the jobs that move streams onto it. */
 export function useStreamUploader(adminSecret: string | undefined): StreamUploaderState {
   const [streams, setStreams] = useState<UploaderStream[]>([]);
@@ -33,21 +36,20 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
 
   const refresh = useCallback(async () => {
     if (!adminSecret) return;
-    try {
-      const [nextStreams, nextBatches, nextJobs] = await Promise.all([
-        uploaderService.streams(adminSecret),
-        uploaderService.batch(adminSecret),
-        uploaderService.jobs(adminSecret),
-      ]);
-      setStreams(nextStreams);
-      setBatches(nextBatches);
-      setJobs(nextJobs);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not reach the uploader service');
-    } finally {
-      setIsLoading(false);
-    }
+    // Each call stands on its own: a failing batch lookup must not hide the sources or the jobs.
+    const [streamsResult, batchesResult, jobsResult] = await Promise.allSettled([
+      uploaderService.streams(adminSecret),
+      uploaderService.batch(adminSecret),
+      uploaderService.jobs(adminSecret),
+    ]);
+    if (streamsResult.status === 'fulfilled') setStreams(streamsResult.value);
+    if (batchesResult.status === 'fulfilled') setBatches(batchesResult.value);
+    if (jobsResult.status === 'fulfilled') setJobs(jobsResult.value);
+    const failures = [streamsResult, batchesResult, jobsResult].filter(
+      (r): r is PromiseRejectedResult => r.status === 'rejected',
+    );
+    setError(failures.length ? failures.map((f) => describeError(f.reason)).join(' · ') : null);
+    setIsLoading(false);
   }, [adminSecret]);
 
   useEffect(() => {
@@ -64,7 +66,7 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
         setJobs(nextJobs);
         if (!nextJobs.some(isActive)) void refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Lost the uploader service');
+        setError(describeError(err));
       }
     }, JOB_POLL_MS);
     return () => clearInterval(id);
@@ -78,7 +80,7 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
         setError(null);
         await refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'The uploader service refused the request');
+        setError(describeError(err));
       }
     },
     [adminSecret, refresh],
