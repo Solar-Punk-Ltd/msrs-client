@@ -70,14 +70,14 @@ const BaseRouter = (): ReactElement => {
             element={
               <AdminGuard>
                 <StampDashboard />
-                <Route
-                  path={ROUTES.STREAM_UPLOADER}
-                  element={
-                    <AdminGuard>
-                      <StreamUploader />
-                    </AdminGuard>
-                  }
-                />
+              </AdminGuard>
+            }
+          />
+          <Route
+            path={ROUTES.STREAM_UPLOADER}
+            element={
+              <AdminGuard>
+                <StreamUploader />
               </AdminGuard>
             }
           />
