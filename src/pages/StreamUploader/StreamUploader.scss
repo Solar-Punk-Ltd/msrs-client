@@ -1,30 +1,25 @@
 @use '@/styles/themes/base' as theme;
-@use '@/styles/mixins' as mixins;
 
 .stream-uploader {
-  display: flex;
-  margin: auto;
-  height: 100%;
-  padding: 0 var(--spacing-base);
-  padding-bottom: var(--spacing-xs);
-  overflow: hidden;
   width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.stream-uploader-inner {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem var(--spacing-base) 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 
   @include theme.tablet-up {
     max-width: 1400px;
   }
 }
 
-.stream-uploader-inner {
-  width: 100%;
-  height: 100%;
-  @include mixins.flex-column;
-  overflow: hidden;
-}
-
 .stream-uploader-header {
-  padding: 1rem 0 0.5rem;
-
   h2 {
     margin: 0;
   }
@@ -33,39 +28,35 @@
 .stream-uploader-subtitle {
   margin: 0.25rem 0 0;
   opacity: 0.75;
-  max-width: 70ch;
+  max-width: 75ch;
+}
+
+.stream-uploader-error,
+.stream-uploader-notice {
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
 }
 
 .stream-uploader-error {
-  margin: 0.5rem 0;
-  padding: 0.6rem 0.9rem;
-  border-radius: 8px;
   background: rgba(255, 92, 92, 0.15);
   color: var(--color-error, #ff5c5c);
+}
+
+.stream-uploader-notice {
+  background: rgba(255, 122, 26, 0.12);
 }
 
 .stream-uploader-batches {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin: 0.75rem 0;
-}
-
-.stream-uploader-options {
-  margin: 0.25rem 0 0.75rem;
-  font-size: 0.9rem;
 }
 
 .stream-uploader-option {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.stream-uploader-content {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
+  font-size: 0.9rem;
 }
 
 .stream-uploader-loading {

@@ -7,7 +7,8 @@ import {
   type UploaderStream,
 } from '@/utils/network/uploaderService';
 
-const JOB_POLL_MS = 3000;
+const JOB_POLL_MS = 2000;
+const NOTICE_MS = 6000;
 
 export interface StreamUploaderState {
   streams: UploaderStream[];
@@ -15,14 +16,16 @@ export interface StreamUploaderState {
   jobs: UploaderJob[];
   isLoading: boolean;
   error: string | null;
-  measure: (topic: string) => Promise<void>;
+  /** One-line feedback on the last action, cleared on its own. */
+  notice: string | null;
+  /** Streams whose action was clicked and not yet reflected by the service. */
+  pending: Set<string>;
   archive: (topic: string) => Promise<void>;
   restore: (topic: string, external: boolean) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 const isActive = (job: UploaderJob) => job.status === 'queued' || job.status === 'running';
-
 const describeError = (reason: unknown) =>
   reason instanceof Error ? reason.message : 'Could not reach the uploader service';
 
@@ -33,6 +36,8 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
   const [jobs, setJobs] = useState<UploaderJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [pending, setPending] = useState<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
     if (!adminSecret) return;
@@ -49,6 +54,7 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
       (r): r is PromiseRejectedResult => r.status === 'rejected',
     );
     setError(failures.length ? failures.map((f) => describeError(f.reason)).join(' · ') : null);
+    setPending(new Set());
     setIsLoading(false);
   }, [adminSecret]);
 
@@ -57,31 +63,39 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
   }, [refresh]);
 
   const hasActiveJobs = useMemo(() => jobs.some(isActive), [jobs]);
+  const anyMeasuring = useMemo(
+    () => streams.some((s) => s.sizeState === 'measuring' || s.sizeState === 'pending'),
+    [streams],
+  );
 
   useEffect(() => {
-    if (!adminSecret || !hasActiveJobs) return;
-    const id = setInterval(async () => {
-      try {
-        const nextJobs = await uploaderService.jobs(adminSecret);
-        setJobs(nextJobs);
-        if (!nextJobs.some(isActive)) void refresh();
-      } catch (err) {
-        setError(describeError(err));
-      }
-    }, JOB_POLL_MS);
+    if (!adminSecret || (!hasActiveJobs && !anyMeasuring)) return;
+    const id = setInterval(() => void refresh(), JOB_POLL_MS);
     return () => clearInterval(id);
-  }, [adminSecret, hasActiveJobs, refresh]);
+  }, [adminSecret, hasActiveJobs, anyMeasuring, refresh]);
 
-  const withService = useCallback(
-    async (action: (secret: string) => Promise<unknown>) => {
+  useEffect(() => {
+    if (!notice) return;
+    const id = setTimeout(() => setNotice(null), NOTICE_MS);
+    return () => clearTimeout(id);
+  }, [notice]);
+
+  const start = useCallback(
+    async (topic: string, verb: string, action: (secret: string) => Promise<UploaderJob>) => {
       if (!adminSecret) return;
+      setPending((prev) => new Set(prev).add(topic));
       try {
-        await action(adminSecret);
+        const job = await action(adminSecret);
+        setNotice(
+          job.deduplicated
+            ? `${verb} is already running for ${job.title?.trim()}`
+            : `${verb} queued for ${job.title?.trim()}`,
+        );
         setError(null);
-        await refresh();
       } catch (err) {
         setError(describeError(err));
       }
+      await refresh();
     },
     [adminSecret, refresh],
   );
@@ -92,9 +106,10 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
     jobs,
     isLoading,
     error,
+    notice,
+    pending,
     refresh,
-    measure: (topic) => withService((secret) => uploaderService.measure(secret, topic)),
-    archive: (topic) => withService((secret) => uploaderService.archive(secret, topic)),
-    restore: (topic, external) => withService((secret) => uploaderService.restore(secret, topic, external)),
+    archive: (topic) => start(topic, 'Archive', (secret) => uploaderService.archive(secret, topic)),
+    restore: (topic, external) => start(topic, 'Restore', (secret) => uploaderService.restore(secret, topic, external)),
   };
 }

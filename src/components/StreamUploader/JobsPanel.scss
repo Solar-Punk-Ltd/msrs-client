@@ -50,3 +50,21 @@
 .jobs-panel-item--failed .jobs-panel-detail {
   color: var(--color-error, #ff5c5c);
 }
+
+.jobs-panel-bar {
+  grid-column: 1 / span 3;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.jobs-panel-bar-fill {
+  height: 100%;
+  background: var(--color-primary, #ff7a1a);
+  transition: width 0.4s ease;
+}
+
+.jobs-panel-link {
+  color: var(--color-primary, #ff7a1a);
+}
