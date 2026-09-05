@@ -1,0 +1,70 @@
+.batch-card {
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  min-width: 260px;
+  flex: 1;
+}
+
+.batch-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.batch-card-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.batch-card-id {
+  font-family: monospace;
+  opacity: 0.6;
+  font-size: 0.8rem;
+}
+
+.batch-card-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+
+  dt {
+    opacity: 0.7;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.batch-card-tag {
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.batch-card-meter {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.batch-card-meter-fill {
+  height: 100%;
+  background: var(--color-primary, #ff7a1a);
+}
+
+.batch-card-fit {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+}
+
+.batch-card-fit--over {
+  color: var(--color-warning, #f5b544);
+}

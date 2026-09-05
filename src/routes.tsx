@@ -19,6 +19,9 @@ const StreamManager = lazy(() =>
 const StampDashboard = lazy(() =>
   import('./pages/StampDashboard/StampDashboard').then((m) => ({ default: m.StampDashboard })),
 );
+const StreamUploader = lazy(() =>
+  import('./pages/StreamUploader/StreamUploader').then((m) => ({ default: m.StreamUploader })),
+);
 const NotFound = lazy(() => import('./pages/NotFound/NotFound').then((m) => ({ default: m.NotFound })));
 
 export enum ROUTES {
@@ -28,6 +31,7 @@ export enum ROUTES {
   STREAM_EDIT = '/edit/:owner/:topic',
   STREAM_MANAGER = '/manage',
   STAMP_DASHBOARD = '/stamps',
+  STREAM_UPLOADER = '/uploader',
 }
 
 const BaseRouter = (): ReactElement => {
@@ -66,6 +70,14 @@ const BaseRouter = (): ReactElement => {
             element={
               <AdminGuard>
                 <StampDashboard />
+                <Route
+                  path={ROUTES.STREAM_UPLOADER}
+                  element={
+                    <AdminGuard>
+                      <StreamUploader />
+                    </AdminGuard>
+                  }
+                />
               </AdminGuard>
             }
           />

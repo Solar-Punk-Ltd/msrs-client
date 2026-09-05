@@ -1,0 +1,73 @@
+.sources-table-wrap {
+  overflow-x: auto;
+}
+
+.sources-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+    white-space: nowrap;
+  }
+
+  th {
+    font-weight: 600;
+    opacity: 0.7;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+.sources-table-title {
+  white-space: normal;
+  min-width: 220px;
+}
+
+.sources-table-row--offlist {
+  background: rgba(255, 122, 26, 0.06);
+}
+
+.sources-table-badge {
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sources-table-badge--warn {
+  background: rgba(255, 122, 26, 0.25);
+}
+
+.sources-table-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sources-table-action {
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.2));
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.sources-table-action--primary {
+  background: var(--color-primary, #ff7a1a);
+  border-color: transparent;
+  color: #000;
+}

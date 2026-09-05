@@ -1,0 +1,52 @@
+.jobs-panel {
+  margin-top: 1.5rem;
+}
+
+.jobs-panel-title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.jobs-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.jobs-panel-item {
+  display: grid;
+  grid-template-columns: 5rem 1fr 5rem;
+  gap: 0.25rem 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.85rem;
+  align-items: baseline;
+}
+
+.jobs-panel-type {
+  opacity: 0.7;
+}
+
+.jobs-panel-status {
+  text-align: right;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.jobs-panel-detail {
+  grid-column: 2 / span 2;
+  opacity: 0.8;
+}
+
+.jobs-panel-item--running .jobs-panel-status {
+  color: var(--color-primary, #ff7a1a);
+}
+
+.jobs-panel-item--failed .jobs-panel-status,
+.jobs-panel-item--failed .jobs-panel-detail {
+  color: var(--color-error, #ff5c5c);
+}

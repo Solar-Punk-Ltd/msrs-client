@@ -1,0 +1,73 @@
+@use '@/styles/themes/base' as theme;
+@use '@/styles/mixins' as mixins;
+
+.stream-uploader {
+  display: flex;
+  margin: auto;
+  height: 100%;
+  padding: 0 var(--spacing-base);
+  padding-bottom: var(--spacing-xs);
+  overflow: hidden;
+  width: 100%;
+
+  @include theme.tablet-up {
+    max-width: 1400px;
+  }
+}
+
+.stream-uploader-inner {
+  width: 100%;
+  height: 100%;
+  @include mixins.flex-column;
+  overflow: hidden;
+}
+
+.stream-uploader-header {
+  padding: 1rem 0 0.5rem;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.stream-uploader-subtitle {
+  margin: 0.25rem 0 0;
+  opacity: 0.75;
+  max-width: 70ch;
+}
+
+.stream-uploader-error {
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  background: rgba(255, 92, 92, 0.15);
+  color: var(--color-error, #ff5c5c);
+}
+
+.stream-uploader-batches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0.75rem 0;
+}
+
+.stream-uploader-options {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.stream-uploader-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stream-uploader-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.stream-uploader-loading {
+  opacity: 0.7;
+}

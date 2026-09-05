@@ -64,6 +64,11 @@ export const LoginButton = () => {
     setIsDropdownOpen(false);
   };
 
+  const handleUploader = () => {
+    setIsDropdownOpen(false);
+    navigate(ROUTES.STREAM_UPLOADER);
+  };
+
   const handleMyStamps = () => {
     navigate(ROUTES.STAMP_DASHBOARD);
     setIsDropdownOpen(false);
@@ -105,6 +110,11 @@ export const LoginButton = () => {
             {isAdmin && (
               <button className="login-dropdown-item" onClick={handleMyStamps}>
                 My Stamps
+              </button>
+            )}
+            {isAdmin && (
+              <button className="login-dropdown-item" onClick={handleUploader}>
+                Stream uploader
               </button>
             )}
             <div className="login-dropdown-divider" />
