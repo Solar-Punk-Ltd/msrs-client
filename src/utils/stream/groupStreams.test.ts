@@ -94,6 +94,19 @@ describe('groupStreams', () => {
     expect(upcoming.map((s) => s.title)).toEqual(['pastB', 'undated']);
   });
 
+  it('orders past streams by when they happened, not when their entry was created', () => {
+    // placeholder created early but held last (like a scheduled community call)
+    const call = makeStream({
+      title: 'call',
+      createdAt: NOW - 7 * 86_400_000,
+      scheduledStartTime: '2026-08-25T09:00:00Z', // held most recently
+    });
+    const adhoc = makeStream({ title: 'adhoc', createdAt: NOW - 86_400_000 }); // created later, no schedule
+    const older = makeStream({ title: 'older', createdAt: NOW - 10 * 86_400_000 });
+    const { past } = groupStreams([adhoc, call, older], NOW);
+    expect(past.map((s) => s.title)).toEqual(['call', 'adhoc', 'older']);
+  });
+
   it('treats scheduled streams without a parseable start time as furthest in the future', () => {
     const soon = makeStream({ title: 'soon', state: StateType.SCHEDULED, scheduledStartTime: '2026-08-27T17:00:00Z' });
     const undated = makeStream({ title: 'undated', state: StateType.SCHEDULED });
