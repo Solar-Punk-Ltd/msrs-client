@@ -16,6 +16,8 @@ export interface StreamMetadata {
   index?: number;
 }
 
+const EXTERNAL_DEFAULT_INDEX = 1;
+
 const manifestQueue = new Pqueue({
   concurrency: 1,
 });
@@ -181,17 +183,18 @@ export class ManifestFetcher {
     const hexTopic = topic.toString();
     const streamMetadata = this.stateManager.getStreamMetadata(hexTopic);
 
-    // If stream is external, always use SOC with index 1
+    // External streams never go live, so their manifest is a single feed update. Uploaded ones sit
+    // at index 1; a recording archived from a live stream keeps the index its final manifest was
+    // written at, and reading index 1 for those would return the first seconds of the broadcast.
     if (streamMetadata?.isExternal) {
-      console.log('External stream detected, using SOC index 1');
-      const index1 = FeedIndex.fromBigInt(BigInt(1));
-      const socId = makeFeedIdentifier(topic, index1).toString();
+      const externalIndex = FeedIndex.fromBigInt(BigInt(streamMetadata.index ?? EXTERNAL_DEFAULT_INDEX));
+      const socId = makeFeedIdentifier(topic, externalIndex).toString();
       const res = await this.fetchResource(`soc/${owner}/${socId}`);
       const manifest = await res.text();
 
       const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
       if (hasChanged) {
-        this.stateManager.setIndex(hexTopic, index1);
+        this.stateManager.setIndex(hexTopic, externalIndex);
       }
 
       return manifest;
