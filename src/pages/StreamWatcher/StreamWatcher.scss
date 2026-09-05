@@ -118,6 +118,16 @@
     padding: 0 var(--spacing-lg) var(--spacing-2xl);
   }
 
+  // stacked layout (below the desktop grid): the page height is auto, so the
+  // chat's flex:1 has nothing to fill — give it an explicit height instead
+  @media (max-width: 1023px) {
+    .stream-item-chat {
+      flex: none;
+      height: min(70vh, 560px);
+      height: min(70dvh, 560px); // dvh: iOS Safari's vh ignores the collapsing toolbar
+    }
+  }
+
   @media (min-width: 1024px) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 400px;
