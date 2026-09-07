@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   type BatchOverview,
@@ -38,24 +38,47 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState<Set<string>>(new Set());
+  // A refresh takes the service several seconds (it looks the feed up), so refreshes started later can
+  // finish earlier. Every refresh gets a ticket; only the newest one is allowed to update the page, and
+  // a click marks its stream pending with the ticket of the refresh that will first reflect it.
+  const refreshTicket = useRef(0);
+  const inFlight = useRef<Promise<void> | null>(null);
+  const pendingSince = useRef(new Map<string, number>());
 
   const refresh = useCallback(async () => {
     if (!adminSecret) return;
-    // Each call stands on its own: a failing batch lookup must not hide the sources or the jobs.
-    const [streamsResult, batchesResult, jobsResult] = await Promise.allSettled([
-      uploaderService.streams(adminSecret),
-      uploaderService.batch(adminSecret),
-      uploaderService.jobs(adminSecret),
-    ]);
-    if (streamsResult.status === 'fulfilled') setStreams(streamsResult.value);
-    if (batchesResult.status === 'fulfilled') setBatches(batchesResult.value);
-    if (jobsResult.status === 'fulfilled') setJobs(jobsResult.value);
-    const failures = [streamsResult, batchesResult, jobsResult].filter(
-      (r): r is PromiseRejectedResult => r.status === 'rejected',
-    );
-    setError(failures.length ? failures.map((f) => describeError(f.reason)).join(' · ') : null);
-    setPending(new Set());
-    setIsLoading(false);
+    if (inFlight.current) return inFlight.current;
+    const ticket = ++refreshTicket.current;
+    const run = (async () => {
+      // Each call stands on its own: a failing batch lookup must not hide the sources or the jobs.
+      const [streamsResult, batchesResult, jobsResult] = await Promise.allSettled([
+        uploaderService.streams(adminSecret),
+        uploaderService.batch(adminSecret),
+        uploaderService.jobs(adminSecret),
+      ]);
+      if (ticket !== refreshTicket.current) return;
+      if (streamsResult.status === 'fulfilled') setStreams(streamsResult.value);
+      if (batchesResult.status === 'fulfilled') setBatches(batchesResult.value);
+      if (jobsResult.status === 'fulfilled') setJobs(jobsResult.value);
+      const failures = [streamsResult, batchesResult, jobsResult].filter(
+        (r): r is PromiseRejectedResult => r.status === 'rejected',
+      );
+      setError(failures.length ? failures.map((f) => describeError(f.reason)).join(' · ') : null);
+      if (streamsResult.status === 'fulfilled') {
+        // A stream stops being pending once a refresh started after its click has reported on it.
+        for (const [topic, since] of pendingSince.current) {
+          if (since < ticket) pendingSince.current.delete(topic);
+        }
+        setPending(new Set(pendingSince.current.keys()));
+      }
+      setIsLoading(false);
+    })();
+    inFlight.current = run;
+    try {
+      await run;
+    } finally {
+      if (inFlight.current === run) inFlight.current = null;
+    }
   }, [adminSecret]);
 
   useEffect(() => {
@@ -70,8 +93,18 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
 
   useEffect(() => {
     if (!adminSecret || (!hasActiveJobs && !anyMeasuring)) return;
-    const id = setInterval(() => void refresh(), JOB_POLL_MS);
-    return () => clearInterval(id);
+    // Poll again only after the previous poll came back, so slow answers never pile up.
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = async () => {
+      await refresh();
+      if (!cancelled) timer = setTimeout(() => void tick(), JOB_POLL_MS);
+    };
+    timer = setTimeout(() => void tick(), JOB_POLL_MS);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [adminSecret, hasActiveJobs, anyMeasuring, refresh]);
 
   useEffect(() => {
@@ -83,7 +116,9 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
   const start = useCallback(
     async (topic: string, verb: string, action: (secret: string) => Promise<UploaderJob>) => {
       if (!adminSecret) return;
-      setPending((prev) => new Set(prev).add(topic));
+      // Pending until a refresh that starts after this click has come back.
+      pendingSince.current.set(topic, refreshTicket.current);
+      setPending(new Set(pendingSince.current.keys()));
       try {
         const job = await action(adminSecret);
         setNotice(
@@ -94,7 +129,11 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
         setError(null);
       } catch (err) {
         setError(describeError(err));
+        pendingSince.current.delete(topic);
+        setPending(new Set(pendingSince.current.keys()));
       }
+      // Wait for any refresh already running, then run one that postdates the click.
+      await inFlight.current;
       await refresh();
     },
     [adminSecret, refresh],
