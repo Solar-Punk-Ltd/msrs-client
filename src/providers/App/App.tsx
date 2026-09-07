@@ -75,7 +75,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
       return state;
     } catch (error) {
-      currentIndexRef.current = FeedIndex.fromBigInt(BigInt(-1));
+      // Leave the index unset so the next poll retries the newest update. Seeding it with -1 made
+      // the poll wrap to index 0 and replay the list's whole history from its first, empty write.
       console.error('Failed to fetch initial app state:', error);
       setError(error instanceof Error ? error : new Error('Unknown error occurred'));
       return null;
@@ -84,8 +85,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
   const fetchAppState = useCallback(async (): Promise<StateArrayWithTimestamp | null> => {
     if (!currentIndexRef.current) {
-      console.warn('Index not available, call fetchInitialAppState first');
-      return null;
+      return fetchInitialAppState();
     }
 
     try {
@@ -105,7 +105,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
       setError(error instanceof Error ? error : new Error('Unknown error occurred'));
       return null;
     }
-  }, []);
+  }, [fetchInitialAppState]);
 
   const setNewStreamList = useCallback((data: StateArrayWithTimestamp | null) => {
     if (!data || !Array.isArray(data.entries) || !data.lastModified) {

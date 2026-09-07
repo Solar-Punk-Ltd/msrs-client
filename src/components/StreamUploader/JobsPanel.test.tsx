@@ -78,7 +78,7 @@ describe('describeJob', () => {
       describeJob(
         job({ type: 'restore', result: { sent: true, listed: false, external: true, watchPath: '/watch/video/o/t' } }),
       ),
-    ).toBe('sent, not on the list yet, check again in a minute');
+    ).toBe('sent, but the list never showed it. Try again.');
     expect(describeJob(job({ status: 'failed', error: 'boom' }))).toBe('boom');
     expect(describeJob(job({ status: 'queued' }))).toBe('waiting for the previous job to finish');
   });

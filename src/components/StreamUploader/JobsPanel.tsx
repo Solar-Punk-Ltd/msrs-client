@@ -23,7 +23,7 @@ export function describeJob(job: UploaderJob): string {
     const r = job.result;
     if (!r || !isRestoreResult(r)) return 'done';
     if (r.listed) return `back on the list${r.external ? ' as external' : ''}`;
-    return r.sent ? 'sent, not on the list yet, check again in a minute' : `not sent: ${r.reason ?? 'unknown reason'}`;
+    return r.sent ? 'sent, but the list never showed it. Try again.' : `not sent: ${r.reason ?? 'unknown reason'}`;
   }
 
   if (job.status === 'running') {
