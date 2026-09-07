@@ -221,10 +221,16 @@ export class ManifestFetcher {
       }
     }
 
-    // For LIVE streams or fallback, use feeds endpoint
+    // For LIVE streams or fallback, use feeds endpoint. The lookup is a mutable pointer, but the gateway
+    // answers it with validators and no cache policy, and after one 304 a browser treats its copy as
+    // fresh for a tenth of the copy's age. Ask for revalidation every time (issue #26).
     try {
       console.log('Live stream or fallback, using feeds endpoint');
-      const res = await this.fetchResource(`feeds/${owner}/${hexTopic}`, { abortEnabled: true, timeout: 20000 });
+      const res = await this.fetchResource(`feeds/${owner}/${hexTopic}`, {
+        abortEnabled: true,
+        timeout: 20000,
+        cache: 'no-cache',
+      });
       const manifest = await res.text();
 
       const hasChanged = this.stateManager.updateManifest(hexTopic, manifest);
@@ -279,14 +285,18 @@ export class ManifestFetcher {
     return nextId.toString();
   }
 
-  private async fetchResource(path: string, options?: { abortEnabled?: boolean; timeout?: number }): Promise<Response> {
-    const { abortEnabled = false, timeout = 8500 } = options ?? {};
+  private async fetchResource(
+    path: string,
+    options?: { abortEnabled?: boolean; timeout?: number; cache?: RequestCache },
+  ): Promise<Response> {
+    const { abortEnabled = false, timeout = 8500, cache } = options ?? {};
     const controller = abortEnabled ? new AbortController() : null;
     const timeoutId = abortEnabled ? setTimeout(() => controller?.abort(), timeout) : null;
 
     try {
       const response = await fetch(`${this.baseUrl}/${path}`, {
         signal: controller?.signal,
+        cache,
       });
 
       if (timeoutId) clearTimeout(timeoutId);

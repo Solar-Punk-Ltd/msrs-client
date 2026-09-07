@@ -21,7 +21,7 @@ const socPathFor = (index: number) =>
 describe('ManifestFetcher initial fetch', () => {
   const stateManager = ManifestStateManager.getInstance();
   const hexTopic = Topic.fromString(TOPIC).toString();
-  const fetchMock = vi.fn(async (_input: RequestInfo | URL) => new Response(MANIFEST));
+  const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(MANIFEST));
 
   beforeEach(() => {
     stateManager.clear(hexTopic);
@@ -34,6 +34,24 @@ describe('ManifestFetcher initial fetch', () => {
   });
 
   const requestedPath = () => String(fetchMock.mock.calls[0][0]);
+  const requestedInit = () => fetchMock.mock.calls[0][1] ?? {};
+
+  it('asks for a fresh feed lookup on every read of a live stream', async () => {
+    stateManager.setStreamMetadata(hexTopic, { state: StateType.LIVE });
+
+    await new ManifestFetcher(stateManager, 'http://reader').fetch(`${OWNER}/${TOPIC}`);
+
+    expect(requestedPath()).toContain(`feeds/${OWNER}/${hexTopic}`);
+    expect(requestedInit().cache).toBe('no-cache');
+  });
+
+  it('leaves the fixed manifest of a recording on the default cache policy', async () => {
+    stateManager.setStreamMetadata(hexTopic, { state: StateType.VOD, index: FINAL_INDEX });
+
+    await new ManifestFetcher(stateManager, 'http://reader').fetch(`${OWNER}/${TOPIC}`);
+
+    expect(requestedInit().cache).toBeUndefined();
+  });
 
   it('reads an archived recording marked external at the index its final manifest was written at', async () => {
     stateManager.setStreamMetadata(hexTopic, { state: StateType.VOD, isExternal: true, index: FINAL_INDEX });
