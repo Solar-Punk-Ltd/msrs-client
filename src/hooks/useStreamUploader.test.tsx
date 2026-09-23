@@ -4,7 +4,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStreamUploader } from './useStreamUploader';
 
 const { service } = vi.hoisted(() => ({
-  service: { streams: vi.fn(), batch: vi.fn(), jobs: vi.fn(), archive: vi.fn(), restore: vi.fn() },
+  service: {
+    streams: vi.fn(),
+    batch: vi.fn(),
+    jobs: vi.fn(),
+    archive: vi.fn(),
+    restore: vi.fn(),
+    moveToArchivePart: vi.fn(),
+  },
 }));
 
 vi.mock('@/utils/network/uploaderService', () => ({ uploaderService: service }));
@@ -33,6 +40,20 @@ describe('useStreamUploader', () => {
     service.batch.mockResolvedValue(null);
     service.jobs.mockResolvedValue([]);
     service.archive.mockResolvedValue(job);
+  });
+
+  it('asks the service to move a recording into the archive part and says so', async () => {
+    service.streams.mockResolvedValue([stream('t1')]);
+    service.moveToArchivePart.mockResolvedValue({ ...(job as object), type: 'move' });
+    const { result } = renderHook(() => useStreamUploader('secret'));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.moveToArchivePart('t1');
+    });
+
+    expect(service.moveToArchivePart).toHaveBeenCalledWith('secret', 't1');
+    expect(result.current.notice).toBe('Move to the archive part queued for Berlin');
   });
 
   it('keeps a clicked stream pending until a refresh started after the click reports on it', async () => {

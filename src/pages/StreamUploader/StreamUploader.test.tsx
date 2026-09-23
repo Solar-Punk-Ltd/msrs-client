@@ -93,6 +93,7 @@ vi.mock('@/hooks/useStreamUploader', () => ({
     notice: null,
     pending: new Set<string>(),
     archive: vi.fn(),
+    moveToArchivePart: vi.fn(),
     restore: vi.fn(),
     refresh: vi.fn(),
   }),

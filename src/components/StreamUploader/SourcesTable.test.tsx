@@ -54,9 +54,61 @@ describe('SourcesTable statuses', () => {
       'Restoring, waiting for the list',
     );
   });
+
+  it('tells an archived recording that still takes a rolling place from one in the archive part', () => {
+    const archived = { ...base, archived: 'complete' as const, chunksOnBatch: 70000, listed: true };
+    expect(rowStatus(archived, false).label).toBe('Archived, still takes a place on the list');
+    expect(rowStatus({ ...archived, isExternal: true }, false).label).toBe('Archived');
+  });
+
+  it('names the move while it runs, on its own or at the end of an archive', () => {
+    const move = {
+      id: 'm',
+      type: 'move' as const,
+      status: 'running' as const,
+      phase: 'confirming',
+      progress: null,
+      expectedChunks: null,
+    };
+    expect(rowStatus({ ...base, activeJob: move }, false).label).toBe('Moving, waiting for the list');
+    const copied = {
+      id: 'j',
+      type: 'restamp' as const,
+      status: 'running' as const,
+      phase: 'moving',
+      expectedChunks: 74000,
+      progress: { copied: 74000, skipped: 0, bytes: 1, parity: 0, failed: 0, segments: 149, chatUpdates: 0 },
+    };
+    expect(rowStatus({ ...base, activeJob: copied }, false).label).toBe('Copied, moving to the archive part');
+  });
 });
 
 describe('SourcesTable actions', () => {
+  it('offers Move to archive only for a finished, archived recording that still takes a place', () => {
+    const onMoveToArchivePart = vi.fn();
+    render(
+      <SourcesTable
+        streams={[
+          { ...base, topic: 'rolling', archived: 'complete', listed: true },
+          { ...base, topic: 'external', archived: 'complete', listed: true, isExternal: true },
+          { ...base, topic: 'live', archived: 'complete', listed: true, state: 'live' },
+          { ...base, topic: 'partial', archived: 'partial', listed: true },
+          { ...base, topic: 'offlist', archived: 'complete', listed: false },
+        ]}
+        archiveBatch={batch}
+        pending={new Set()}
+        restoreAsExternal
+        onArchive={vi.fn()}
+        onRestore={vi.fn()}
+        onMoveToArchivePart={onMoveToArchivePart}
+      />,
+    );
+    const buttons = screen.getAllByRole('button', { name: 'Move to archive' });
+    expect(buttons).toHaveLength(1);
+    fireEvent.click(buttons[0]);
+    expect(onMoveToArchivePart).toHaveBeenCalledWith('rolling');
+  });
+
   it('hides Archive once complete, offers Restore only for evicted rows', () => {
     render(
       <SourcesTable
@@ -69,6 +121,7 @@ describe('SourcesTable actions', () => {
         restoreAsExternal
         onArchive={vi.fn()}
         onRestore={vi.fn()}
+        onMoveToArchivePart={vi.fn()}
       />,
     );
     expect(screen.getAllByRole('button', { name: 'Archive' })).toHaveLength(1);
@@ -85,6 +138,7 @@ describe('SourcesTable actions', () => {
         restoreAsExternal
         onArchive={vi.fn()}
         onRestore={onRestore}
+        onMoveToArchivePart={vi.fn()}
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
@@ -103,6 +157,7 @@ describe('SourcesTable actions', () => {
         restoreAsExternal
         onArchive={vi.fn()}
         onRestore={vi.fn()}
+        onMoveToArchivePart={vi.fn()}
       />,
     );
     const button = screen.getByRole('button', { name: 'Archive' });
@@ -119,6 +174,7 @@ describe('SourcesTable actions', () => {
         restoreAsExternal
         onArchive={vi.fn()}
         onRestore={vi.fn()}
+        onMoveToArchivePart={vi.fn()}
       />,
     );
     expect(screen.queryByRole('button', { name: 'Archive' })).not.toBeInTheDocument();

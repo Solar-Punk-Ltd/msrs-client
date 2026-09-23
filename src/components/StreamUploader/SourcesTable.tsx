@@ -15,6 +15,7 @@ interface SourcesTableProps {
   restoreAsExternal: boolean;
   onArchive: (topic: string) => void;
   onRestore: (topic: string) => void;
+  onMoveToArchivePart: (topic: string) => void;
 }
 
 function streamDate(stream: UploaderStream): string {
@@ -29,6 +30,14 @@ function sizeLabel(stream: UploaderStream): string {
   return 'measuring…';
 }
 
+/** A finished recording that is archived but still takes one of the list's rolling places. */
+export function canMoveToArchivePart(stream: UploaderStream): boolean {
+  return stream.archived === 'complete' && stream.listed && !stream.isExternal && stream.state === 'vod';
+}
+
+// An archive job ends by moving a finished recording into the archive part of the list.
+const MOVE_PHASES = new Set(['moving', 'confirming']);
+
 interface RowStatus {
   label: string;
   tone: 'ok' | 'busy' | 'muted' | 'warn';
@@ -40,8 +49,16 @@ export function rowStatus(stream: UploaderStream, isPending: boolean): RowStatus
   if (job?.type === 'restore') {
     return { label: job.phase === 'confirming' ? 'Restoring, waiting for the list' : 'Restoring…', tone: 'busy' };
   }
+  if (job?.type === 'move') {
+    if (job.status === 'queued') return { label: 'Move queued', tone: 'busy' };
+    return {
+      label: job.phase === 'confirming' ? 'Moving, waiting for the list' : 'Moving to the archive part…',
+      tone: 'busy',
+    };
+  }
   if (job?.type === 'restamp') {
     if (job.status === 'queued') return { label: 'Archive queued', tone: 'busy' };
+    if (job.phase && MOVE_PHASES.has(job.phase)) return { label: 'Copied, moving to the archive part', tone: 'busy' };
     const percent = copyPercent(job.progress, job.expectedChunks);
     return {
       label: percent === null ? `Archiving (${job.phase ?? 'starting'})` : `Archiving ${percent}%`,
@@ -50,7 +67,11 @@ export function rowStatus(stream: UploaderStream, isPending: boolean): RowStatus
     };
   }
   if (isPending) return { label: 'Queued…', tone: 'busy' };
-  if (stream.archived === 'complete') return { label: 'Archived', tone: 'ok' };
+  if (stream.archived === 'complete') {
+    return canMoveToArchivePart(stream)
+      ? { label: 'Archived, still takes a place on the list', tone: 'warn' }
+      : { label: 'Archived', tone: 'ok' };
+  }
   if (stream.archived === 'partial')
     return { label: `Partly archived · ${formatCount(stream.chunksOnBatch)} chunks`, tone: 'warn' };
   return { label: 'Not archived', tone: 'muted' };
@@ -63,6 +84,7 @@ export function SourcesTable({
   restoreAsExternal,
   onArchive,
   onRestore,
+  onMoveToArchivePart,
 }: SourcesTableProps) {
   const [confirmTopic, setConfirmTopic] = useState<string | null>(null);
   const confirming = confirmTopic ? streams.find((s) => s.topic === confirmTopic) : undefined;
@@ -123,9 +145,21 @@ export function SourcesTable({
                       className="sources-table-action"
                       onClick={() => onArchive(stream.topic)}
                       disabled={Boolean(blocker)}
-                      title={blocker ?? 'Copy this stream onto the archive stamp'}
+                      title={
+                        blocker ??
+                        'Copy this stream onto the archive stamp. A finished recording then moves into the archive part of the list.'
+                      }
                     >
                       Archive
+                    </button>
+                  )}
+                  {!busy && canMoveToArchivePart(stream) && (
+                    <button
+                      className="sources-table-action"
+                      onClick={() => onMoveToArchivePart(stream.topic)}
+                      title="Move this recording into the archive part of the list, which frees its place"
+                    >
+                      Move to archive
                     </button>
                   )}
                   {!busy && !stream.listed && (

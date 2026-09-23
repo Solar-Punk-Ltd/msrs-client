@@ -1,6 +1,13 @@
 import { Link } from 'react-router-dom';
 
-import type { ArchiveResult, RestoreResult, UploaderJob } from '@/utils/network/uploaderService';
+import type {
+  ArchivePartOutcome,
+  ArchiveResult,
+  MoveResult,
+  RestoreResult,
+  UploaderJob,
+  UploaderJobType,
+} from '@/utils/network/uploaderService';
 import { copyPercent, formatBytes, formatCount, formatDuration } from '@/utils/stamp/archiveSizing';
 
 import './JobsPanel.scss';
@@ -11,7 +18,18 @@ interface JobsPanelProps {
 
 const MAX_SHOWN = 12;
 
-const isRestoreResult = (r: ArchiveResult | RestoreResult): r is RestoreResult => 'watchPath' in r;
+const JOB_LABELS: Record<UploaderJobType, string> = { restamp: 'Archive', move: 'Move', restore: 'Restore' };
+
+type JobResult = ArchiveResult | MoveResult | RestoreResult;
+const isRestoreResult = (r: JobResult): r is RestoreResult => 'watchPath' in r;
+const isArchiveResult = (r: JobResult): r is ArchiveResult => 'copied' in r;
+const isMoveResult = (r: JobResult): r is MoveResult => 'archivePart' in r && !isArchiveResult(r);
+
+function describeArchivePart(outcome: ArchivePartOutcome): string {
+  if (outcome.moved) return 'moved into the archive part';
+  if (outcome.alreadyThere) return 'already in the archive part';
+  return `stays in its place: ${outcome.reason ?? 'no reason given'}`;
+}
 
 export function describeJob(job: UploaderJob): string {
   if (job.status === 'failed') return job.error ?? 'failed';
@@ -26,7 +44,17 @@ export function describeJob(job: UploaderJob): string {
     return r.sent ? 'sent, but the list never showed it. Try again.' : `not sent: ${r.reason ?? 'unknown reason'}`;
   }
 
+  if (job.type === 'move') {
+    if (job.status === 'running')
+      return job.phase === 'confirming'
+        ? 'sent, waiting for the list to show it in the archive part'
+        : 'sending the move to the list';
+    const r = job.result;
+    return r && isMoveResult(r) ? describeArchivePart(r.archivePart) : 'done';
+  }
+
   if (job.status === 'running') {
+    if (job.phase === 'moving' || job.phase === 'confirming') return 'copied, moving it into the archive part';
     const p = job.progress;
     if (!p) return `${job.phase ?? 'starting'}…`;
     const percent = copyPercent(p, job.expectedChunks);
@@ -37,12 +65,13 @@ export function describeJob(job: UploaderJob): string {
   }
 
   const r = job.result;
-  if (!r || isRestoreResult(r)) return 'done';
-  if (r.alreadyArchived) return `already on the stamp (${formatCount(r.skipped)} chunks), nothing to copy`;
+  if (!r || !isArchiveResult(r)) return 'done';
+  const where = r.archivePart ? ` · ${describeArchivePart(r.archivePart)}` : '';
+  if (r.alreadyArchived) return `already on the stamp (${formatCount(r.skipped)} chunks), nothing to copy${where}`;
   const took = job.durationMs !== null ? `done in ${formatDuration(job.durationMs)} · ` : '';
   return `${took}${formatCount(r.copied)} chunks (${formatCount(r.parity)} parity) · ${formatBytes(r.bytes)}${
     r.failed ? ` · ${r.failed} failed` : ''
-  }`;
+  }${where}`;
 }
 
 export function JobsPanel({ jobs }: JobsPanelProps) {
@@ -59,7 +88,7 @@ export function JobsPanel({ jobs }: JobsPanelProps) {
           const restore = job.result && isRestoreResult(job.result) ? job.result : null;
           return (
             <li key={job.id} className={`jobs-panel-item jobs-panel-item--${job.status}`}>
-              <span className="jobs-panel-type">{job.type === 'restamp' ? 'Archive' : 'Restore'}</span>
+              <span className="jobs-panel-type">{JOB_LABELS[job.type]}</span>
               <span className="jobs-panel-name">{job.title?.trim()}</span>
               <span className="jobs-panel-status">{job.status}</span>
               <span className="jobs-panel-detail">
