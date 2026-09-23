@@ -491,7 +491,10 @@ describe('StreamForm', () => {
         </QueryClientProvider>,
       );
 
-      const file = new File(['test'.repeat(2000000)], 'large-image.jpg', { type: 'image/jpeg' });
+      // The check reads only the size, so the file claims 8 MB instead of holding it. Building 8 MB of
+      // text made this test take 7 to 17 s in a container and run past its 5 s limit.
+      const file = new File(['x'], 'large-image.jpg', { type: 'image/jpeg' });
+      Object.defineProperty(file, 'size', { value: 8_000_000 });
       const thumbnailField = screen.getByTestId('thumbnail-field');
 
       fireEvent.change(thumbnailField, { target: { files: [file] } });
