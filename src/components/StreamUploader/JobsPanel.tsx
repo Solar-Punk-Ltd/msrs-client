@@ -67,7 +67,12 @@ export function describeJob(job: UploaderJob): string {
   const r = job.result;
   if (!r || !isArchiveResult(r)) return 'done';
   const where = r.archivePart ? ` · ${describeArchivePart(r.archivePart)}` : '';
-  if (r.alreadyArchived) return `already on the stamp (${formatCount(r.skipped)} chunks), nothing to copy${where}`;
+  // Read from the counts, because services before v1.0.9 flag a repeat run alreadyArchived even when chunks failed.
+  const copiedNothingNew = r.copied === 0 && r.skipped > 0;
+  if (copiedNothingNew && r.failed) {
+    return `nothing new copied, ${formatCount(r.failed)} ${r.failed === 1 ? 'chunk' : 'chunks'} still failing${where}`;
+  }
+  if (copiedNothingNew) return `already on the stamp (${formatCount(r.skipped)} chunks), nothing to copy${where}`;
   const took = job.durationMs !== null ? `done in ${formatDuration(job.durationMs)} · ` : '';
   return `${took}${formatCount(r.copied)} chunks (${formatCount(r.parity)} parity) · ${formatBytes(r.bytes)}${
     r.failed ? ` · ${r.failed} failed` : ''

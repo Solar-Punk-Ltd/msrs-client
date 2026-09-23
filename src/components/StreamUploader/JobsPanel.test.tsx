@@ -67,6 +67,26 @@ describe('describeJob', () => {
     expect(describeJob(j)).toBe('already on the stamp (5,258 chunks), nothing to copy');
   });
 
+  it('says a repeat run left chunks failing instead of that there was nothing to copy', () => {
+    // 2026-09-23 on ethis: newver_c6's second archive copied nothing and failed the same 8 chunks, and
+    // this read "nothing to copy". Services before v1.0.9 flag such a run alreadyArchived, later ones do not.
+    const repeatRun = {
+      copied: 0,
+      skipped: 519904,
+      bytes: 0,
+      parity: 39127,
+      failed: 8,
+      segments: 486,
+      chatUpdates: 0,
+    };
+    expect(describeJob(job({ result: { ...repeatRun, alreadyArchived: true } }))).toBe(
+      'nothing new copied, 8 chunks still failing',
+    );
+    expect(describeJob(job({ result: { ...repeatRun, alreadyArchived: false } }))).toBe(
+      'nothing new copied, 8 chunks still failing',
+    );
+  });
+
   it('describes restores end to end', () => {
     expect(describeJob(job({ type: 'restore', status: 'running', phase: 'confirming' }))).toBe(
       'sent, waiting for the list to show it',
