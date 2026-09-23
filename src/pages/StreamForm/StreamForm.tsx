@@ -19,6 +19,7 @@ import { useUserContext } from '@/providers/User';
 import { ROUTES } from '@/routes';
 import { MEDIA_TYPE_LABELS, MediaType, StateType } from '@/types/stream';
 import { createStream, updateStream } from '@/utils/stream/stream';
+import { isStreamListFull, streamListFullMessage } from '@/utils/stream/streamListCapacity';
 
 import './StreamForm.scss';
 
@@ -213,6 +214,7 @@ export function StreamForm() {
   const formContentRef = useRef<HTMLDivElement>(null);
 
   const isEditMode = !!(params.owner && params.topic);
+  const isListFullForNewStream = !isEditMode && isStreamListFull(streamList ?? []);
   const editOwner = params.owner;
   const editTopic = params.topic;
 
@@ -243,6 +245,12 @@ export function StreamForm() {
   };
 
   const handlePreview = () => {
+    if (isListFullForNewStream) {
+      setError(streamListFullMessage());
+      setScrollToError((prev) => prev + 1);
+      return;
+    }
+
     const isExistingStream = streamToEdit?.state === StateType.VOD || streamToEdit?.state === StateType.LIVE;
     const validationError = validateForm(isExistingStream);
     if (validationError) {
@@ -271,7 +279,7 @@ export function StreamForm() {
         await updateStream(session!, metadata, streamToEdit.topic, streamToEdit.owner);
         await refreshStreamList();
       } else {
-        await createStream(session!, metadata);
+        await createStream(session!, metadata, streamList ?? []);
         await refreshStreamList();
       }
 
@@ -300,7 +308,7 @@ export function StreamForm() {
         ) : (
           <StreamEditForm
             metadata={metadata}
-            error={error}
+            error={error ?? (isListFullForNewStream ? streamListFullMessage() : null)}
             onFieldChange={updateField}
             onCancel={handleCancel}
             onPreview={handlePreview}

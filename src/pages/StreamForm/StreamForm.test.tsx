@@ -7,8 +7,9 @@ import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
 import { WakuProvider } from '@/providers/Waku';
 import { MessageReceiveMode } from '@/types/messaging';
-import { MediaType } from '@/types/stream';
+import { MediaType, StateType } from '@/types/stream';
 import { createStream } from '@/utils/stream/stream';
+import { streamListFullMessage } from '@/utils/stream/streamListCapacity';
 
 import { StreamForm } from './StreamForm';
 
@@ -162,12 +163,14 @@ const mockStreamList = [
   },
 ];
 
+const mockAppState: { streamList: Array<Record<string, unknown>> } = { streamList: mockStreamList };
+
 vi.mock('@/providers/App/App', async () => {
   const actual = await vi.importActual('@/providers/App/App');
   return {
     ...actual,
     useAppContext: () => ({
-      streamList: mockStreamList,
+      streamList: mockAppState.streamList,
       refreshStreamList: mockRefreshStreamList,
       isLoading: false,
       isRefreshing: false,
@@ -231,6 +234,7 @@ describe('StreamForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockValidateForm.mockReturnValue(null); // No validation errors by default
+    mockAppState.streamList = mockStreamList;
   });
 
   describe('Create Mode', () => {
@@ -310,6 +314,42 @@ describe('StreamForm', () => {
       expect(screen.getByText('Preview')).toBeInTheDocument();
     });
 
+    it('warns the creator up front and does not allow a new stream when the list is full', () => {
+      mockAppState.streamList = Array.from({ length: 10 }, (_, i) => ({
+        topic: `full-${i}`,
+        owner: 'someone',
+        title: `Stream ${i}`,
+        mediaType: MediaType.VIDEO,
+        state: StateType.VOD,
+      }));
+
+      renderStreamForm();
+
+      expect(screen.getByText(streamListFullMessage())).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText('Preview'));
+
+      expect(screen.queryByText('Create Stream')).not.toBeInTheDocument();
+      expect(createStream).not.toHaveBeenCalled();
+    });
+
+    it('does not count archived recordings when deciding the list is full', () => {
+      mockAppState.streamList = Array.from({ length: 12 }, (_, i) => ({
+        topic: `archived-${i}`,
+        owner: 'someone',
+        title: `Archived ${i}`,
+        mediaType: MediaType.VIDEO,
+        state: StateType.VOD,
+        isExternal: true,
+      }));
+
+      renderStreamForm();
+
+      expect(screen.queryByText(streamListFullMessage())).not.toBeInTheDocument();
+      fireEvent.click(screen.getByText('Preview'));
+      expect(screen.getByText('Create Stream')).toBeInTheDocument();
+    });
+
     it('creates stream when confirm is clicked in preview', async () => {
       const { createStream } = await import('@/utils/stream/stream');
 
@@ -319,14 +359,18 @@ describe('StreamForm', () => {
       fireEvent.click(screen.getByText('Create Stream'));
 
       await waitFor(() => {
-        expect(createStream).toHaveBeenCalledWith(mockSession, {
-          title: 'Test Stream',
-          description: 'Test Description',
-          thumbnail: null,
-          mediaType: MediaType.VIDEO,
-          scheduledStartTime: undefined,
-          tags: [],
-        });
+        expect(createStream).toHaveBeenCalledWith(
+          mockSession,
+          {
+            title: 'Test Stream',
+            description: 'Test Description',
+            thumbnail: null,
+            mediaType: MediaType.VIDEO,
+            scheduledStartTime: undefined,
+            tags: [],
+          },
+          mockStreamList,
+        );
       });
 
       expect(mockRefreshStreamList).toHaveBeenCalledWith();

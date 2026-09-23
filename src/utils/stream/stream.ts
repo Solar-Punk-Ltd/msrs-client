@@ -1,10 +1,12 @@
 import { Bee, Bytes, Identifier, PrivateKey } from '@ethersphere/bee-js';
 
 import { StreamMetadata } from '@/pages/StreamForm/StreamForm';
-import { ActionType, CreateMessage, DeleteMessage, StateType, UpdateMessage } from '@/types/stream';
+import { ActionType, CreateMessage, DeleteMessage, StateEntry, StateType, UpdateMessage } from '@/types/stream';
 
 import { createStreamAggregatorToken, Session } from '../auth/login';
 import { config } from '../shared/config';
+
+import { assertStreamListHasRoom } from './streamListCapacity';
 
 const bee = new Bee(config.writerBeeUrl);
 const gsocTopic = config.streamerGsocTopic;
@@ -48,7 +50,9 @@ export async function fetchThumbnail(ref: string, { url = true }): Promise<Blob 
   }
 }
 
-export async function createStream(session: Session, meta: StreamMetadata) {
+export async function createStream(session: Session, meta: StreamMetadata, currentEntries: StateEntry[]) {
+  assertStreamListHasRoom(currentEntries);
+
   const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail as File) : '';
 
   const message = {
