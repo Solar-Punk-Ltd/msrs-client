@@ -17,6 +17,8 @@ export interface JobProgress {
   skipped: number;
   bytes: number;
   parity: number;
+  /** Chunks the network had lost that the copy rebuilt from their parity group. Sent from v1.0.9 on. */
+  rebuilt?: number;
   failed: number;
   segments: number;
   chatUpdates: number;
