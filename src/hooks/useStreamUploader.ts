@@ -64,7 +64,8 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
       const failures = [streamsResult, batchesResult, jobsResult].filter(
         (r): r is PromiseRejectedResult => r.status === 'rejected',
       );
-      setError(failures.length ? failures.map((f) => describeError(f.reason)).join(' · ') : null);
+      const messages = new Set(failures.map((f) => describeError(f.reason)));
+      setError(messages.size ? [...messages].join(' · ') : null);
       if (streamsResult.status === 'fulfilled') {
         // A stream stops being pending once a refresh started after its click has reported on it.
         for (const [topic, since] of pendingSince.current) {

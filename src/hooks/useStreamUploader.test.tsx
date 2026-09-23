@@ -56,6 +56,18 @@ describe('useStreamUploader', () => {
     expect(result.current.notice).toBe('Move to the archive part queued for Berlin');
   });
 
+  it('shows an error that every call repeats only once', async () => {
+    const noService = new Error('this instance has no uploader service');
+    service.streams.mockRejectedValue(noService);
+    service.batch.mockRejectedValue(noService);
+    service.jobs.mockRejectedValue(noService);
+
+    const { result } = renderHook(() => useStreamUploader('secret'));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.error).toBe('this instance has no uploader service');
+  });
+
   it('keeps a clicked stream pending until a refresh started after the click reports on it', async () => {
     service.streams.mockResolvedValue([stream('t1')]);
     const { result } = renderHook(() => useStreamUploader('secret'));
