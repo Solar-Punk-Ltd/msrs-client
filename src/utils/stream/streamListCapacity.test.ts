@@ -7,6 +7,8 @@ import {
   countRollingEntries,
   isStreamListFull,
   STREAM_LIST_ROLLING_LIMIT,
+  streamListCapacity,
+  streamListCapacityMessage,
   streamListFullMessage,
 } from './streamListCapacity';
 
@@ -48,5 +50,25 @@ describe('stream list capacity', () => {
 
   it('lets a create through while there is room', () => {
     expect(() => assertStreamListHasRoom(rolling(9))).not.toThrow();
+  });
+
+  it('is still checking while the first list read has not finished', () => {
+    expect(streamListCapacity({ entries: [], isLoading: true, hasError: false })).toBe('checking');
+  });
+
+  it('is unknown when the first list read failed and nothing arrived', () => {
+    expect(streamListCapacity({ entries: [], isLoading: false, hasError: true })).toBe('unknown');
+  });
+
+  it('still decides from a loaded list when a later refresh failed', () => {
+    expect(streamListCapacity({ entries: rolling(10), isLoading: false, hasError: true })).toBe('full');
+    expect(streamListCapacity({ entries: rolling(3), isLoading: false, hasError: true })).toBe('room');
+  });
+
+  it('gives the creator a message for every state that blocks a new stream, and none when there is room', () => {
+    expect(streamListCapacityMessage('full')).toBe(streamListFullMessage());
+    expect(streamListCapacityMessage('checking')).toMatch(/checking/i);
+    expect(streamListCapacityMessage('unknown')).toMatch(/could not check/i);
+    expect(streamListCapacityMessage('room')).toBeNull();
   });
 });

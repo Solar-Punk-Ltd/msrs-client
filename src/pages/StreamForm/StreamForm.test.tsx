@@ -9,7 +9,7 @@ import { WakuProvider } from '@/providers/Waku';
 import { MessageReceiveMode } from '@/types/messaging';
 import { MediaType, StateType } from '@/types/stream';
 import { createStream } from '@/utils/stream/stream';
-import { streamListFullMessage } from '@/utils/stream/streamListCapacity';
+import { streamListCapacityMessage, streamListFullMessage } from '@/utils/stream/streamListCapacity';
 
 import { StreamForm } from './StreamForm';
 
@@ -163,7 +163,11 @@ const mockStreamList = [
   },
 ];
 
-const mockAppState: { streamList: Array<Record<string, unknown>> } = { streamList: mockStreamList };
+const mockAppState: { streamList: Array<Record<string, unknown>>; isLoading: boolean; error: Error | null } = {
+  streamList: mockStreamList,
+  isLoading: false,
+  error: null,
+};
 
 vi.mock('@/providers/App/App', async () => {
   const actual = await vi.importActual('@/providers/App/App');
@@ -172,9 +176,9 @@ vi.mock('@/providers/App/App', async () => {
     useAppContext: () => ({
       streamList: mockAppState.streamList,
       refreshStreamList: mockRefreshStreamList,
-      isLoading: false,
+      isLoading: mockAppState.isLoading,
       isRefreshing: false,
-      error: null,
+      error: mockAppState.error,
       messageReceiveMode: MessageReceiveMode.SWARM,
       setNewStreamList: vi.fn(),
       fetchAppState: vi.fn(),
@@ -235,6 +239,8 @@ describe('StreamForm', () => {
     vi.clearAllMocks();
     mockValidateForm.mockReturnValue(null); // No validation errors by default
     mockAppState.streamList = mockStreamList;
+    mockAppState.isLoading = false;
+    mockAppState.error = null;
   });
 
   describe('Create Mode', () => {
@@ -331,6 +337,29 @@ describe('StreamForm', () => {
 
       expect(screen.queryByText('Create Stream')).not.toBeInTheDocument();
       expect(createStream).not.toHaveBeenCalled();
+    });
+
+    it('says it is still checking and does not allow a new stream while the list is loading', () => {
+      mockAppState.streamList = [];
+      mockAppState.isLoading = true;
+
+      renderStreamForm();
+
+      expect(screen.getByText(streamListCapacityMessage('checking')!)).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Preview'));
+      expect(screen.queryByText('Create Stream')).not.toBeInTheDocument();
+      expect(createStream).not.toHaveBeenCalled();
+    });
+
+    it('does not allow a new stream when the list could not be read', () => {
+      mockAppState.streamList = [];
+      mockAppState.error = new Error('feed read failed');
+
+      renderStreamForm();
+
+      expect(screen.getByText(streamListCapacityMessage('unknown')!)).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Preview'));
+      expect(screen.queryByText('Create Stream')).not.toBeInTheDocument();
     });
 
     it('does not count archived recordings when deciding the list is full', () => {
