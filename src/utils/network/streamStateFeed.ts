@@ -38,15 +38,11 @@ export async function readLatestStreamState(): Promise<StreamStateAtIndex> {
 }
 
 /**
- * Entries of the newest published list, or `fallback` when that read fails. A create checks this
- * rather than the copy a form loaded when it opened, which can be minutes old by the time it is sent.
+ * Entries of the newest published list. A create checks this rather than the copy a form loaded when
+ * it opened, which can be minutes old by the time it is sent.
  */
-export async function readLatestEntriesOr(fallback: StateEntry[]): Promise<StateEntry[]> {
-  try {
-    return (await readLatestStreamState()).state.entries;
-  } catch {
-    return fallback;
-  }
+export async function readLatestEntries(): Promise<StateEntry[]> {
+  return (await readLatestStreamState()).state.entries;
 }
 
 /**

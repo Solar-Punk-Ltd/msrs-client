@@ -52,6 +52,10 @@ const NOT_YET_KNOWN_MESSAGES: Record<'checking' | 'unknown', string> = {
     'Reload the page and try again.',
 };
 
+export function streamListUnreadableMessage(): string {
+  return NOT_YET_KNOWN_MESSAGES.unknown;
+}
+
 /** What to tell the creator for every state that blocks a new stream, or null when there is room. */
 export function streamListCapacityMessage(
   capacity: StreamListCapacity,

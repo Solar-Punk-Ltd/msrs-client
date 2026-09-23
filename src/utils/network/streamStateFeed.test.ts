@@ -22,7 +22,7 @@ vi.mock('@/utils/shared/config', () => ({
 import {
   INITIAL_READ_TIMEOUT_MS,
   POLL_TIMEOUT_MS,
-  readLatestEntriesOr,
+  readLatestEntries,
   readLatestStreamState,
   readStreamStateAt,
 } from './streamStateFeed';
@@ -73,13 +73,12 @@ describe('stream state feed reads', () => {
       feedIndex: FeedIndex.fromBigInt(BigInt(3)),
     });
 
-    await expect(readLatestEntriesOr([])).resolves.toEqual(newest.entries);
+    await expect(readLatestEntries()).resolves.toEqual(newest.entries);
   });
 
-  it('hands back the copy it was given when the newest list cannot be read', async () => {
-    const formCopy = [{ owner: 'o', topic: 'form' }] as never;
+  it('lets a failed read of the newest list reach the caller', async () => {
     downloadPayload.mockRejectedValue(new Error('gateway timeout'));
 
-    await expect(readLatestEntriesOr(formCopy)).resolves.toBe(formCopy);
+    await expect(readLatestEntries()).rejects.toThrow('gateway timeout');
   });
 });

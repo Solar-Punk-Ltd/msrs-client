@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaType, StateEntry, StateType } from '@/types/stream';
 
-const { uploadFile, socUpload, readLatestEntriesOr } = vi.hoisted(() => ({
+const { uploadFile, socUpload, readLatestEntries } = vi.hoisted(() => ({
   uploadFile: vi.fn(),
   socUpload: vi.fn(),
-  readLatestEntriesOr: vi.fn(),
+  readLatestEntries: vi.fn(),
 }));
 
-vi.mock('@/utils/network/streamStateFeed', () => ({ readLatestEntriesOr }));
+vi.mock('@/utils/network/streamStateFeed', () => ({ readLatestEntries }));
 
 vi.mock('@ethersphere/bee-js', () => ({
   Bee: vi.fn().mockImplementation(() => ({
@@ -35,7 +35,7 @@ vi.mock('../shared/config', () => ({
 }));
 
 import { createStream } from './stream';
-import { streamListFullMessage } from './streamListCapacity';
+import { streamListFullMessage, streamListUnreadableMessage } from './streamListCapacity';
 
 const session = { userId: 'owner' } as never;
 const meta = {
@@ -59,15 +59,25 @@ describe('createStream', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     uploadFile.mockResolvedValue({ reference: { toHex: () => 'ref' } });
-    readLatestEntriesOr.mockImplementation(async (formCopy: StateEntry[]) => formCopy);
+    readLatestEntries.mockResolvedValue(listOf(9));
   });
 
   it('refuses when a place was taken after the form loaded its copy of the list', async () => {
-    readLatestEntriesOr.mockResolvedValueOnce(listOf(10));
+    readLatestEntries.mockResolvedValueOnce(listOf(10));
 
     await expect(createStream(session, meta, listOf(9))).rejects.toThrow(streamListFullMessage());
 
-    expect(readLatestEntriesOr).toHaveBeenCalledWith(listOf(9));
+    expect(readLatestEntries).toHaveBeenCalledTimes(1);
+    expect(uploadFile).not.toHaveBeenCalled();
+    expect(socUpload).not.toHaveBeenCalled();
+  });
+
+  it('refuses and says it could not check when the newest list cannot be read', async () => {
+    // Sending anyway could meet a full list, and the aggregator's refusal never reaches the browser.
+    readLatestEntries.mockRejectedValueOnce(new Error('gateway timeout'));
+
+    await expect(createStream(session, meta, listOf(9))).rejects.toThrow(streamListUnreadableMessage());
+
     expect(uploadFile).not.toHaveBeenCalled();
     expect(socUpload).not.toHaveBeenCalled();
   });

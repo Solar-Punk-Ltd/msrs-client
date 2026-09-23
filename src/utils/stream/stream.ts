@@ -2,12 +2,12 @@ import { Bee, Bytes, Identifier, PrivateKey } from '@ethersphere/bee-js';
 
 import { StreamMetadata } from '@/pages/StreamForm/StreamForm';
 import { ActionType, CreateMessage, DeleteMessage, StateEntry, StateType, UpdateMessage } from '@/types/stream';
-import { readLatestEntriesOr } from '@/utils/network/streamStateFeed';
+import { readLatestEntries } from '@/utils/network/streamStateFeed';
 
 import { createStreamAggregatorToken, Session } from '../auth/login';
 import { config } from '../shared/config';
 
-import { assertStreamListHasRoom } from './streamListCapacity';
+import { assertStreamListHasRoom, streamListUnreadableMessage } from './streamListCapacity';
 
 const bee = new Bee(config.writerBeeUrl);
 const gsocTopic = config.streamerGsocTopic;
@@ -54,7 +54,11 @@ export async function fetchThumbnail(ref: string, { url = true }): Promise<Blob 
 export async function createStream(session: Session, meta: StreamMetadata, formEntries: StateEntry[]) {
   assertStreamListHasRoom(formEntries);
   // Another creator can take the last place while this form is open, so the newest list decides as well.
-  assertStreamListHasRoom(await readLatestEntriesOr(formEntries));
+  // When it cannot be read the create stops, because a refusal from the aggregator never reaches here.
+  const newestEntries = await readLatestEntries().catch(() => {
+    throw new Error(streamListUnreadableMessage());
+  });
+  assertStreamListHasRoom(newestEntries);
 
   const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail as File) : '';
 
