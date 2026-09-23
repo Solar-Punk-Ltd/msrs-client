@@ -74,7 +74,8 @@ export function describeJob(job: UploaderJob): string {
   }
   if (copiedNothingNew) return `already on the stamp (${formatCount(r.skipped)} chunks), nothing to copy${where}`;
   const took = job.durationMs !== null ? `done in ${formatDuration(job.durationMs)} · ` : '';
-  return `${took}${formatCount(r.copied)} chunks (${formatCount(r.parity)} parity) · ${formatBytes(r.bytes)}${
+  const rebuilt = r.rebuilt ? ` · ${formatCount(r.rebuilt)} lost ${r.rebuilt === 1 ? 'chunk' : 'chunks'} rebuilt` : '';
+  return `${took}${formatCount(r.copied)} chunks (${formatCount(r.parity)} parity) · ${formatBytes(r.bytes)}${rebuilt}${
     r.failed ? ` · ${r.failed} failed` : ''
   }${where}`;
 }

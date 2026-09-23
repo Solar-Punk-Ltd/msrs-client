@@ -67,6 +67,29 @@ describe('describeJob', () => {
     expect(describeJob(j)).toBe('already on the stamp (5,258 chunks), nothing to copy');
   });
 
+  it('says how many chunks the network had lost and the archive rebuilt', () => {
+    // From v1.0.9 the service rebuilds a chunk lost from Swarm out of its parity group, which is what
+    // finished newver_c6's archive on ethis. Older services send no count and nothing is added.
+    const rebuiltRun = {
+      copied: 8,
+      skipped: 519896,
+      bytes: 32832,
+      parity: 39127,
+      failed: 0,
+      segments: 486,
+      chatUpdates: 0,
+      alreadyArchived: false,
+      archivePart: { moved: true },
+    };
+    const j = job({ durationMs: 7 * 60_000 + 43_000, result: { ...rebuiltRun, rebuilt: 8 } });
+    expect(describeJob(j)).toBe(
+      'done in 7m 43s · 8 chunks (39,127 parity) · 33 KB · 8 lost chunks rebuilt · moved into the archive part',
+    );
+    expect(describeJob(job({ durationMs: 7 * 60_000 + 43_000, result: rebuiltRun }))).toBe(
+      'done in 7m 43s · 8 chunks (39,127 parity) · 33 KB · moved into the archive part',
+    );
+  });
+
   it('says a repeat run left chunks failing instead of that there was nothing to copy', () => {
     // 2026-09-23 on ethis: newver_c6's second archive copied nothing and failed the same 8 chunks, and
     // this read "nothing to copy". Services before v1.0.9 flag such a run alreadyArchived, later ones do not.
