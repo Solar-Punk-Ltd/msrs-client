@@ -19,7 +19,13 @@ vi.mock('@/utils/shared/config', () => ({
   },
 }));
 
-import { INITIAL_READ_TIMEOUT_MS, POLL_TIMEOUT_MS, readLatestStreamState, readStreamStateAt } from './streamStateFeed';
+import {
+  INITIAL_READ_TIMEOUT_MS,
+  POLL_TIMEOUT_MS,
+  readLatestEntries,
+  readLatestStreamState,
+  readStreamStateAt,
+} from './streamStateFeed';
 
 const state = { entries: [], lastModified: 1 };
 const payload = { toUtf8: () => JSON.stringify(state) };
@@ -58,5 +64,21 @@ describe('stream state feed reads', () => {
     );
 
     await expect(readStreamStateAt(FeedIndex.fromBigInt(BigInt(9)))).resolves.toBeNull();
+  });
+
+  it('gives a create the entries of the newest published list', async () => {
+    const newest = { entries: [{ owner: 'o', topic: 'newest' }], lastModified: 2 };
+    downloadPayload.mockResolvedValue({
+      payload: { toUtf8: () => JSON.stringify(newest) },
+      feedIndex: FeedIndex.fromBigInt(BigInt(3)),
+    });
+
+    await expect(readLatestEntries()).resolves.toEqual(newest.entries);
+  });
+
+  it('lets a failed read of the newest list reach the caller', async () => {
+    downloadPayload.mockRejectedValue(new Error('gateway timeout'));
+
+    await expect(readLatestEntries()).rejects.toThrow('gateway timeout');
   });
 });

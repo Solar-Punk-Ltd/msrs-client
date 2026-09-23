@@ -7,8 +7,9 @@ import { AppContextProvider } from '@/providers/App/App';
 import { Provider as UserProvider } from '@/providers/User';
 import { WakuProvider } from '@/providers/Waku';
 import { MessageReceiveMode } from '@/types/messaging';
-import { MediaType } from '@/types/stream';
+import { MediaType, StateType } from '@/types/stream';
 import { createStream } from '@/utils/stream/stream';
+import { streamListCapacityMessage, streamListFullMessage } from '@/utils/stream/streamListCapacity';
 
 import { StreamForm } from './StreamForm';
 
@@ -162,16 +163,22 @@ const mockStreamList = [
   },
 ];
 
+const mockAppState: { streamList: Array<Record<string, unknown>>; isLoading: boolean; error: Error | null } = {
+  streamList: mockStreamList,
+  isLoading: false,
+  error: null,
+};
+
 vi.mock('@/providers/App/App', async () => {
   const actual = await vi.importActual('@/providers/App/App');
   return {
     ...actual,
     useAppContext: () => ({
-      streamList: mockStreamList,
+      streamList: mockAppState.streamList,
       refreshStreamList: mockRefreshStreamList,
-      isLoading: false,
+      isLoading: mockAppState.isLoading,
       isRefreshing: false,
-      error: null,
+      error: mockAppState.error,
       messageReceiveMode: MessageReceiveMode.SWARM,
       setNewStreamList: vi.fn(),
       fetchAppState: vi.fn(),
@@ -231,6 +238,9 @@ describe('StreamForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockValidateForm.mockReturnValue(null); // No validation errors by default
+    mockAppState.streamList = mockStreamList;
+    mockAppState.isLoading = false;
+    mockAppState.error = null;
   });
 
   describe('Create Mode', () => {
@@ -310,6 +320,65 @@ describe('StreamForm', () => {
       expect(screen.getByText('Preview')).toBeInTheDocument();
     });
 
+    it('warns the creator up front and does not allow a new stream when the list is full', () => {
+      mockAppState.streamList = Array.from({ length: 10 }, (_, i) => ({
+        topic: `full-${i}`,
+        owner: 'someone',
+        title: `Stream ${i}`,
+        mediaType: MediaType.VIDEO,
+        state: StateType.VOD,
+      }));
+
+      renderStreamForm();
+
+      expect(screen.getByText(streamListFullMessage())).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText('Preview'));
+
+      expect(screen.queryByText('Create Stream')).not.toBeInTheDocument();
+      expect(createStream).not.toHaveBeenCalled();
+    });
+
+    it('says it is still checking and does not allow a new stream while the list is loading', () => {
+      mockAppState.streamList = [];
+      mockAppState.isLoading = true;
+
+      renderStreamForm();
+
+      expect(screen.getByText(streamListCapacityMessage('checking')!)).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Preview'));
+      expect(screen.queryByText('Create Stream')).not.toBeInTheDocument();
+      expect(createStream).not.toHaveBeenCalled();
+    });
+
+    it('does not allow a new stream when the list could not be read', () => {
+      mockAppState.streamList = [];
+      mockAppState.error = new Error('feed read failed');
+
+      renderStreamForm();
+
+      expect(screen.getByText(streamListCapacityMessage('unknown')!)).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Preview'));
+      expect(screen.queryByText('Create Stream')).not.toBeInTheDocument();
+    });
+
+    it('does not count archived recordings when deciding the list is full', () => {
+      mockAppState.streamList = Array.from({ length: 12 }, (_, i) => ({
+        topic: `archived-${i}`,
+        owner: 'someone',
+        title: `Archived ${i}`,
+        mediaType: MediaType.VIDEO,
+        state: StateType.VOD,
+        isExternal: true,
+      }));
+
+      renderStreamForm();
+
+      expect(screen.queryByText(streamListFullMessage())).not.toBeInTheDocument();
+      fireEvent.click(screen.getByText('Preview'));
+      expect(screen.getByText('Create Stream')).toBeInTheDocument();
+    });
+
     it('creates stream when confirm is clicked in preview', async () => {
       const { createStream } = await import('@/utils/stream/stream');
 
@@ -319,14 +388,18 @@ describe('StreamForm', () => {
       fireEvent.click(screen.getByText('Create Stream'));
 
       await waitFor(() => {
-        expect(createStream).toHaveBeenCalledWith(mockSession, {
-          title: 'Test Stream',
-          description: 'Test Description',
-          thumbnail: null,
-          mediaType: MediaType.VIDEO,
-          scheduledStartTime: undefined,
-          tags: [],
-        });
+        expect(createStream).toHaveBeenCalledWith(
+          mockSession,
+          {
+            title: 'Test Stream',
+            description: 'Test Description',
+            thumbnail: null,
+            mediaType: MediaType.VIDEO,
+            scheduledStartTime: undefined,
+            tags: [],
+          },
+          mockStreamList,
+        );
       });
 
       expect(mockRefreshStreamList).toHaveBeenCalledWith();
@@ -418,7 +491,10 @@ describe('StreamForm', () => {
         </QueryClientProvider>,
       );
 
-      const file = new File(['test'.repeat(2000000)], 'large-image.jpg', { type: 'image/jpeg' });
+      // The check reads only the size, so the file claims 8 MB instead of holding it. Building 8 MB of
+      // text made this test take 7 to 17 s in a container and run past its 5 s limit.
+      const file = new File(['x'], 'large-image.jpg', { type: 'image/jpeg' });
+      Object.defineProperty(file, 'size', { value: 8_000_000 });
       const thumbnailField = screen.getByTestId('thumbnail-field');
 
       fireEvent.change(thumbnailField, { target: { files: [file] } });
