@@ -21,6 +21,7 @@ export interface StreamUploaderState {
   /** Streams whose action was clicked and not yet reflected by the service. */
   pending: Set<string>;
   archive: (topic: string) => Promise<void>;
+  moveToArchivePart: (topic: string) => Promise<void>;
   restore: (topic: string, external: boolean) => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -63,7 +64,8 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
       const failures = [streamsResult, batchesResult, jobsResult].filter(
         (r): r is PromiseRejectedResult => r.status === 'rejected',
       );
-      setError(failures.length ? failures.map((f) => describeError(f.reason)).join(' · ') : null);
+      const messages = new Set(failures.map((f) => describeError(f.reason)));
+      setError(messages.size ? [...messages].join(' · ') : null);
       if (streamsResult.status === 'fulfilled') {
         // A stream stops being pending once a refresh started after its click has reported on it.
         for (const [topic, since] of pendingSince.current) {
@@ -149,6 +151,8 @@ export function useStreamUploader(adminSecret: string | undefined): StreamUpload
     pending,
     refresh,
     archive: (topic) => start(topic, 'Archive', (secret) => uploaderService.archive(secret, topic)),
+    moveToArchivePart: (topic) =>
+      start(topic, 'Move to the archive part', (secret) => uploaderService.moveToArchivePart(secret, topic)),
     restore: (topic, external) => start(topic, 'Restore', (secret) => uploaderService.restore(secret, topic, external)),
   };
 }

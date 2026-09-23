@@ -10,9 +10,8 @@ import './StreamUploader.scss';
 
 export function StreamUploader() {
   const { session } = useUserContext();
-  const { streams, batches, jobs, isLoading, error, notice, pending, archive, restore } = useStreamUploader(
-    session?.serverKeys.nginx,
-  );
+  const { streams, batches, jobs, isLoading, error, notice, pending, archive, moveToArchivePart, restore } =
+    useStreamUploader(session?.serverKeys.nginx);
   const [restoreAsExternal, setRestoreAsExternal] = useState(true);
 
   return (
@@ -21,8 +20,9 @@ export function StreamUploader() {
         <header className="stream-uploader-header">
           <h2>Stream uploader</h2>
           <p className="stream-uploader-subtitle">
-            Archive copies a stream onto the archive stamp so it outlives the rotating slots. Restore puts an evicted
-            stream back on the list as it was.
+            Archive copies a stream onto the archive stamp so it outlives its postage, then moves a finished recording
+            into the archive part of the list, which frees its place. Restore puts an evicted stream back on the list as
+            it was.
           </p>
         </header>
 
@@ -52,6 +52,7 @@ export function StreamUploader() {
             pending={pending}
             restoreAsExternal={restoreAsExternal}
             onArchive={(topic) => void archive(topic)}
+            onMoveToArchivePart={(topic) => void moveToArchivePart(topic)}
             onRestore={(topic) => void restore(topic, restoreAsExternal)}
           />
         )}

@@ -1,8 +1,10 @@
+import { MemoryRouter } from 'react-router-dom';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import type { UploaderJob } from '@/utils/network/uploaderService';
 
-import { describeJob } from './JobsPanel';
+import { describeJob, JobsPanel } from './JobsPanel';
 
 const job = (over: Partial<UploaderJob>): UploaderJob => ({
   id: 'j',
@@ -81,5 +83,66 @@ describe('describeJob', () => {
     ).toBe('sent, but the list never showed it. Try again.');
     expect(describeJob(job({ status: 'failed', error: 'boom' }))).toBe('boom');
     expect(describeJob(job({ status: 'queued' }))).toBe('waiting for the previous job to finish');
+  });
+
+  it('says where a finished archive left the recording', () => {
+    const copied = {
+      copied: 10,
+      skipped: 0,
+      bytes: 1e6,
+      parity: 1,
+      failed: 0,
+      segments: 2,
+      chatUpdates: 0,
+      alreadyArchived: false,
+    };
+    expect(describeJob(job({ result: { ...copied, archivePart: { moved: true } } }))).toBe(
+      'done in 18m 0s · 10 chunks (1 parity) · 1.0 MB · moved into the archive part',
+    );
+    expect(
+      describeJob(
+        job({
+          result: { ...copied, archivePart: { moved: false, reason: 'it is still live, it moves once it has ended' } },
+        }),
+      ),
+    ).toBe(
+      'done in 18m 0s · 10 chunks (1 parity) · 1.0 MB · stays in its place: it is still live, it moves once it has ended',
+    );
+  });
+
+  it('describes a move end to end', () => {
+    expect(describeJob(job({ type: 'move', status: 'running', phase: 'confirming' }))).toBe(
+      'sent, waiting for the list to show it in the archive part',
+    );
+    expect(describeJob(job({ type: 'move', result: { archivePart: { moved: true } } }))).toBe(
+      'moved into the archive part',
+    );
+    expect(
+      describeJob(
+        job({
+          type: 'move',
+          result: { archivePart: { moved: false, alreadyThere: true, reason: 'already in the archive part' } },
+        }),
+      ),
+    ).toBe('already in the archive part');
+  });
+});
+
+describe('JobsPanel', () => {
+  it('labels each kind of job', () => {
+    render(
+      <MemoryRouter>
+        <JobsPanel
+          jobs={[
+            job({ id: 'a', type: 'restamp' }),
+            job({ id: 'b', type: 'move', result: { archivePart: { moved: true } } }),
+            job({ id: 'c', type: 'restore', status: 'queued' }),
+          ]}
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Archive')).toBeInTheDocument();
+    expect(screen.getByText('Move')).toBeInTheDocument();
+    expect(screen.getByText('Restore')).toBeInTheDocument();
   });
 });

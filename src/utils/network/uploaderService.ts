@@ -3,7 +3,7 @@ import { createNodeHeaders } from '@/utils/stream/node';
 
 export type SizeState = 'measured' | 'measuring' | 'pending' | 'unavailable';
 export type ArchivedState = 'complete' | 'partial' | 'none';
-export type UploaderJobType = 'restamp' | 'restore';
+export type UploaderJobType = 'restamp' | 'move' | 'restore';
 export type UploaderJobStatus = 'queued' | 'running' | 'done' | 'failed';
 
 export interface StreamSize {
@@ -75,8 +75,22 @@ export interface BatchOverview {
   chatError?: string | null;
 }
 
+/** Where an archived recording ended up on the list. */
+export interface ArchivePartOutcome {
+  moved: boolean;
+  /** It was in the archive part already, so nothing was sent. */
+  alreadyThere?: boolean;
+  reason?: string;
+}
+
 export interface ArchiveResult extends JobProgress {
   alreadyArchived: boolean;
+  /** Absent when the copy had failures, which leaves the recording in its place, and from services before v1.0.8. */
+  archivePart?: ArchivePartOutcome;
+}
+
+export interface MoveResult {
+  archivePart: ArchivePartOutcome;
 }
 
 export interface RestoreResult {
@@ -102,7 +116,7 @@ export interface UploaderJob {
   progress: JobProgress | null;
   expectedChunks: number | null;
   error: string | null;
-  result: ArchiveResult | RestoreResult | null;
+  result: ArchiveResult | MoveResult | RestoreResult | null;
   /** Set on the answer to a job request that matched a job already running for that stream. */
   deduplicated?: boolean;
 }
@@ -130,6 +144,8 @@ export const uploaderService = {
   jobs: (adminSecret: string) => request<UploaderJob[]>(adminSecret, '/jobs'),
   archive: (adminSecret: string, topic: string) =>
     request<UploaderJob>(adminSecret, '/jobs', { method: 'POST', body: JSON.stringify({ type: 'restamp', topic }) }),
+  moveToArchivePart: (adminSecret: string, topic: string) =>
+    request<UploaderJob>(adminSecret, '/jobs', { method: 'POST', body: JSON.stringify({ type: 'move', topic }) }),
   restore: (adminSecret: string, topic: string, external: boolean) =>
     request<UploaderJob>(adminSecret, '/jobs', {
       method: 'POST',
