@@ -1,6 +1,6 @@
 import { Bee, BeeResponseError, FeedIndex, Topic } from '@ethersphere/bee-js';
 
-import { StateArrayWithTimestamp } from '@/types/stream';
+import { StateArrayWithTimestamp, StateEntry } from '@/types/stream';
 import { config } from '@/utils/shared/config';
 
 /**
@@ -35,6 +35,18 @@ export async function readLatestStreamState(): Promise<StreamStateAtIndex> {
     state: JSON.parse(update.payload.toUtf8()) as StateArrayWithTimestamp,
     index: update.feedIndex,
   };
+}
+
+/**
+ * Entries of the newest published list, or `fallback` when that read fails. A create checks this
+ * rather than the copy a form loaded when it opened, which can be minutes old by the time it is sent.
+ */
+export async function readLatestEntriesOr(fallback: StateEntry[]): Promise<StateEntry[]> {
+  try {
+    return (await readLatestStreamState()).state.entries;
+  } catch {
+    return fallback;
+  }
 }
 
 /**

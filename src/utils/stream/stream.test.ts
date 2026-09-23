@@ -2,10 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MediaType, StateEntry, StateType } from '@/types/stream';
 
-const { uploadFile, socUpload } = vi.hoisted(() => ({
+const { uploadFile, socUpload, readLatestEntriesOr } = vi.hoisted(() => ({
   uploadFile: vi.fn(),
   socUpload: vi.fn(),
+  readLatestEntriesOr: vi.fn(),
 }));
+
+vi.mock('@/utils/network/streamStateFeed', () => ({ readLatestEntriesOr }));
 
 vi.mock('@ethersphere/bee-js', () => ({
   Bee: vi.fn().mockImplementation(() => ({
@@ -56,6 +59,17 @@ describe('createStream', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     uploadFile.mockResolvedValue({ reference: { toHex: () => 'ref' } });
+    readLatestEntriesOr.mockImplementation(async (formCopy: StateEntry[]) => formCopy);
+  });
+
+  it('refuses when a place was taken after the form loaded its copy of the list', async () => {
+    readLatestEntriesOr.mockResolvedValueOnce(listOf(10));
+
+    await expect(createStream(session, meta, listOf(9))).rejects.toThrow(streamListFullMessage());
+
+    expect(readLatestEntriesOr).toHaveBeenCalledWith(listOf(9));
+    expect(uploadFile).not.toHaveBeenCalled();
+    expect(socUpload).not.toHaveBeenCalled();
   });
 
   it('refuses before uploading anything when the stream list is full', async () => {

@@ -19,7 +19,13 @@ vi.mock('@/utils/shared/config', () => ({
   },
 }));
 
-import { INITIAL_READ_TIMEOUT_MS, POLL_TIMEOUT_MS, readLatestStreamState, readStreamStateAt } from './streamStateFeed';
+import {
+  INITIAL_READ_TIMEOUT_MS,
+  POLL_TIMEOUT_MS,
+  readLatestEntriesOr,
+  readLatestStreamState,
+  readStreamStateAt,
+} from './streamStateFeed';
 
 const state = { entries: [], lastModified: 1 };
 const payload = { toUtf8: () => JSON.stringify(state) };
@@ -58,5 +64,22 @@ describe('stream state feed reads', () => {
     );
 
     await expect(readStreamStateAt(FeedIndex.fromBigInt(BigInt(9)))).resolves.toBeNull();
+  });
+
+  it('gives a create the entries of the newest published list', async () => {
+    const newest = { entries: [{ owner: 'o', topic: 'newest' }], lastModified: 2 };
+    downloadPayload.mockResolvedValue({
+      payload: { toUtf8: () => JSON.stringify(newest) },
+      feedIndex: FeedIndex.fromBigInt(BigInt(3)),
+    });
+
+    await expect(readLatestEntriesOr([])).resolves.toEqual(newest.entries);
+  });
+
+  it('hands back the copy it was given when the newest list cannot be read', async () => {
+    const formCopy = [{ owner: 'o', topic: 'form' }] as never;
+    downloadPayload.mockRejectedValue(new Error('gateway timeout'));
+
+    await expect(readLatestEntriesOr(formCopy)).resolves.toBe(formCopy);
   });
 });

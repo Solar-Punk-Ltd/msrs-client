@@ -2,6 +2,7 @@ import { Bee, Bytes, Identifier, PrivateKey } from '@ethersphere/bee-js';
 
 import { StreamMetadata } from '@/pages/StreamForm/StreamForm';
 import { ActionType, CreateMessage, DeleteMessage, StateEntry, StateType, UpdateMessage } from '@/types/stream';
+import { readLatestEntriesOr } from '@/utils/network/streamStateFeed';
 
 import { createStreamAggregatorToken, Session } from '../auth/login';
 import { config } from '../shared/config';
@@ -50,8 +51,10 @@ export async function fetchThumbnail(ref: string, { url = true }): Promise<Blob 
   }
 }
 
-export async function createStream(session: Session, meta: StreamMetadata, currentEntries: StateEntry[]) {
-  assertStreamListHasRoom(currentEntries);
+export async function createStream(session: Session, meta: StreamMetadata, formEntries: StateEntry[]) {
+  assertStreamListHasRoom(formEntries);
+  // Another creator can take the last place while this form is open, so the newest list decides as well.
+  assertStreamListHasRoom(await readLatestEntriesOr(formEntries));
 
   const ref = meta.thumbnail ? await uploadThumbnail(meta.thumbnail as File) : '';
 
