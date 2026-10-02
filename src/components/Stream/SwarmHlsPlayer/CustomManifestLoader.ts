@@ -1,7 +1,13 @@
 import type { HlsConfig, Loader, LoaderCallbacks, LoaderConfiguration, PlaylistLoaderContext } from 'hls.js';
 import Hls from 'hls.js';
 
-import { ManifestFetcher, ManifestStateManager, StreamMetadata } from './ManifestManagement';
+import {
+  isServedOverBzz,
+  ManifestFetcher,
+  ManifestStateManager,
+  StreamMetadata,
+  toBzzSegmentUrls,
+} from './ManifestManagement';
 
 const manifestFetcher = new ManifestFetcher();
 const stateManager = ManifestStateManager.getInstance();
@@ -30,7 +36,7 @@ export class CustomManifestLoader extends PlaylistLoader {
         .then((manifest) => {
           const response = {
             url: context.url,
-            data: manifest,
+            data: isServedOverBzz() ? toBzzSegmentUrls(manifest) : manifest,
             code: 200,
           };
           callbacks.onSuccess(response, this.stats, context, undefined);
