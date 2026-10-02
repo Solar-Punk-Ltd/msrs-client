@@ -18,6 +18,28 @@ export interface StreamMetadata {
 
 const EXTERNAL_DEFAULT_INDEX = 1;
 
+// A segment line naming a gateway's `/bytes/<ref>`, with a plain (64 hex) or encrypted (128 hex) reference.
+const GATEWAY_SEGMENT_LINE = /^https?:\/\/\S*\/bytes\/([0-9a-f]{64}(?:[0-9a-f]{64})?)\/?$/i;
+
+/** True when the page itself was loaded over `bzz:`, which means a browser with its own Swarm node (Freedom). */
+export function isServedOverBzz(): boolean {
+  return typeof window !== 'undefined' && window.location.protocol === 'bzz:';
+}
+
+/**
+ * Point every segment at `bzz://<ref>/` so the browser's own node serves it rather than the gateway the
+ * streamer wrote into the manifest (issue #32). Header and tag lines pass through unchanged.
+ */
+export function toBzzSegmentUrls(manifest: string): string {
+  return manifest
+    .split('\n')
+    .map((line) => {
+      const match = GATEWAY_SEGMENT_LINE.exec(line.trim());
+      return match ? `bzz://${match[1].toLowerCase()}/` : line;
+    })
+    .join('\n');
+}
+
 const manifestQueue = new Pqueue({
   concurrency: 1,
 });

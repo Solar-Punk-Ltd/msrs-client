@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StateType } from '@/types/stream';
 import { makeFeedIdentifier } from '@/utils/network/bee';
 
-import { ManifestFetcher, ManifestStateManager } from './ManifestManagement';
+import { ManifestFetcher, ManifestStateManager, toBzzSegmentUrls } from './ManifestManagement';
 
 vi.mock('@/utils/shared/config', () => ({
   config: { readerBeeUrl: 'http://reader' },
@@ -76,5 +76,45 @@ describe('ManifestFetcher initial fetch', () => {
     await new ManifestFetcher(stateManager, 'http://reader').fetch(`${OWNER}/${TOPIC}`);
 
     expect(requestedPath()).toContain(socPathFor(FINAL_INDEX));
+  });
+});
+
+describe('toBzzSegmentUrls', () => {
+  const REF = '25c0574ecdf0cea3eae9d4b8be569fca3bf9356ce9a759b9150f30a38fcd2a7c';
+
+  it('points gateway segments at bzz:// and keeps tag lines', () => {
+    const manifest = [
+      '#EXTM3U',
+      '#EXT-X-TARGETDURATION:2',
+      '#EXTINF:2.000000,',
+      `https://swarm.beebridge.buzz/read/bytes/${REF}`,
+      '#EXTINF:2.000000,',
+      `http://127.0.0.1:1633/bytes/${REF.toUpperCase()}/`,
+      '#EXT-X-ENDLIST',
+    ].join('\n');
+
+    expect(toBzzSegmentUrls(manifest)).toBe(
+      [
+        '#EXTM3U',
+        '#EXT-X-TARGETDURATION:2',
+        '#EXTINF:2.000000,',
+        `bzz://${REF}/`,
+        '#EXTINF:2.000000,',
+        `bzz://${REF}/`,
+        '#EXT-X-ENDLIST',
+      ].join('\n'),
+    );
+  });
+
+  it('keeps encrypted references whole', () => {
+    const encrypted = REF + REF;
+    expect(toBzzSegmentUrls(`https://gw/bytes/${encrypted}`)).toBe(`bzz://${encrypted}/`);
+  });
+
+  it('leaves lines that are not a bytes reference alone', () => {
+    const lines = [`https://gw/bzz/${REF}/`, `https://gw/bytes/${REF.slice(1)}`, `https://gw/bytes/${REF}/seg.ts`];
+    for (const line of lines) {
+      expect(toBzzSegmentUrls(line)).toBe(line);
+    }
   });
 });

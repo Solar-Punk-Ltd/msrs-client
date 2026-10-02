@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Topic } from '@ethersphere/bee-js';
-import Hls, { ErrorDetails, ErrorTypes, Events } from 'hls.js';
+import Hls, { ErrorDetails, ErrorTypes, Events, FetchLoader } from 'hls.js';
 
 import { InputLoading } from '@/components/InputLoading/InputLoading';
 import { MediaType, StateType } from '@/types/stream';
 
 import { clearStreamMetadata, CustomManifestLoader, setStreamMetadata } from './CustomManifestLoader';
+import { isServedOverBzz } from './ManifestManagement';
 
 import './SwarmHlsPlayer.scss';
 
@@ -59,6 +60,8 @@ export const SwarmHlsPlayer: React.FC<HlsPlayerProps> = ({
     if (Hls.isSupported()) {
       hls = new Hls({
         pLoader: CustomManifestLoader,
+        // Segments become `bzz://` URLs under Freedom, which registers that scheme for fetch.
+        ...(isServedOverBzz() && { loader: FetchLoader }),
         liveSyncDuration: 10,
         liveMaxLatencyDuration: 30,
         maxBufferLength: 60,
